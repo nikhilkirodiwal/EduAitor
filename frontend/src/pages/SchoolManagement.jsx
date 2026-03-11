@@ -85,7 +85,7 @@ const SchoolManagement = () => {
 
           toast.success("School updated");
 
-          navigate(`/school-view/${editingId}`);
+          navigate(`/admin/school-view/${editingId}`);
         } else {
           res = await axios.post(`${API}/schools`, form);
 
@@ -93,7 +93,7 @@ const SchoolManagement = () => {
 
           const newSchoolId = res.data.data._id;
 
-          navigate(`/school-view/${newSchoolId}`);
+          navigate(`/admin/school-view/${newSchoolId}`);
         }
 
         setShowModal(false);
@@ -230,7 +230,7 @@ const SchoolManagement = () => {
 
                 <td className="p-4 flex justify-end gap-4">
                   <button
-                    onClick={() => navigate(`/school-view/${school._id}`)}
+                    onClick={() => navigate(`/admin/school-view/${school._id}`)}
                     className="text-indigo-600 hover:scale-110"
                   >
                     <FaEye />
