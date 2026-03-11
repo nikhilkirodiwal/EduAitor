@@ -2,6 +2,18 @@ import Student from "../models/student.js";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import { deleteFromCloudinary } from "../utils/deleteFromCloudinary.js";
 
+/* ================= GENERATE TEACHER ID ================= */
+
+const generateStudentId = async () => {
+
+  const count = await Student.countDocuments();
+
+  const next = count + 1;
+
+  return `STU${String(next).padStart(4,"0")}`;
+
+};
+
 /* ================= CREATE STUDENT ================= */
 
 export const createStudent = async (req, res) => {
@@ -33,8 +45,11 @@ export const createStudent = async (req, res) => {
     await uploadFile("fatherAadhar", "documents");
     await uploadFile("motherAadhar", "documents");
 
+    const studentId = await generateStudentId();
+
     const student = await Student.create({
       ...req.body,
+      studentId,
       documents,
     });
 

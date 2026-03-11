@@ -7,17 +7,21 @@ const API = import.meta.env.VITE_API_URL;
 const SchoolDashboard = () => {
 
   const [students,setStudents] = useState([]);
+  const [teachers,setTeachers] = useState([]);
 
   const fetchStudents = async () => {
-
     const res = await axios.get(`${API}/students`);
-
     setStudents(res.data.data);
-
   };
+
+  const fetchTeachers = async () => {
+    const res = await axios.get(`${API}/teachers`);
+    setTeachers(res.data.data);
+  }
 
   useEffect(()=>{
     fetchStudents();
+    fetchTeachers();
   },[]);
 
   return (
@@ -38,7 +42,7 @@ const SchoolDashboard = () => {
 
         <Card
           title="Teachers"
-          value="Coming Soon"
+          value={teachers.length}
           icon={<FaChalkboardTeacher />}
         />
 

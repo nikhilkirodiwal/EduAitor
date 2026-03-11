@@ -7,6 +7,7 @@ import {
   FaChevronRight,
   FaSignOutAlt,
 } from "react-icons/fa";
+import { GiTeacher } from "react-icons/gi";
 
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
@@ -91,6 +92,34 @@ const Sidebar = () => {
         },
       ],
     },
+    {
+      name: "Teacher Management",
+      icon: <GiTeacher />,
+      children: [
+        {
+          name: "All Teachers",
+          path: "/school/teachers",
+        },
+        {
+          name: "Add Teacher",
+          path: "/school/teacher-manage",
+        },
+      ],
+    },
+    {
+      name: "Class Management",
+      icon: <GiTeacher />,
+      children: [
+        {
+          name: "Class",
+          path: "/school/class",
+        },
+        {
+          name: "Section",
+          path: "/school/section",
+        },
+      ],
+    },
   ];
 
   const menu = role === "super_admin" ? superAdminMenu : schoolAdminMenu;
@@ -104,7 +133,7 @@ const Sidebar = () => {
       {/* LOGO */}
 
       <div className="p-6 border-b">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-indigo-500 bg-clip-text text-transparent">
+        <h1 className="text-2xl font-bold bg-linear-to-r from-purple-500 to-indigo-500 bg-clip-text text-transparent">
           EduAitor
         </h1>
 

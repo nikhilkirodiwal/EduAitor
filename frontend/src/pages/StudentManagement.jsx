@@ -90,7 +90,7 @@ const StudentManagement = () => {
             ? student.admissionDate.split("T")[0]
             : "",
         });
-        
+
       } catch {
         toast.error("Failed to load student");
       }
@@ -658,7 +658,7 @@ const StudentManagement = () => {
 
       {confirmOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 w-[400px]">
+          <div className="bg-white rounded-xl p-6 w-100">
             <h3 className="text-lg font-semibold mb-2">Confirmation</h3>
 
             <p className="text-gray-600 mb-6">{confirmMessage}</p>

@@ -456,7 +456,7 @@ const SchoolManagement = () => {
 
       {confirmModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-[350px] shadow-lg">
+          <div className="bg-white rounded-lg p-6 w-87.5 shadow-lg">
             <p className="text-lg mb-6">{confirmMessage}</p>
 
             <div className="flex justify-end gap-3">

@@ -13,6 +13,11 @@ const studentSchema = new mongoose.Schema(
     gender: String,
     bloodGroup: String,
     admissionDate: Date,
+    
+    studentId: {
+      type: String,
+      unique: true,
+    },
 
     fatherName: String,
     fatherMobile: String,
@@ -52,7 +57,7 @@ const studentSchema = new mongoose.Schema(
       motherAadhar: fileSchema,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Student", studentSchema);

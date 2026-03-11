@@ -15,6 +15,9 @@ import SchoolDashboard from "./pages/SchoolDashboard";
 import Students from "./pages/Students";
 import StudentManagement from "./pages/StudentManagement";
 import StudentView from "./components/StudentView";
+import Teachers from "./pages/Teachers";
+import TeacherManagement from "./pages/TeacherManagement";
+import TeacherView from "./components/TeacherView";
 
 const App = () => {
   return (
@@ -59,6 +62,10 @@ const App = () => {
         <Route path="student-manage" element={<StudentManagement />} />
         <Route path="student-manage/:id" element={<StudentManagement />} />
         <Route path="student-view/:id" element={<StudentView />}/>
+        <Route path="teachers" element={<Teachers />} />
+        <Route path="teacher-manage" element={<TeacherManagement />} />
+        <Route path="teacher-manage/:id" element={<TeacherManagement />} />
+        <Route path="teacher-view/:id" element={<TeacherView />} />
 
         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
       </Route>

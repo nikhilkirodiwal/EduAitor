@@ -100,7 +100,7 @@ const Students = () => {
         <select
           value={selectedClass}
           onChange={(e) => setSelectedClass(e.target.value)}
-          className="border rounded-lg px-4 py-2 w-[300px]"
+          className="border rounded-lg px-4 py-2 w-75"
         >
           <option value="">-- Select a Class --</option>
 
@@ -119,7 +119,7 @@ const Students = () => {
 
         <button
           onClick={() => navigate("/school/student-manage")}
-          className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-5 py-2 rounded-lg shadow"
+          className="flex items-center gap-2 bg-linear-to-r from-indigo-500 to-purple-500 text-white px-5 py-2 rounded-lg shadow"
         >
           <FaPlus />
           New Admission
@@ -128,9 +128,9 @@ const Students = () => {
 
       {/* DIRECTORY BOX */}
 
-      <div className="bg-white rounded-xl shadow p-8 min-h-[250px]">
+      <div className="bg-white rounded-xl shadow p-8 min-h-62.5">
         {!selectedClass && (
-          <div className="flex flex-col items-center justify-center h-[200px] text-gray-400">
+          <div className="flex flex-col items-center justify-center h-50 text-gray-400">
             <img
               src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png"
               className="w-12 mb-3 opacity-50"
