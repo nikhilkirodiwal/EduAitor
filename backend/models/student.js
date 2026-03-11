@@ -1,0 +1,58 @@
+import mongoose from "mongoose";
+
+const fileSchema = new mongoose.Schema({
+  url: String,
+  public_id: String,
+});
+
+const studentSchema = new mongoose.Schema(
+  {
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    dob: Date,
+    gender: String,
+    bloodGroup: String,
+    admissionDate: Date,
+
+    fatherName: String,
+    fatherMobile: String,
+    fatherEmail: String,
+
+    motherName: String,
+    motherMobile: String,
+    motherEmail: String,
+
+    guardianName: String,
+    guardianMobile: String,
+    guardianRelation: String,
+
+    address: String,
+
+    className: String,
+    section: String,
+    rollNo: String,
+    studentType: String,
+
+    totalFee: Number,
+    discountType: String,
+    discountValue: Number,
+    finalFee: Number,
+
+    documents: {
+      studentPhoto: fileSchema,
+      fatherPhoto: fileSchema,
+      motherPhoto: fileSchema,
+      guardianPhoto: fileSchema,
+
+      birthCertificate: fileSchema,
+      transferCertificate: fileSchema,
+
+      studentAadhar: fileSchema,
+      fatherAadhar: fileSchema,
+      motherAadhar: fileSchema,
+    },
+  },
+  { timestamps: true }
+);
+
+export default mongoose.model("Student", studentSchema);
