@@ -114,7 +114,8 @@ export default function Login() {
             >
               Login to Admin Panel
             </button>
-            <p className="text-center">demo: super@admin.com / admin</p>
+            <p className="text-center">admin demo: super@admin.com / admin</p>
+            <p className="text-center">school demo: super@admin.com / admin</p>
           </form>
         </div>
       </div>
