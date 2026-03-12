@@ -19,9 +19,9 @@ import Teachers from "./pages/Teachers";
 import TeacherManagement from "./pages/TeacherManagement";
 import TeacherView from "./components/TeacherView";
 import SectionManagement from "./pages/SectionManagement";
-import Classes from "./pages/classes";
-import Subjects from "./pages/subjects";
+import Class from "./pages/Class";
 import ClassView from "./components/ClassView";
+import Subject from "./pages/Subject";
 
 const App = () => {
   return (
@@ -71,9 +71,9 @@ const App = () => {
         <Route path="teacher-manage/:id" element={<TeacherManagement />} />
         <Route path="teacher-view/:id" element={<TeacherView />} />
         <Route path="section" element={<SectionManagement />} />
-        <Route path="class" element={<Classes />} />
+        <Route path="class" element={<Class />} />
         <Route path="class-view/:id" element={<ClassView />} />
-        <Route path="subject" element={<Subjects />} />
+        <Route path="subject" element={<Subject />} />
 
         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
       </Route>

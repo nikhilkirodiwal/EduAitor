@@ -15,7 +15,7 @@ import { useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
 
-export default function Classes() {
+export default function Class() {
   const navigate = useNavigate();
   const [classes, setClasses] = useState([]);
   const [sections, setSections] = useState([]);

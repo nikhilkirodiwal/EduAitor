@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
 
-export default function Subjects() {
+export default function Subject() {
   const [subjects, setSubjects] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);

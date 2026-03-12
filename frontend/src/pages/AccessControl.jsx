@@ -13,7 +13,7 @@ const modules = [
   "students",
   "teachers",
   "parents",
-  "classes",
+  "class",
   "attendance",
   "exams",
   "timetable",
