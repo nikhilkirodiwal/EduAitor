@@ -8,6 +8,7 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import { GiTeacher } from "react-icons/gi";
+import { HiAcademicCap } from "react-icons/hi2";
 
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
@@ -107,8 +108,8 @@ const Sidebar = () => {
       ],
     },
     {
-      name: "Class Management",
-      icon: <GiTeacher />,
+      name: "Academics",
+      icon: <HiAcademicCap />,
       children: [
         {
           name: "Class",
@@ -117,6 +118,10 @@ const Sidebar = () => {
         {
           name: "Section",
           path: "/school/section",
+        },
+        {
+          name: "Subjects",
+          path: "/school/subject",
         },
       ],
     },

@@ -31,6 +31,9 @@ import subscriptionRoutes from "./routes/subscriptionRoute.js";
 
 import studentRoutes from "./routes/studentRoute.js";
 import teacherRoutes from "./routes/teacherRoute.js";
+import sectionRoute from "./routes/sectionRoute.js";
+import classRoute from "./routes/classRoute.js";
+import subjectRoute from "./routes/subjectRoute.js";
 
 
 app.use("/api/auth", authRoutes);
@@ -40,8 +43,11 @@ app.use("/api/roles", roleRoutes);
 app.use("/api/schools", schoolRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 
-app.use("/api/students",studentRoutes);
-app.use("/api/teachers",teacherRoutes);
+app.use("/api/students", studentRoutes);
+app.use("/api/teachers", teacherRoutes);
+app.use("/api/sections", sectionRoute);
+app.use("/api/classes", classRoute);
+app.use("/api/subjects", subjectRoute);
 
 // Error middleware
 app.use(errorHandler);
