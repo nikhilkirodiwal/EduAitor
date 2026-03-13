@@ -6,6 +6,7 @@ import {
   FaChevronDown,
   FaChevronRight,
   FaSignOutAlt,
+  FaClock,
 } from "react-icons/fa";
 import { GiTeacher } from "react-icons/gi";
 import { HiAcademicCap } from "react-icons/hi2";
@@ -125,6 +126,11 @@ const Sidebar = () => {
         },
       ],
     },
+    {
+      name: "Timetable",
+      icon: <FaClock />,
+      path: "/school/timetable",
+    },
   ];
 
   const menu = role === "super_admin" ? superAdminMenu : schoolAdminMenu;
@@ -236,7 +242,7 @@ const Sidebar = () => {
             >
               <span className="text-lg">{item.icon}</span>
 
-              <span className="text-sm">{item.name}</span>
+              <span className="text-sm font-semibold">{item.name}</span>
             </div>
           );
         })}

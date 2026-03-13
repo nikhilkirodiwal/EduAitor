@@ -34,6 +34,7 @@ import teacherRoutes from "./routes/teacherRoute.js";
 import sectionRoute from "./routes/sectionRoute.js";
 import classRoute from "./routes/classRoute.js";
 import subjectRoute from "./routes/subjectRoute.js";
+import timetableRoute from "./routes/timetableRoute.js";
 
 
 app.use("/api/auth", authRoutes);
@@ -48,6 +49,7 @@ app.use("/api/teachers", teacherRoutes);
 app.use("/api/sections", sectionRoute);
 app.use("/api/classes", classRoute);
 app.use("/api/subjects", subjectRoute);
+app.use("/api/timetable", timetableRoute);
 
 // Error middleware
 app.use(errorHandler);

@@ -22,6 +22,7 @@ import SectionManagement from "./pages/SectionManagement";
 import Class from "./pages/Class";
 import ClassView from "./components/ClassView";
 import Subject from "./pages/Subject";
+import TimeTable from "./pages/TimeTable";
 
 const App = () => {
   return (
@@ -74,6 +75,7 @@ const App = () => {
         <Route path="class" element={<Class />} />
         <Route path="class-view/:id" element={<ClassView />} />
         <Route path="subject" element={<Subject />} />
+        <Route path="timetable" element={<TimeTable />} />
 
         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
       </Route>
