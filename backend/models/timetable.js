@@ -16,34 +16,48 @@ const periodEntrySchema = new mongoose.Schema({
     ref: "Teacher"
   },
 
+  substituteTeacherId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Teacher",
+    default: null
+  },
+
+  customName: String,
+
   type: {
     type: String,
-    enum: ["subject", "activity", "break", "free"],
-    default: "subject"
+    enum: ["lecture", "activity", "lunch", "free"],
+    default: "lecture"
+  },
+
+  status: {
+    type: String,
+    enum: ["normal", "no-teacher", "teacher-absent"],
+    default: "normal"
   }
 });
 
 const dayScheduleSchema = new mongoose.Schema({
-  day: {
-    type: String,
-    required: true
-  },
-
+  day: String,
   periods: [periodEntrySchema]
+});
+
+const periodConfigSchema = new mongoose.Schema({
+  id: String,
+  name: String,
+  start: String,
+  end: String
 });
 
 const timetableSchema = new mongoose.Schema({
   classId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",
-    required: true
+    required: true,
+    unique: true
   },
 
-  sectionId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Section",
-    required: true
-  },
+  periodConfigs: [periodConfigSchema],
 
   schedule: [dayScheduleSchema]
 

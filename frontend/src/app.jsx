@@ -23,6 +23,7 @@ import Class from "./pages/Class";
 import ClassView from "./components/ClassView";
 import Subject from "./pages/Subject";
 import TimeTable from "./pages/TimeTable";
+import FeeStructure from "./pages/FeeStructure"
 
 const App = () => {
   return (
@@ -76,6 +77,7 @@ const App = () => {
         <Route path="class-view/:id" element={<ClassView />} />
         <Route path="subject" element={<Subject />} />
         <Route path="timetable" element={<TimeTable />} />
+        <Route path="fee-structure" element={<FeeStructure />} />
 
         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
       </Route>
