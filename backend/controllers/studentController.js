@@ -2,35 +2,48 @@ import Student from "../models/student.js";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import { deleteFromCloudinary } from "../utils/deleteFromCloudinary.js";
 
-/* ================= GENERATE TEACHER ID ================= */
+/* ================= GENERATE STUDENT ID ================= */
 
 const generateStudentId = async () => {
+  const lastStudent = await Student.findOne().sort({ createdAt: -1 });
 
-  const count = await Student.countDocuments();
+  let next = 1;
 
-  const next = count + 1;
+  if (lastStudent?.studentId) {
+    next = parseInt(lastStudent.studentId.replace("STU", "")) + 1;
+  }
 
-  return `STU${String(next).padStart(4,"0")}`;
-
+  return `STU${String(next).padStart(4, "0")}`;
 };
 
 /* ================= CREATE STUDENT ================= */
 
 export const createStudent = async (req, res) => {
   try {
-    const files = req.files || {};
+    const {
+      _id,
+      __v,
+      createdAt,
+      updatedAt,
+      studentId: incomingId,
+      ...safeBody
+    } = req.body;
 
+    console.log("BODY:", req.body);
+    console.log("FILES:", req.files);
+
+    const files = req.files || {};
     const documents = {};
 
     const uploadFile = async (field, folder) => {
-      if (files[field]) {
-        const uploaded = await uploadToCloudinary(files[field][0], folder);
+      if (!files[field] || !files[field][0]) return;
 
-        documents[field] = {
-          url: uploaded.url,
-          public_id: uploaded.public_id,
-        };
-      }
+      const uploaded = await uploadToCloudinary(files[field][0], folder);
+
+      documents[field] = {
+        url: uploaded.url,
+        public_id: uploaded.public_id,
+      };
     };
 
     await uploadFile("studentPhoto", "students");
@@ -48,7 +61,7 @@ export const createStudent = async (req, res) => {
     const studentId = await generateStudentId();
 
     const student = await Student.create({
-      ...req.body,
+      ...safeBody,
       studentId,
       documents,
     });
@@ -59,6 +72,7 @@ export const createStudent = async (req, res) => {
       data: student,
     });
   } catch (error) {
+    console.log(error)
     res.status(500).json({
       success: false,
       message: error.message,
@@ -126,7 +140,7 @@ export const updateStudent = async (req, res) => {
     const documents = student.documents || {};
 
     const updateFile = async (field, folder) => {
-      if (files[field]) {
+      if (files[field] && files[field][0]) {
         if (documents[field]?.public_id) {
           await deleteFromCloudinary(documents[field].public_id);
         }

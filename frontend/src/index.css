@@ -3,3 +3,22 @@
 .input {
   @apply w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none;
 }
+
+/* Sidebar Scrollbar */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}

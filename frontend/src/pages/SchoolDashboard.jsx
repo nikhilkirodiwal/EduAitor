@@ -17,7 +17,7 @@ const SchoolDashboard = () => {
   const fetchTeachers = async () => {
     const res = await axios.get(`${API}/teachers`);
     setTeachers(res.data.data);
-  }
+  };
 
   useEffect(()=>{
     fetchStudents();
@@ -26,9 +26,9 @@ const SchoolDashboard = () => {
 
   return (
 
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="space-y-6">
 
-      <h1 className="text-3xl font-bold mb-8">
+      <h1 className="text-3xl font-bold">
         School Dashboard
       </h1>
 

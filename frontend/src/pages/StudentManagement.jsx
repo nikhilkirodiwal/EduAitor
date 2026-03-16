@@ -90,7 +90,6 @@ const StudentManagement = () => {
             ? student.admissionDate.split("T")[0]
             : "",
         });
-
       } catch {
         toast.error("Failed to load student");
       }
@@ -247,8 +246,14 @@ const StudentManagement = () => {
     try {
       const data = new FormData();
 
-      Object.keys(form).forEach((key) => {
-        data.append(key, form[key]);
+      Object.entries(form).forEach(([key, value]) => {
+        const forbidden = ["_id", "__v", "createdAt", "updatedAt", "studentId"];
+
+        if (forbidden.includes(key)) return;
+
+        if (value !== null && value !== "") {
+          data.append(key, value);
+        }
       });
 
       if (isEdit) {

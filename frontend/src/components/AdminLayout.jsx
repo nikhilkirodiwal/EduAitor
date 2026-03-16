@@ -7,38 +7,43 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className=" bg-slate-100 flex">
+    <div className="h-screen flex flex-col bg-slate-100">
 
-      {/* Desktop Sidebar */}
-      <div className="hidden lg:block fixed left-0 top-0 h-screen">
-        <Sidebar />
-      </div>
+      {/* TOPBAR */}
+      <Topbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-      {/* Mobile Sidebar */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden flex">
-          <div
-            className="fixed inset-0 bg-black/40"
-            onClick={() => setSidebarOpen(false)}
-          />
+      {/* MAIN LAYOUT */}
+      <div className="flex flex-1 overflow-hidden">
 
-          <div className="relative z-50">
-            <Sidebar closeSidebar={() => setSidebarOpen(false)} />
-          </div>
+        {/* DESKTOP SIDEBAR */}
+        <div className="hidden lg:block w-56 border-r bg-white">
+          <Sidebar />
         </div>
-      )}
 
-      {/* Main Section */}
-      <div className="flex flex-col flex-1 lg:ml-64">
+        {/* MOBILE SIDEBAR */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden flex">
 
-        <Topbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+            {/* overlay */}
+            <div
+              className="absolute inset-0 bg-black/40"
+              onClick={() => setSidebarOpen(false)}
+            />
 
-        {/* Page Container */}
-        <div className="p-6 lg:p-8">
-          <div className="bg-white rounded-xl shadow-sm p-6 min-h-[80vh]">
+            {/* sidebar */}
+            <div className="relative z-50 w-56 bg-white h-full">
+              <Sidebar closeSidebar={() => setSidebarOpen(false)} />
+            </div>
+
+          </div>
+        )}
+
+        {/* CONTENT */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="px-6 py-4">
             <Outlet />
           </div>
-        </div>
+        </main>
 
       </div>
     </div>
