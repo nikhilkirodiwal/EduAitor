@@ -7,6 +7,8 @@ import {
   FaClock,
   FaWallet,
   FaTimes,
+  FaUserShield,
+  FaSchool,
 } from "react-icons/fa";
 
 import {
@@ -22,6 +24,7 @@ import {
 
 import { GiTeacher } from "react-icons/gi";
 import { HiAcademicCap } from "react-icons/hi2";
+
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 
@@ -30,13 +33,43 @@ const Sidebar = ({ closeSidebar }) => {
   const location = useLocation();
   const [openMenu, setOpenMenu] = useState(null);
 
+  const role = localStorage.getItem("userRole"); // super_admin / school_admin
+
   const logout = () => {
     localStorage.clear();
     navigate("/admin/login");
   };
 
+  /* ---------------- SUPER ADMIN MENU ---------------- */
+
+  const superAdminMenu = [
+    { name: "Dashboard", icon: <FaTachometerAlt />, path: "/admin/dashboard" },
+
+    {
+      name: "Access Control",
+      icon: <FaUserShield />,
+      children: [
+        { name: "Access", path: "/admin/access-control" },
+        { name: "Role Management", path: "/admin/roles" },
+      ],
+    },
+
+    {
+      name: "School",
+      icon: <FaSchool />,
+      children: [
+        { name: "All Schools", path: "/admin/schools" },
+        { name: "School Management", path: "/admin/school-manage" },
+        { name: "School Subscription Plan", path: "/admin/subscription-plan" },
+      ],
+    },
+  ];
+
+  /* ---------------- SCHOOL ADMIN MENU ---------------- */
+
   const schoolAdminMenu = [
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/school/dashboard" },
+
     {
       name: "Students",
       icon: <FaUserGraduate />,
@@ -45,6 +78,7 @@ const Sidebar = ({ closeSidebar }) => {
         { name: "Add Student", path: "/school/student-manage" },
       ],
     },
+
     {
       name: "Teachers",
       icon: <GiTeacher />,
@@ -53,6 +87,7 @@ const Sidebar = ({ closeSidebar }) => {
         { name: "Add Teacher", path: "/school/teacher-manage" },
       ],
     },
+
     {
       name: "Classes",
       icon: <HiAcademicCap />,
@@ -62,6 +97,7 @@ const Sidebar = ({ closeSidebar }) => {
         { name: "Subjects", path: "/school/subject" },
       ],
     },
+
     { name: "Attendance", icon: <FiUsers />, path: "/school/attendance" },
     { name: "Exams", icon: <FiBookOpen />, path: "/school/exams" },
     { name: "Timetable", icon: <FaClock />, path: "/school/timetable" },
@@ -80,6 +116,8 @@ const Sidebar = ({ closeSidebar }) => {
     { name: "Library", icon: <FiBook />, path: "/school/library" },
   ];
 
+  const menu = role === "super_admin" ? superAdminMenu : schoolAdminMenu;
+
   const toggleMenu = (name) => {
     setOpenMenu(openMenu === name ? null : name);
   };
@@ -88,6 +126,7 @@ const Sidebar = ({ closeSidebar }) => {
     <aside className="h-full w-56 bg-white border-r border-gray-200 flex flex-col">
 
       {/* MOBILE HEADER */}
+
       <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b">
         <h2 className="font-semibold text-gray-700">Menu</h2>
 
@@ -100,17 +139,17 @@ const Sidebar = ({ closeSidebar }) => {
       </div>
 
       {/* MENU */}
-      <div
-        className="flex-1 overflow-y-auto overflow-x-hidden py-2
-        scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent
-        hover:scrollbar-thumb-gray-400"
-      >
-        {schoolAdminMenu.map((item, index) => {
+
+      <div className="flex-1 overflow-y-auto overflow-x-hidden py-2">
+
+        {menu.map((item, index) => {
+
           const isParentActive =
             item.children &&
             item.children.some((c) => location.pathname === c.path);
 
           if (item.children) {
+
             const isOpen = openMenu === item.name;
 
             return (
@@ -124,6 +163,7 @@ const Sidebar = ({ closeSidebar }) => {
                       : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 border-l-4 border-transparent"
                   }`}
                 >
+
                   <div className="flex items-center gap-3">
                     <span>{item.icon}</span>
                     <span className="font-medium">{item.name}</span>
@@ -134,12 +174,16 @@ const Sidebar = ({ closeSidebar }) => {
                   ) : (
                     <FaChevronRight size={10} />
                   )}
+
                 </div>
 
                 {isOpen && (
                   <div className="bg-gray-50/70">
+
                     {item.children.map((child, i) => {
-                      const isActive = location.pathname === child.path;
+
+                      const isActive =
+                        location.pathname === child.path;
 
                       return (
                         <div
@@ -159,6 +203,7 @@ const Sidebar = ({ closeSidebar }) => {
                         </div>
                       );
                     })}
+
                   </div>
                 )}
               </div>
@@ -186,10 +231,13 @@ const Sidebar = ({ closeSidebar }) => {
             </div>
           );
         })}
+
       </div>
 
       {/* LOGOUT */}
+
       <div className="p-3 border-t border-gray-100">
+
         <button
           onClick={logout}
           className="flex items-center gap-3 w-full px-4 py-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition text-sm"
@@ -197,7 +245,9 @@ const Sidebar = ({ closeSidebar }) => {
           <FaSignOutAlt />
           <span className="font-medium">Logout</span>
         </button>
+
       </div>
+
     </aside>
   );
 };
