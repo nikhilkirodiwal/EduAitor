@@ -42,6 +42,8 @@ const studentSchema = new mongoose.Schema(
     discountType: String,
     discountValue: Number,
     finalFee: Number,
+    totalPaid: Number,    
+    totalDue: Number,
 
     documents: {
       studentPhoto: fileSchema,

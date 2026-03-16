@@ -41,7 +41,7 @@ export default function SectionManagement() {
   const hasChanges = (data, initial) =>
     JSON.stringify(data) !== JSON.stringify(initial);
 
-  /* ---------------------------------- API --------------------------------- */
+  /* FETCH */
 
   const fetchSections = async () => {
     try {
@@ -49,10 +49,8 @@ export default function SectionManagement() {
 
       const { data } = await axios.get(`${API}/sections/all`);
 
-      if (data.success) {
-        setSections(data.sections);
-      }
-    } catch (error) {
+      if (data.success) setSections(data.sections);
+    } catch {
       toast.error("Failed to load sections");
     } finally {
       setLoading(false);
@@ -63,7 +61,7 @@ export default function SectionManagement() {
     fetchSections();
   }, []);
 
-  /* ----------------------------- SECTION CRUD ----------------------------- */
+  /* SECTION CRUD */
 
   const saveSection = async () => {
     if (!sectionForm.name.trim()) {
@@ -77,15 +75,18 @@ export default function SectionManagement() {
           `${API}/sections/update/${editingSection._id}`,
           sectionForm,
         );
+
         toast.success("Section updated");
       } else {
         await axios.post(`${API}/sections/create`, sectionForm);
+
         toast.success("Section created");
       }
 
       resetSection();
+
       fetchSections();
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong");
     }
   };
@@ -93,7 +94,9 @@ export default function SectionManagement() {
   const deleteSection = async (id) => {
     try {
       await axios.delete(`${API}/sections/delete/${id}`);
+
       toast.success("Section deleted");
+
       fetchSections();
     } catch {
       toast.error("Delete failed");
@@ -102,18 +105,23 @@ export default function SectionManagement() {
 
   const openSectionEdit = (sec) => {
     setEditingSection(sec);
+
     setSectionForm({ name: sec.name, status: sec.status });
+
     setInitialData({ name: sec.name, status: sec.status });
+
     setShowSectionModal(true);
   };
 
   const resetSection = () => {
     setShowSectionModal(false);
+
     setEditingSection(null);
+
     setSectionForm({ name: "", status: "Active" });
   };
 
-  /* --------------------------- SUBSECTION CRUD --------------------------- */
+  /* SUB CRUD */
 
   const saveSub = async () => {
     if (!subForm.sectionId) {
@@ -132,16 +140,19 @@ export default function SectionManagement() {
           `${API}/sections/sub/update/${subForm.sectionId}/${editingSub._id}`,
           subForm,
         );
+
         toast.success("Subsection updated");
       } else {
         await axios.post(
           `${API}/sections/sub/create/${subForm.sectionId}`,
           subForm,
         );
+
         toast.success("Subsection created");
       }
 
       resetSub();
+
       fetchSections();
     } catch (error) {
       toast.error(error.response?.data?.message || "Something went wrong");
@@ -151,7 +162,9 @@ export default function SectionManagement() {
   const deleteSub = async (sectionId, subId) => {
     try {
       await axios.delete(`${API}/sections/sub/delete/${sectionId}/${subId}`);
+
       toast.success("Subsection deleted");
+
       fetchSections();
     } catch {
       toast.error("Delete failed");
@@ -160,6 +173,7 @@ export default function SectionManagement() {
 
   const openSubEdit = (sectionId, sub) => {
     setEditingSub(sub);
+
     setSubForm({
       sectionId,
       name: sub.name,
@@ -177,11 +191,13 @@ export default function SectionManagement() {
 
   const resetSub = () => {
     setShowSubModal(false);
+
     setEditingSub(null);
+
     setSubForm({ sectionId: "", name: "", status: "Active" });
   };
 
-  /* --------------------------- DISCARD HANDLING -------------------------- */
+  /* DISCARD */
 
   const handleCloseSection = () => {
     if (editingSection && hasChanges(sectionForm, initialData)) {
@@ -199,21 +215,21 @@ export default function SectionManagement() {
     }
   };
 
-  /* ---------------------------------- UI --------------------------------- */
+  /* UI */
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
       {/* HEADER */}
 
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold flex gap-2 items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold flex gap-2 items-center">
           <FaLayerGroup /> Section Management
         </h2>
 
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <button
             onClick={() => setShowSectionModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2"
           >
             <FaPlus /> Section
           </button>
@@ -226,7 +242,7 @@ export default function SectionManagement() {
               }
               setShowSubModal(true);
             }}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center justify-center gap-2"
           >
             <FaProjectDiagram /> Sub Section
           </button>
@@ -235,8 +251,8 @@ export default function SectionManagement() {
 
       {/* TABLE */}
 
-      <div className="bg-white shadow rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white shadow rounded-xl overflow-x-auto">
+        <table className="min-w-full text-sm">
           <thead className="bg-gray-100">
             <tr>
               <th className="p-3 text-left">Section</th>
@@ -263,7 +279,7 @@ export default function SectionManagement() {
             ) : (
               sections.map((sec) => (
                 <React.Fragment key={sec._id}>
-                  <tr key={sec._id} className="border-t text-center">
+                  <tr className="border-t text-center">
                     <td className="p-3 font-medium text-left">{sec.name}</td>
 
                     <td>{sec.status}</td>
@@ -334,7 +350,7 @@ export default function SectionManagement() {
         </table>
       </div>
 
-      {/* SECTION MODAL */}
+      {/* MODALS */}
 
       {showSectionModal && (
         <Modal title={editingSection ? "Edit Section" : "Add Section"}>
@@ -362,8 +378,6 @@ export default function SectionManagement() {
           <ModalActions cancel={handleCloseSection} save={saveSection} />
         </Modal>
       )}
-
-      {/* SUBSECTION MODAL */}
 
       {showSubModal && (
         <Modal title={editingSub ? "Edit Sub Section" : "Add Sub Section"}>
@@ -406,8 +420,6 @@ export default function SectionManagement() {
         </Modal>
       )}
 
-      {/* DELETE MODAL */}
-
       {confirmDelete && (
         <ConfirmModal
           confirm={() => {
@@ -420,8 +432,6 @@ export default function SectionManagement() {
           cancel={() => setConfirmDelete(null)}
         />
       )}
-
-      {/* DISCARD MODAL */}
 
       {discardConfirm && (
         <ConfirmModal
@@ -437,11 +447,11 @@ export default function SectionManagement() {
   );
 }
 
-/* ----------------------- REUSABLE MODAL COMPONENTS ---------------------- */
+/* MODALS */
 
 const Modal = ({ title, children }) => (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-    <div className="bg-white p-6 rounded-xl w-100 space-y-4">
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+    <div className="bg-white p-6 rounded-xl w-full max-w-md space-y-4">
       <h3 className="text-lg font-semibold">{title}</h3>
       {children}
     </div>
@@ -453,7 +463,6 @@ const ModalActions = ({ cancel, save }) => (
     <button onClick={cancel} className="border px-4 py-2 rounded">
       Cancel
     </button>
-
     <button onClick={save} className="bg-blue-600 text-white px-4 py-2 rounded">
       Save
     </button>
@@ -461,8 +470,8 @@ const ModalActions = ({ cancel, save }) => (
 );
 
 const ConfirmModal = ({ title = "Delete this item?", confirm, cancel }) => (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-    <div className="bg-white p-6 rounded-xl space-y-4 text-center">
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+    <div className="bg-white p-6 rounded-xl space-y-4 text-center w-full max-w-sm">
       <h3>{title}</h3>
 
       <div className="flex gap-4 justify-center">

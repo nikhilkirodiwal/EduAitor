@@ -48,6 +48,7 @@ export default function Class() {
     try {
       const { data } = await axios.get(`${API}/classes/all`);
       setClasses(data.classes || []);
+      console.log(data.classes || []);
     } catch {
       toast.error("Failed to load classes");
     }
@@ -210,7 +211,7 @@ export default function Class() {
     classes.length > 0 ? Math.floor(totalStudents / classes.length) : 0;
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8">
       {/* HEADER */}
 
       <div>
@@ -220,7 +221,7 @@ export default function Class() {
 
       {/* STATS */}
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard
           icon={<FaSchool />}
           title="TOTAL CLASSES"
@@ -264,7 +265,7 @@ export default function Class() {
 
       {/* CLASS CARDS */}
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {classes.map((cls) => {
           const percent = cls.capacity
             ? (cls.studentCount / cls.capacity) * 100
@@ -275,9 +276,9 @@ export default function Class() {
               key={cls._id}
               className="bg-white rounded-xl shadow p-5 space-y-4"
             >
-              <div className="flex gap-4 items-center">
+              <div className="flex gap-4 items-center flex-wrap">
                 <div className="w-12 h-12 rounded-xl bg-indigo-500 text-white flex items-center justify-center font-semibold">
-                  {cls.name}  {cls.sectionId ? `- ${cls.sectionId.name}` : ""}
+                  {cls.name} {cls.sectionId ? `- ${cls.sectionId.name}` : ""}
                 </div>
 
                 <div>
@@ -349,7 +350,7 @@ export default function Class() {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white w-180 max-h-[90vh] overflow-y-auto rounded-2xl shadow-lg relative">
+          <div className="bg-white w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-lg relative mx-4">
             {/* CLOSE BUTTON */}
 
             <button
@@ -369,7 +370,7 @@ export default function Class() {
 
             {/* FORM */}
 
-            <div className="px-8 py-6 space-y-6">
+            <div className="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
               {/* CLASS NAME */}
 
               <div>
@@ -475,7 +476,7 @@ export default function Class() {
                   Assign Subjects
                 </label>
 
-                <div className="border rounded-xl p-4 grid grid-cols-4 gap-4 max-h-50 overflow-y-auto">
+                <div className="border rounded-xl p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 max-h-50 overflow-y-auto">
                   {subjects.map((sub) => (
                     <label
                       key={sub._id}

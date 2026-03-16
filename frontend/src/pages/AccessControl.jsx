@@ -372,7 +372,7 @@ const AccessControl = () => {
                 Permission Matrix
               </h3>
 
-              <div className="border rounded-lg overflow-auto max-h-[400px]">
+              <div className="border rounded-lg overflow-auto max-h-100">
 
                 <table className="w-full text-sm">
 

@@ -36,6 +36,8 @@ import classRoute from "./routes/classRoute.js";
 import subjectRoute from "./routes/subjectRoute.js";
 import timetableRoute from "./routes/timetableRoute.js";
 import feeRoute from "./routes/feeRoute.js";
+import eventRoute from "./routes/eventRoute.js"
+import noticeRoute from "./routes/noticeRoute.js"
 
 app.use("/api/auth", authRoutes);
 
@@ -51,6 +53,9 @@ app.use("/api/classes", classRoute);
 app.use("/api/subjects", subjectRoute);
 app.use("/api/timetable", timetableRoute);
 app.use("/api/fee-structure", feeRoute);
+app.use("/api/fee-collect", feeRoute);
+app.use("/api/events", eventRoute)
+app.use("/api/notices", noticeRoute)
 
 // Error middleware
 app.use(errorHandler);

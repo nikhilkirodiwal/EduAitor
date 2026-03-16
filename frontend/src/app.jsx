@@ -24,6 +24,10 @@ import ClassView from "./components/ClassView";
 import Subject from "./pages/Subject";
 import TimeTable from "./pages/TimeTable";
 import FeeStructure from "./pages/FeeStructure"
+import Event from "./pages/Event";
+import EventView from "./components/EventView";
+import Notice from "./pages/Notice";
+import FeeCollection from "./pages/FeeCollection";
 
 const App = () => {
   return (
@@ -78,6 +82,10 @@ const App = () => {
         <Route path="subject" element={<Subject />} />
         <Route path="timetable" element={<TimeTable />} />
         <Route path="fee-structure" element={<FeeStructure />} />
+         <Route path="fee-collection" element={<FeeCollection />} />
+        <Route path="event" element={<Event />} />
+        <Route path="event/:id" element={<EventView />} />
+        <Route path="notice" element={<Notice />} />
 
         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
       </Route>

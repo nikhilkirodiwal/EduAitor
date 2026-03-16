@@ -55,7 +55,7 @@ const TeacherManagement = () => {
 
   const progress = (step / steps.length) * 100;
 
-  /* ================= FETCH TEACHER ================= */
+  /* FETCH TEACHER */
 
   useEffect(() => {
     if (!id) return;
@@ -79,7 +79,7 @@ const TeacherManagement = () => {
     fetchTeacher();
   }, [id]);
 
-  /* ================= FORM CHANGE ================= */
+  /* FORM CHANGE */
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -90,10 +90,11 @@ const TeacherManagement = () => {
     }));
   };
 
-  /* ================= FILE CHANGE ================= */
+  /* FILE */
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
+
     const file = files[0];
 
     if (!file) return;
@@ -109,13 +110,11 @@ const TeacherManagement = () => {
     }));
   };
 
-  /* ================= DIRTY CHECK ================= */
+  /* DIRTY CHECK */
 
-  const isDirty = () => {
-    return Object.values(form).some((v) => v !== "");
-  };
+  const isDirty = () => Object.values(form).some((v) => v !== "");
 
-  /* ================= STEP VALIDATION ================= */
+  /* VALIDATION */
 
   const validateStep = () => {
     const errors = [];
@@ -147,12 +146,10 @@ const TeacherManagement = () => {
     return errors;
   };
 
-  /* ================= STEP NAVIGATION ================= */
-
   const next = () => {
     const errors = validateStep();
 
-    if (errors.length > 0) {
+    if (errors.length) {
       errors.forEach((e) => toast.error(e));
       return;
     }
@@ -164,7 +161,7 @@ const TeacherManagement = () => {
     if (step > 1) setStep((s) => s - 1);
   };
 
-  /* ================= RESET ================= */
+  /* RESET */
 
   const resetForm = () => {
     if (!isDirty()) {
@@ -183,7 +180,7 @@ const TeacherManagement = () => {
     setConfirmOpen(true);
   };
 
-  /* ================= CONFIRM SAVE ================= */
+  /* SUBMIT */
 
   const handleSubmit = () => {
     setConfirmMessage(
@@ -193,10 +190,9 @@ const TeacherManagement = () => {
     );
 
     setConfirmAction(() => submitTeacher);
+
     setConfirmOpen(true);
   };
-
-  /* ================= SUBMIT ================= */
 
   const submitTeacher = async () => {
     try {
@@ -207,15 +203,11 @@ const TeacherManagement = () => {
       });
 
       if (isEdit) {
-        await axios.put(`${API}/teachers/${id}`, data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await axios.put(`${API}/teachers/${id}`, data);
 
         toast.success("Teacher updated successfully");
       } else {
-        await axios.post(`${API}/teachers`, data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await axios.post(`${API}/teachers`, data);
 
         toast.success("Teacher added successfully");
       }
@@ -226,7 +218,7 @@ const TeacherManagement = () => {
     }
   };
 
-  /* ================= REFRESH WARNING ================= */
+  /* REFRESH WARNING */
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -242,12 +234,12 @@ const TeacherManagement = () => {
   }, [form]);
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
       {/* HEADER */}
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">
-          {isEdit ? "Edit Teacher" : "Add Teacher"}
+      <div className="flex flex-col sm:flex-row sm:justify-between gap-3 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold">
+          {isEdit ? "Edit Teacher Details" : "Add Teacher"}
         </h1>
 
         <button
@@ -261,10 +253,17 @@ const TeacherManagement = () => {
       <div className="grid grid-cols-12 gap-6">
         {/* STEP SIDEBAR */}
 
-        <div className="col-span-3">
-          <div className="bg-white rounded-xl shadow p-4">
+        <div className="col-span-12 lg:col-span-3">
+          <div className="bg-white rounded-xl shadow p-4 sticky top-6">
             {steps.map((s, i) => {
               const index = i + 1;
+
+              const status =
+                step === index
+                  ? "active"
+                  : step > index
+                    ? "complete"
+                    : "pending";
 
               return (
                 <div
@@ -272,21 +271,34 @@ const TeacherManagement = () => {
                   onClick={() => {
                     const errors = validateStep();
 
-                    if (index > step && errors.length > 0) {
+                    if (index > step && errors.length) {
                       toast.error("Complete this step first");
                       return;
                     }
 
                     setStep(index);
                   }}
-                  className={`p-3 rounded-lg mb-2 cursor-pointer
+                  className={`flex items-center gap-3 p-3 rounded-lg mb-2 cursor-pointer
                   ${
-                    step === index
+                    status === "active"
                       ? "bg-indigo-600 text-white"
                       : "bg-gray-100 hover:bg-gray-200"
                   }`}
                 >
-                  {index}. {s}
+                  <div
+                    className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-semibold
+                    ${
+                      status === "complete"
+                        ? "bg-green-500 text-white"
+                        : status === "active"
+                          ? "bg-white text-indigo-600"
+                          : "bg-gray-300"
+                    }`}
+                  >
+                    {status === "complete" ? "✓" : index}
+                  </div>
+
+                  <span className="text-sm font-medium">{s}</span>
                 </div>
               );
             })}
@@ -295,11 +307,19 @@ const TeacherManagement = () => {
 
         {/* FORM */}
 
-        <div className="col-span-9">
-          <div className="bg-white rounded-xl shadow p-8">
+        <div className="col-span-12 lg:col-span-9">
+          <div className="bg-white rounded-xl shadow p-6 lg:p-8">
             {/* PROGRESS */}
 
             <div className="mb-6">
+              <div className="flex justify-between text-sm mb-2">
+                <span>
+                  Step {step} of {steps.length}
+                </span>
+
+                <span>{Math.round(progress)}%</span>
+              </div>
+
               <div className="w-full bg-gray-200 h-2 rounded-full">
                 <div
                   className="bg-indigo-600 h-2 rounded-full transition-all"
@@ -308,7 +328,7 @@ const TeacherManagement = () => {
               </div>
             </div>
 
-            {/* STEP 1 */}
+            {/* STEP CONTENT */}
 
             {step === 1 && (
               <div className="grid md:grid-cols-2 gap-6">
@@ -364,8 +384,6 @@ const TeacherManagement = () => {
               </div>
             )}
 
-            {/* STEP 2 */}
-
             {step === 2 && (
               <div className="grid md:grid-cols-2 gap-6">
                 <Input
@@ -375,7 +393,7 @@ const TeacherManagement = () => {
                   onChange={handleChange}
                 />
                 <Input
-                  label="Experience (Years)"
+                  label="Experience"
                   name="experience"
                   value={form.experience}
                   onChange={handleChange}
@@ -394,8 +412,6 @@ const TeacherManagement = () => {
                 />
               </div>
             )}
-
-            {/* STEP 3 */}
 
             {step === 3 && (
               <div className="grid md:grid-cols-2 gap-6">
@@ -434,8 +450,6 @@ const TeacherManagement = () => {
               </div>
             )}
 
-            {/* STEP 4 */}
-
             {step === 4 && (
               <div className="grid md:grid-cols-2 gap-6">
                 <Input
@@ -465,15 +479,13 @@ const TeacherManagement = () => {
               </div>
             )}
 
-            {/* STEP 5 */}
-
             {step === 5 && (
-              <div className="bg-gray-50 border rounded-xl p-6">
+              <div className="bg-gray-50 border rounded-xl p-6 overflow-auto">
                 <pre className="text-sm">{JSON.stringify(form, null, 2)}</pre>
               </div>
             )}
 
-            {/* NAV */}
+            {/* NAVIGATION */}
 
             <div className="flex justify-between mt-8">
               {step > 1 && (
@@ -491,7 +503,7 @@ const TeacherManagement = () => {
                   disabled={validateStep().length > 0}
                   className={`px-6 py-2 rounded-lg text-white
                   ${
-                    validateStep().length > 0
+                    validateStep().length
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-indigo-600 hover:bg-indigo-700"
                   }`}
@@ -510,8 +522,6 @@ const TeacherManagement = () => {
           </div>
         </div>
       </div>
-
-      {/* CONFIRM MODAL */}
 
       {confirmOpen && (
         <ConfirmModal
@@ -551,7 +561,12 @@ const Select = ({ label, options, ...props }) => (
 const File = ({ label, name, onChange }) => (
   <div>
     <label className="block text-sm mb-1 text-gray-600">{label}</label>
-    <input type="file" name={name} onChange={onChange} className="w-full border px-3 py-2 rounded-lg"/>
+    <input
+      type="file"
+      name={name}
+      onChange={onChange}
+      className="w-full border px-3 py-2 rounded-lg"
+    />
   </div>
 );
 
@@ -565,7 +580,10 @@ const ConfirmModal = ({ message, onCancel, onConfirm }) => (
         <button onClick={onCancel} className="px-4 py-2 bg-gray-200 rounded-lg">
           Cancel
         </button>
-        <button onClick={onConfirm} className="px-4 py-2 bg-indigo-600 text-white rounded-lg">
+        <button
+          onClick={onConfirm}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+        >
           Confirm
         </button>
       </div>

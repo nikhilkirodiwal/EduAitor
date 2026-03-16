@@ -73,7 +73,7 @@ const StudentManagement = () => {
 
   const progress = (step / steps.length) * 100;
 
-  /* ================= FETCH STUDENT FOR EDIT ================= */
+  /* FETCH STUDENT */
 
   useEffect(() => {
     if (!id) return;
@@ -98,7 +98,7 @@ const StudentManagement = () => {
     fetchStudent();
   }, [id]);
 
-  /* ================= FORM CHANGE ================= */
+  /* CHANGE */
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -109,7 +109,7 @@ const StudentManagement = () => {
     }));
   };
 
-  /* ================= FILE CHANGE ================= */
+  /* FILE */
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
@@ -128,7 +128,7 @@ const StudentManagement = () => {
     }));
   };
 
-  /* ================= FEE CALCULATION ================= */
+  /* FEE CALCULATION */
 
   useEffect(() => {
     let total = Number(form.totalFee) || 0;
@@ -150,13 +150,7 @@ const StudentManagement = () => {
     }));
   }, [form.totalFee, form.discountType, form.discountValue]);
 
-  /* ================= DIRTY CHECK ================= */
-
-  const isDirty = () => {
-    return Object.values(form).some((v) => v !== "");
-  };
-
-  /* ================= STEP VALIDATION ================= */
+  const isDirty = () => Object.values(form).some((v) => v !== "");
 
   const validateStep = () => {
     const errors = [];
@@ -191,24 +185,15 @@ const StudentManagement = () => {
     return errors;
   };
 
-  /* ================= STEP NAV ================= */
-
   const next = () => {
     const errors = validateStep();
-
-    if (errors.length > 0) {
-      errors.forEach((e) => toast.error(e));
-      return;
-    }
-
+    if (errors.length) return errors.forEach((e) => toast.error(e));
     setStep((s) => s + 1);
   };
 
   const prev = () => {
     if (step > 1) setStep((s) => s - 1);
   };
-
-  /* ================= RESET ================= */
 
   const resetForm = () => {
     if (!isDirty()) {
@@ -218,7 +203,6 @@ const StudentManagement = () => {
     }
 
     setConfirmMessage("Are you sure you want to reset the form?");
-
     setConfirmAction(() => () => {
       setForm(emptyForm);
       setStep(1);
@@ -226,8 +210,6 @@ const StudentManagement = () => {
 
     setConfirmOpen(true);
   };
-
-  /* ================= CONFIRM SAVE / UPDATE ================= */
 
   const handleSubmit = () => {
     setConfirmMessage(
@@ -239,8 +221,6 @@ const StudentManagement = () => {
     setConfirmAction(() => submitStudent);
     setConfirmOpen(true);
   };
-
-  /* ================= SUBMIT ================= */
 
   const submitStudent = async () => {
     try {
@@ -257,16 +237,10 @@ const StudentManagement = () => {
       });
 
       if (isEdit) {
-        await axios.put(`${API}/students/${id}`, data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-
+        await axios.put(`${API}/students/${id}`, data);
         toast.success("Student Updated Successfully");
       } else {
-        await axios.post(`${API}/students`, data, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-
+        await axios.post(`${API}/students`, data);
         toast.success("Student Added Successfully");
       }
 
@@ -275,8 +249,6 @@ const StudentManagement = () => {
       toast.error("Operation failed");
     }
   };
-
-  /* ================= REFRESH WARNING ================= */
 
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -292,11 +264,11 @@ const StudentManagement = () => {
   }, [form]);
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
       {/* HEADER */}
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">
+      <div className="flex flex-col sm:flex-row justify-between mb-6 gap-4">
+        <h1 className="text-2xl lg:text-3xl font-bold">
           {isEdit ? "Edit Student Details" : "Student Admission"}
         </h1>
 
@@ -309,45 +281,71 @@ const StudentManagement = () => {
       </div>
 
       <div className="grid grid-cols-12 gap-6">
-        {/* LEFT STEPS */}
+        {/* STEP SIDEBAR */}
 
-        <div className="col-span-3">
-          <div className="bg-white rounded-xl shadow p-4">
+        <div className="col-span-12 lg:col-span-3">
+          <div className="bg-white rounded-xl shadow p-4 sticky top-6">
             {steps.map((s, i) => {
               const index = i + 1;
+              const status =
+                step === index
+                  ? "active"
+                  : step > index
+                    ? "complete"
+                    : "pending";
 
               return (
                 <div
                   key={i}
                   onClick={() => {
                     const errors = validateStep();
-
                     if (index > step && errors.length > 0) {
                       toast.error("Complete this step first");
                       return;
                     }
-
                     setStep(index);
                   }}
-                  className={`p-3 rounded-lg mb-2 cursor-pointer
+                  className={`flex items-center gap-3 p-3 rounded-lg mb-2 cursor-pointer
                   ${
-                    step === index
+                    status === "active"
                       ? "bg-indigo-600 text-white"
                       : "bg-gray-100 hover:bg-gray-200"
                   }`}
                 >
-                  {index}. {s}
+                  <div
+                    className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-semibold
+                    ${
+                      status === "complete"
+                        ? "bg-green-500 text-white"
+                        : status === "active"
+                          ? "bg-white text-indigo-600"
+                          : "bg-gray-300"
+                    }`}
+                  >
+                    {status === "complete" ? "✓" : index}
+                  </div>
+
+                  <span className="text-sm font-medium">{s}</span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* FORM */}
+        {/* FORM AREA */}
 
-        <div className="col-span-9">
-          <div className="bg-white rounded-xl shadow p-8">
+        <div className="col-span-12 lg:col-span-9">
+          <div className="bg-white rounded-xl shadow p-6 lg:p-8">
+            {/* PROGRESS */}
+
             <div className="mb-6">
+              <div className="flex justify-between text-sm mb-2">
+                <span>
+                  Step {step} of {steps.length}
+                </span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+
               <div className="w-full bg-gray-200 h-2 rounded-full">
                 <div
                   className="bg-indigo-600 h-2 rounded-full transition-all"
@@ -379,7 +377,6 @@ const StudentManagement = () => {
                   value={form.dob}
                   onChange={handleChange}
                 />
-
                 <Select
                   label="Gender"
                   name="gender"
@@ -387,14 +384,12 @@ const StudentManagement = () => {
                   options={["Male", "Female"]}
                   onChange={handleChange}
                 />
-
                 <Input
                   label="Blood Group"
                   name="bloodGroup"
                   value={form.bloodGroup}
                   onChange={handleChange}
                 />
-
                 <Input
                   type="date"
                   label="Admission Date"
@@ -404,73 +399,66 @@ const StudentManagement = () => {
                 />
               </div>
             )}
-
             {/* STEP 2 */}
 
             {step === 2 && (
               <div className="space-y-6">
-                <Section title="Father Details">
-                  <Input
-                    label="Father Name"
-                    name="fatherName"
-                    value={form.fatherName}
-                    onChange={handleChange}
-                  />
-                  <Input
-                    label="Father Mobile"
-                    name="fatherMobile"
-                    value={form.fatherMobile}
-                    onChange={handleChange}
-                  />
-                  <Input
-                    label="Father Email"
-                    name="fatherEmail"
-                    value={form.fatherEmail}
-                    onChange={handleChange}
-                  />
-                </Section>
+                <Input
+                  label="Father Name"
+                  name="fatherName"
+                  value={form.fatherName}
+                  onChange={handleChange}
+                />
+                <Input
+                  label="Father Mobile"
+                  name="fatherMobile"
+                  value={form.fatherMobile}
+                  onChange={handleChange}
+                />
+                <Input
+                  label="Father Email"
+                  name="fatherEmail"
+                  value={form.fatherEmail}
+                  onChange={handleChange}
+                />
 
-                <Section title="Mother Details">
-                  <Input
-                    label="Mother Name"
-                    name="motherName"
-                    value={form.motherName}
-                    onChange={handleChange}
-                  />
-                  <Input
-                    label="Mother Mobile"
-                    name="motherMobile"
-                    value={form.motherMobile}
-                    onChange={handleChange}
-                  />
-                  <Input
-                    label="Mother Email"
-                    name="motherEmail"
-                    value={form.motherEmail}
-                    onChange={handleChange}
-                  />
-                </Section>
+                <Input
+                  label="Mother Name"
+                  name="motherName"
+                  value={form.motherName}
+                  onChange={handleChange}
+                />
+                <Input
+                  label="Mother Mobile"
+                  name="motherMobile"
+                  value={form.motherMobile}
+                  onChange={handleChange}
+                />
+                <Input
+                  label="Mother Email"
+                  name="motherEmail"
+                  value={form.motherEmail}
+                  onChange={handleChange}
+                />
 
-                <Section title="Guardian">
-                  <Input
-                    label="Guardian Name"
-                    name="guardianName"
-                    value={form.guardianName}
-                    onChange={handleChange}
-                  />
-                  <Input
-                    label="Guardian Mobile"
-                    name="guardianMobile"
-                    value={form.guardianMobile}
-                    onChange={handleChange}
-                  />
-                  <Input
-                    label="Relation"
-                    name="guardianRelation"
-                    value={form.guardianRelation}
-                    onChange={handleChange}
-                  />
-                </Section>
+                <Input
+                  label="Guardian Name"
+                  name="guardianName"
+                  value={form.guardianName}
+                  onChange={handleChange}
+                />
+                <Input
+                  label="Guardian Mobile"
+                  name="guardianMobile"
+                  value={form.guardianMobile}
+                  onChange={handleChange}
+                />
+                <Input
+                  label="Relation"
+                  name="guardianRelation"
+                  value={form.guardianRelation}
+                  onChange={handleChange}
+                />
 
                 <Input
                   label="Address"
@@ -610,18 +598,15 @@ const StudentManagement = () => {
                 />
               </div>
             )}
-
-            {/* STEP 6 */}
+            {/* STEP 6 REVIEW */}
 
             {step === 6 && (
-              <div className="bg-gray-50 border rounded-xl p-6">
-                <h3 className="font-semibold mb-4">Review Student Details</h3>
-
+              <div className="bg-gray-50 border rounded-xl p-6 overflow-auto">
                 <pre className="text-sm">{JSON.stringify(form, null, 2)}</pre>
               </div>
             )}
 
-            {/* NAVIGATION */}
+            {/* NAV */}
 
             <div className="flex justify-between mt-8">
               {step > 1 && (
@@ -640,7 +625,7 @@ const StudentManagement = () => {
                   className={`px-6 py-2 rounded-lg text-white
                   ${
                     validateStep().length > 0
-                      ? "bg-gray-400 cursor-not-allowed"
+                      ? "bg-gray-400"
                       : "bg-indigo-600 hover:bg-indigo-700"
                   }`}
                 >
@@ -659,11 +644,11 @@ const StudentManagement = () => {
         </div>
       </div>
 
-      {/* CONFIRM MODAL */}
+      {/* MODAL */}
 
       {confirmOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 w-100">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-2">Confirmation</h3>
 
             <p className="text-gray-600 mb-6">{confirmMessage}</p>
@@ -699,8 +684,14 @@ export default StudentManagement;
 
 const Input = ({ label, ...props }) => (
   <div>
-    <label className="block text-sm mb-1 text-gray-600">{label}</label>
-    <input {...props} className="w-full border px-3 py-2 rounded-lg" />
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      {label}
+    </label>
+
+    <input
+      {...props}
+      className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500"
+    />
   </div>
 );
 
@@ -708,9 +699,16 @@ const Input = ({ label, ...props }) => (
 
 const Select = ({ label, options, ...props }) => (
   <div>
-    <label className="block text-sm mb-1 text-gray-600">{label}</label>
-    <select {...props} className="w-full border px-3 py-2 rounded-lg">
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      {label}
+    </label>
+
+    <select
+      {...props}
+      className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500"
+    >
       <option value="">Select</option>
+
       {options.map((o, i) => (
         <option key={i} value={o}>
           {o}
@@ -720,25 +718,39 @@ const Select = ({ label, options, ...props }) => (
   </div>
 );
 
-/* SECTION */
-
-const Section = ({ title, children }) => (
-  <div className="border rounded-xl p-4 bg-gray-50">
-    <h4 className="font-semibold mb-3">{title}</h4>
-    <div className="grid md:grid-cols-2 gap-4">{children}</div>
-  </div>
-);
-
 /* FILE */
 
-const File = ({ label, name, onChange }) => (
-  <div>
-    <label className="block text-sm mb-1 text-gray-600">{label}</label>
-    <input
-      type="file"
-      name={name}
-      onChange={onChange}
-      className="w-full border px-3 py-2 rounded-lg"
-    />
-  </div>
-);
+const File = ({ label, name, onChange }) => {
+  const [preview, setPreview] = useState(null);
+
+  const handlePreview = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setPreview(URL.createObjectURL(file));
+    onChange(e);
+  };
+
+  return (
+    <div className="border rounded-xl p-4 bg-gray-50">
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        {label}
+      </label>
+
+      <input
+        type="file"
+        name={name}
+        onChange={handlePreview}
+        className="w-full border px-3 py-2 rounded-lg"
+      />
+
+      {preview && (
+        <img
+          src={preview}
+          alt="preview"
+          className="mt-3 h-24 rounded-lg object-cover"
+        />
+      )}
+    </div>
+  );
+};

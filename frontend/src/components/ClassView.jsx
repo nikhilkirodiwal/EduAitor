@@ -39,11 +39,11 @@ export default function ClassView() {
   }, []);
 
   if (loading) {
-    return <div className="p-10 text-center">Loading class...</div>;
+    return <div className="p-6 sm:p-10 text-center">Loading class...</div>;
   }
 
   if (!classData) {
-    return <div className="p-10 text-center">Class not found</div>;
+    return <div className="p-6 sm:p-10 text-center">Class not found</div>;
   }
 
   const percent = classData.capacity
@@ -51,29 +51,29 @@ export default function ClassView() {
     : 0;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 bg-gray-50 min-h-screen">
       {/* HEADER */}
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <button
           onClick={() => navigate("/school/class")}
           className="flex items-center gap-2 text-indigo-600 font-medium"
         >
           <FaArrowLeft /> Back to Classes
         </button>
-
-    
       </div>
 
       {/* CLASS HEADER CARD */}
 
-      <div className="bg-white rounded-2xl shadow p-6 flex items-center gap-6">
+      <div className="bg-white rounded-2xl shadow p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
         <div className="w-16 h-16 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xl font-bold">
           {classData.name}
         </div>
 
-        <div>
-          <h2 className="text-2xl font-semibold">Class {classData.name}</h2>
+        <div className="text-center sm:text-left">
+          <h2 className="text-xl sm:text-2xl font-semibold">
+            Class {classData.name}
+          </h2>
 
           <p className="text-gray-500">Room {classData.roomNumber}</p>
         </div>
@@ -81,7 +81,7 @@ export default function ClassView() {
 
       {/* DETAILS GRID */}
 
-      <div className="grid grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* TEACHER */}
 
         <div className="bg-white rounded-xl shadow p-5 space-y-2">
@@ -123,7 +123,7 @@ export default function ClassView() {
       {/* CAPACITY */}
 
       <div className="bg-white rounded-xl shadow p-6 space-y-3">
-        <div className="flex justify-between">
+        <div className="flex justify-between flex-wrap gap-2">
           <h3 className="font-semibold">Class Capacity</h3>
 
           <span className="text-sm text-gray-500">
@@ -131,7 +131,7 @@ export default function ClassView() {
           </span>
         </div>
 
-        <div className="h-3 bg-gray-200 rounded-full">
+        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
           <div
             className="h-3 bg-pink-500 rounded-full"
             style={{ width: `${percent}%` }}

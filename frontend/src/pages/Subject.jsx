@@ -97,13 +97,15 @@ export default function Subject() {
   };
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8">
       {/* HEADER */}
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Subjects</h1>
-          <p className="text-gray-500">Manage school subjects</p>
+          <h1 className="text-xl sm:text-2xl font-bold">Subjects</h1>
+          <p className="text-gray-500 text-sm sm:text-base">
+            Manage school subjects
+          </p>
         </div>
 
         <button
@@ -112,7 +114,7 @@ export default function Subject() {
             setForm({ name: "", status: "Active" });
             setShowModal(true);
           }}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex gap-2 items-center"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex gap-2 items-center justify-center"
         >
           <FaPlus /> Add Subject
         </button>
@@ -120,7 +122,7 @@ export default function Subject() {
 
       {/* STATS */}
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatCard
           icon={<FaLayerGroup />}
           title="Total Subjects"
@@ -148,7 +150,7 @@ export default function Subject() {
 
       {/* SUBJECT GRID */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {subjects.map((sub) => (
           <div
             key={sub._id}
@@ -156,14 +158,14 @@ export default function Subject() {
           >
             {/* HEADER */}
 
-            <div className="flex justify-between">
+            <div className="flex justify-between items-start">
               <div className="flex gap-3">
-                <div className="w-12 h-14 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
                   <FaBook />
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-lg text-gray-800">
+                  <h3 className="font-semibold text-base sm:text-lg text-gray-800">
                     {sub.name}
                   </h3>
 
@@ -226,21 +228,21 @@ export default function Subject() {
       {/* ADD / EDIT MODAL */}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-xl w-105 space-y-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md space-y-4">
             <h3 className="text-lg font-semibold">
               {editing ? "Edit Subject" : "Add Subject"}
             </h3>
 
             <input
-              className="input"
+              className="input w-full"
               placeholder="Enter subject name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
 
             <select
-              className="input"
+              className="input w-full"
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value })}
             >
@@ -270,8 +272,8 @@ export default function Subject() {
       {/* DELETE CONFIRM */}
 
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-xl space-y-4 text-center">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white p-6 rounded-xl space-y-4 text-center w-full max-w-sm">
             <h3>Delete this subject?</h3>
 
             <div className="flex justify-center gap-4">

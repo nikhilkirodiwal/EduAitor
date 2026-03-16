@@ -158,9 +158,9 @@ export default function TimeTable() {
   };
 
   return (
-    <div className="bg-slate-50 font-sans">
+    <div className="bg-slate-50 p-4 sm:p-6 lg:p-8">
       {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white p-6 rounded-2xl shadow-sm border">
+      <div className="flex flex-col lg:flex-row justify-between lg:items-center mb-8 gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border">
         <div className="flex items-center gap-4 w-full md:w-auto">
           <MdOutlineClass className="text-3xl text-indigo-600" />
 
@@ -170,7 +170,7 @@ export default function TimeTable() {
             </label>
 
             <select
-              className="border-none bg-slate-100 p-3 rounded-xl font-bold text-slate-700 w-full md:w-80"
+              className="border-none bg-slate-100 p-3 rounded-xl font-bold text-slate-700 w-full sm:w-72 lg:w-80"
               value={classId}
               onChange={(e) => setClassId(e.target.value)}
             >
@@ -233,11 +233,11 @@ export default function TimeTable() {
                     <FaPlus /> Add Period
                   </button>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                   {periodConfigs.map((p, idx) => (
                     <div
                       key={p.id}
-                      className="p-3 bg-slate-50 rounded-xl border relative group"
+                      className="p-3 bg-slate-50 rounded-xl border relative group w-full"
                     >
                       <button
                         onClick={() => deletePeriodSlot(p.id)}
@@ -283,7 +283,7 @@ export default function TimeTable() {
               </div>
 
               {/* STEP 2: ASSIGNMENTS */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                 {days.map((day) => (
                   <div
                     key={day}
@@ -325,7 +325,7 @@ export default function TimeTable() {
                             </div>
 
                             {data.type === "lecture" && (
-                              <div className="grid grid-cols-1 gap-2">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <select
                                   className="text-xs p-2 border rounded bg-white shadow-sm"
                                   value={data.subjectId || ""}
@@ -410,11 +410,11 @@ export default function TimeTable() {
                   </button>
                 </div>
               )}
-              <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-x-auto">
+              <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-x-auto w-full">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="bg-slate-800 text-white">
-                      <th className="p-5 border-r border-slate-700 text-left min-w-32">
+                      <th className="p-4 sm:p-5 border-r border-slate-700 text-left min-w-35">
                         Time Slot
                       </th>
                       {days.map((day) => (
@@ -446,7 +446,7 @@ export default function TimeTable() {
                           return (
                             <td
                               key={day}
-                              className={`p-4 min-w-44 text-center ${getCellStyle(data)}`}
+                              className={`p-3 sm:p-4 min-w-40 sm:min-w-45 text-center ${getCellStyle(data)}`}
                             >
                               {data?.type === "lecture" ? (
                                 <div className="text-left">

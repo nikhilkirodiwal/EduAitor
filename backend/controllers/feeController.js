@@ -1,72 +1,8 @@
 import FeeStructure from "../models/feeStructure.js";
 import Class from "../models/class.js";
-
-// export const createFeeStructure = async (req, res) => {
-//   try {
-
-//     // get any class from DB (temporary)
-//     const classData = await Class.findOne({ _id: "69b401ddf2012791195309e6" });
-
-//     if (!classData) {
-//       return res.status(404).json({ message: "No class found in DB" });
-//     }
-
-//     const fees = [
-//       {
-//         name: "Tuition Fee",
-//         amount: 1500,
-//         isOptional: false
-//       },
-//       {
-//         name: "Transport Fee",
-//         amount: 800,
-//         isOptional: true
-//       },
-//       {
-//         name: "Library Fee",
-//         amount: 300,
-//         isOptional: false
-//       },
-//       {
-//         name: "Lab Fee",
-//         amount: 500,
-//         isOptional: true
-//       },
-//       {
-//         name: "Sports Fee",
-//         amount: 200,
-//         isOptional: true
-//       }
-//     ];
-
-//     const newFeeStructure = new FeeStructure({
-//       class: classData._id,
-//       fees: fees
-//     });
-
-//     await newFeeStructure.save();
-
-//     res.status(201).json({
-//       message: "Fee Structure Created",
-//       data: newFeeStructure
-//     });
-
-//   } catch (error) {
-//     res.status(400).json({ message: error.message });
-//   }
-// };
-
-// export const getFeeStructures = async (req, res) => {
-
-//   try {
-//     const { classId } = req.params;
-//     console.log("Fetching fee structure for class ID:", classId);
-//     const feeStructures = await FeeStructure.findOne({class:classId}).populate("class", "fees");
-//     res.json(feeStructures);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// };
+import Student from "../models/student.js";
+import Payment from "../models/payment.js";
+import Counter from "../models/receiptCounter.js";
 
 
 //  Get fee structure for a class
@@ -140,5 +76,77 @@ export const deleteFeeComponent = async (req, res) => {
     res.json(doc);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+
+
+
+
+
+
+export const collectStudentFee = async (req, res) => {
+  try {
+    const { studentId, amountPaid, paymentMode, remarks } = req.body;
+
+    // 1. Validate amount
+    if (!amountPaid || Number(amountPaid) <= 0) {
+      return res.status(400).json({ message: "Invalid payment amount" });
+    }
+
+    // 2. Check student exists
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // 3. Check overpayment
+    if (Number(amountPaid) > student.totalDue) {
+      return res.status(400).json({
+        message: `Amount ₹${amountPaid} exceeds due amount ₹${student.totalDue}`,
+      });
+    }
+
+    // 4. ✅ ATOMIC receipt number — no race condition possible
+    // findOneAndUpdate is ONE operation: increment + return new value atomically
+    const counter = await Counter.findOneAndUpdate(
+      { _id: "receiptNo" },           // find this counter document
+      { $inc: { seq: 1 } },           // atomically add 1
+     { returnDocument: "after", upsert: true }
+    );
+
+    const receiptId = `RCP-${counter.seq}`;
+
+    // 5. Create payment record
+    const newPayment = await Payment.create({
+      studentId,
+      amountPaid: Number(amountPaid),
+      paymentMode,
+      remarks: remarks || "",
+      receiptNo: receiptId,
+      paidDate: new Date(),
+    });
+
+    // 6. Update student totals
+   student.totalPaid = (Number(student.totalPaid) || 0) + Number(amountPaid);
+    student.totalDue = (Number(student.finalFee) || 0) - student.totalPaid;
+    await student.save();
+
+    // 7. Respond
+    return res.status(200).json({
+      success: true,
+      message: "Payment processed successfully",
+      data: {
+        receipt: newPayment,
+        updatedBalances: {
+          totalPaid: student.totalPaid,
+          totalDue: student.totalDue,
+        },
+      },
+    });
+
+  } catch (error) {
+    console.error("Fee Collection Error:", error);
+    return res.status(500).json({ message: "Server error during payment" });
   }
 };

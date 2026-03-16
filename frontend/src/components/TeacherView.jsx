@@ -30,55 +30,55 @@ const TeacherView = () => {
     fetchTeacher();
   }, []);
 
-  if (loading) return <div className="p-10">Loading...</div>;
+  if (loading) return <div className="p-6 sm:p-10">Loading...</div>;
 
-  if (!teacher) return <div className="p-10">Teacher not found</div>;
+  if (!teacher) return <div className="p-6 sm:p-10">Teacher not found</div>;
 
   return (
-    <div className="p-8 bg-gray-50">
+    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
       {/* HEADER */}
 
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Teacher Profile</h1>
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold">Teacher Profile</h1>
 
-        <div>
-          <button
-            onClick={() => navigate(`/school/teacher-manage/${teacher._id}`)}
-            className="px-4 py-2 bg-gray-200 rounded-lg"
-          >
-            Edit
-          </button>
-        </div>
+        <button
+          onClick={() => navigate(`/school/teacher-manage/${teacher._id}`)}
+          className="px-4 py-2 bg-gray-200 rounded-lg"
+        >
+          Edit
+        </button>
       </div>
 
       {/* PROFILE CARD */}
 
-      <div className="bg-white rounded-xl shadow p-6 mb-6 flex gap-6 items-center">
+      <div className="bg-white rounded-xl shadow p-6 mb-6 flex flex-col sm:flex-row gap-6 items-center">
         <img
           src={teacher.photo?.url || "https://i.pravatar.cc"}
-          className="w-28 h-28 rounded-full object-cover border"
+          className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border"
           alt="Profile"
         />
 
-        <div className="flex-1">
-          <h2 className="text-2xl font-semibold">{teacher.fullName}</h2>
+        <div className="flex-1 text-center sm:text-left">
+          <h2 className="text-xl sm:text-2xl font-semibold">
+            {teacher.fullName}
+          </h2>
+
           <p className="text-gray-500">{teacher.designation}</p>
+
           <p className="text-gray-400 text-sm">{teacher.department}</p>
         </div>
 
-        <div>
-          <button
-            onClick={() => setMessageOpen(true)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
-          >
-            Message
-          </button>
-        </div>
+        <button
+          onClick={() => setMessageOpen(true)}
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+        >
+          Message
+        </button>
       </div>
 
       {/* STATS */}
 
-      <div className="grid md:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
         <Stat title="Teacher ID" value={teacher.teacherId} />
         <Stat title="Experience" value={`${teacher.experience} yrs`} />
         <Stat title="Subject" value={teacher.subject} />
@@ -87,7 +87,7 @@ const TeacherView = () => {
 
       {/* DETAILS */}
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card title="Personal Information">
           <Info label="Full Name" value={teacher.fullName} />
           <Info label="DOB" value={teacher.dob?.slice(0, 10)} />
@@ -124,15 +124,15 @@ const TeacherView = () => {
       {/* MESSAGE POPUP */}
 
       {messageOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white rounded-xl p-6 w-112.5">
-            <h3 className="text-lg font-semibold mb-4">Send Message</h3>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md sm:max-w-lg space-y-4">
+            <h3 className="text-lg font-semibold">Send Message</h3>
 
-            <p className="text-sm text-gray-500 mb-4">To: {teacher.fullName}</p>
+            <p className="text-sm text-gray-500">To: {teacher.fullName}</p>
 
             <textarea
               placeholder="Write your message..."
-              className="w-full border rounded-lg p-3 h-32 mb-4"
+              className="w-full border rounded-lg p-3 h-32"
             />
 
             <div className="flex justify-end gap-3">
@@ -162,7 +162,7 @@ const TeacherView = () => {
 
 export default TeacherView;
 
-/* ================= COMPONENTS ================= */
+/* COMPONENTS */
 
 const Card = ({ title, children }) => (
   <div className="bg-white rounded-xl shadow p-6">

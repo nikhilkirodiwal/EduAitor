@@ -9,14 +9,14 @@ import {
   FaTimes,
   FaUserShield,
   FaSchool,
+  FaCalendarAlt,
+  FaBell,
 } from "react-icons/fa";
 
 import {
   FiUsers,
   FiBookOpen,
-  FiCalendar,
   FiBarChart2,
-  FiBell,
   FiTruck,
   FiBook,
   FiDollarSign,
@@ -105,13 +105,15 @@ const Sidebar = ({ closeSidebar }) => {
     {
       name: "Fee Management",
       icon: <FaWallet />,
-      children: [{ name: "Fee Structure", path: "/school/fee-structure" }],
+      children: [
+        { name: "Fee Structure", path: "/school/fee-structure" },
+        { name: "Fee Collection", path: "/school/fee-collection" },
+      ],
     },
 
-    { name: "Events", icon: <FiCalendar />, path: "/school/events" },
-    { name: "Notices", icon: <FiBell />, path: "/school/notices" },
-    { name: "Reports", icon: <FiBarChart2 />, path: "/school/reports" },
-    { name: "Finance", icon: <FiDollarSign />, path: "/school/finance" },
+    { name: "Events", icon: <FaCalendarAlt />, path: "/school/event" },
+    { name: "Notices", icon: <FaBell />, path: "/school/notice" },
+    // { name: "Reports", icon: <FiBarChart2 />, path: "/school/reports" },
     { name: "Transport", icon: <FiTruck />, path: "/school/transport" },
     { name: "Library", icon: <FiBook />, path: "/school/library" },
   ];
@@ -124,7 +126,6 @@ const Sidebar = ({ closeSidebar }) => {
 
   return (
     <aside className="h-full w-56 bg-white border-r border-gray-200 flex flex-col">
-
       {/* MOBILE HEADER */}
 
       <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b">
@@ -141,15 +142,12 @@ const Sidebar = ({ closeSidebar }) => {
       {/* MENU */}
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden py-2">
-
         {menu.map((item, index) => {
-
           const isParentActive =
             item.children &&
             item.children.some((c) => location.pathname === c.path);
 
           if (item.children) {
-
             const isOpen = openMenu === item.name;
 
             return (
@@ -163,7 +161,6 @@ const Sidebar = ({ closeSidebar }) => {
                       : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 border-l-4 border-transparent"
                   }`}
                 >
-
                   <div className="flex items-center gap-3">
                     <span>{item.icon}</span>
                     <span className="font-medium">{item.name}</span>
@@ -174,16 +171,12 @@ const Sidebar = ({ closeSidebar }) => {
                   ) : (
                     <FaChevronRight size={10} />
                   )}
-
                 </div>
 
                 {isOpen && (
                   <div className="bg-gray-50/70">
-
                     {item.children.map((child, i) => {
-
-                      const isActive =
-                        location.pathname === child.path;
+                      const isActive = location.pathname === child.path;
 
                       return (
                         <div
@@ -203,7 +196,6 @@ const Sidebar = ({ closeSidebar }) => {
                         </div>
                       );
                     })}
-
                   </div>
                 )}
               </div>
@@ -231,13 +223,11 @@ const Sidebar = ({ closeSidebar }) => {
             </div>
           );
         })}
-
       </div>
 
       {/* LOGOUT */}
 
       <div className="p-3 border-t border-gray-100">
-
         <button
           onClick={logout}
           className="flex items-center gap-3 w-full px-4 py-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition text-sm"
@@ -245,9 +235,7 @@ const Sidebar = ({ closeSidebar }) => {
           <FaSignOutAlt />
           <span className="font-medium">Logout</span>
         </button>
-
       </div>
-
     </aside>
   );
 };
