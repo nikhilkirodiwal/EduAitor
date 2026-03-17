@@ -8,7 +8,10 @@ import {
   FaChalkboardTeacher,
   FaUserGraduate,
   FaBook,
+  FaDoorOpen,
+  FaLayerGroup,
 } from "react-icons/fa";
+import { FiUsers } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
@@ -16,17 +19,14 @@ const API = import.meta.env.VITE_API_URL;
 export default function ClassView() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [classData, setClassData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState(0);
 
   const fetchClass = async () => {
     try {
-      const { data } = await axios.get(`${API}/classes/all`);
-
-      const found = data.classes.find((c) => c._id === id);
-
-      setClassData(found);
+      const { data } = await axios.get(`${API}/classes/${id}`);
+      setClassData(data.class);
     } catch {
       toast.error("Failed to load class");
     } finally {
@@ -38,130 +38,262 @@ export default function ClassView() {
     fetchClass();
   }, []);
 
-  if (loading) {
-    return <div className="p-6 sm:p-10 text-center">Loading class...</div>;
-  }
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-8 h-8 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
 
-  if (!classData) {
-    return <div className="p-6 sm:p-10 text-center">Class not found</div>;
-  }
+  if (!classData)
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-gray-400 gap-3">
+        <FaSchool size={36} />
+        <p className="text-sm">Class not found.</p>
+        <button
+          onClick={() => navigate(-1)}
+          className="text-indigo-500 text-sm hover:underline"
+        >
+          Go back
+        </button>
+      </div>
+    );
 
-  const percent = classData.capacity
-    ? (classData.studentCount / classData.capacity) * 100
+  const details = classData.details || [];
+  const hasSections = details.some((d) => d.sectionId);
+  const totalStudents = details.reduce((s, d) => s + (d.studentCount || 0), 0);
+  const totalCap = details.reduce((s, d) => s + (d.capacity || 0), 0);
+  const totalSubjects = new Set(
+    details.flatMap((d) => d.subjects?.map((s) => s._id) || []),
+  ).size;
+  const activeDetail = details[activeTab] || details[0];
+
+  return (
+    <div className="w-full pb-12 space-y-6">
+      {/* ── Back ── */}
+      <button
+        onClick={() => navigate("/school/class")}
+        className="flex items-center gap-2 text-sm text-indigo-500 hover:text-indigo-600 transition"
+      >
+        <FaArrowLeft size={13} /> Back to Classes
+      </button>
+
+      {/* ── Hero Card ── */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="h-1.5 w-full bg-linear-to-r from-indigo-400 to-pink-400" />
+        <div className="p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* left — class identity */}
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-500 text-white flex items-center justify-center font-bold text-lg shrink-0">
+                {classData.name.replace(/\D/g, "") ||
+                  classData.name.slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">
+                  {classData.name}
+                </h1>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  <span
+                    className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
+                      classData.status === "Active"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    {classData.status}
+                  </span>
+                  {hasSections && (
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600">
+                      {details.length} Section{details.length > 1 ? "s" : ""}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* right — summary bubbles */}
+            <div className="flex items-center gap-3 flex-wrap">
+              {[
+                {
+                  icon: <FiUsers size={16} />,
+                  label: "Students",
+                  value: totalStudents,
+                  bg: "bg-indigo-50 text-indigo-600",
+                },
+                {
+                  icon: <FaLayerGroup size={14} />,
+                  label: "Capacity",
+                  value: totalCap,
+                  bg: "bg-purple-50 text-purple-600",
+                },
+                {
+                  icon: <FaBook size={13} />,
+                  label: "Subjects",
+                  value: totalSubjects,
+                  bg: "bg-pink-50 text-pink-600",
+                },
+              ].map((b, i) => (
+                <div
+                  key={i}
+                  className={`flex flex-col items-center justify-center rounded-xl px-4 py-3 min-w-17.5 ${b.bg}`}
+                >
+                  <span className="mb-0.5">{b.icon}</span>
+                  <p className="text-lg font-bold leading-none">{b.value}</p>
+                  <p className="text-[10px] font-medium opacity-70 mt-0.5">
+                    {b.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── If no sections — single detail view ── */}
+      {!hasSections && activeDetail && (
+        <SingleDetailView detail={activeDetail} />
+      )}
+
+      {/* ── If has sections — tab per section ── */}
+      {hasSections && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {/* section tabs */}
+          <div className="flex items-center gap-1 px-5 pt-4 border-b border-gray-100 overflow-x-auto">
+            {details.map((d, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveTab(i)}
+                className={`px-4 py-2 text-sm font-semibold rounded-t-lg transition whitespace-nowrap border-b-2 ${
+                  activeTab === i
+                    ? "border-indigo-500 text-indigo-600 bg-indigo-50"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {d.sectionId ? `Section ${d.sectionId.name}` : "General"}
+              </button>
+            ))}
+          </div>
+
+          {/* active section detail */}
+          <div className="p-6">
+            <SingleDetailView detail={activeDetail} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Single detail view — reused for both cases ── */
+function SingleDetailView({ detail }) {
+  const pct = detail.capacity
+    ? Math.min((detail.studentCount / detail.capacity) * 100, 100)
     : 0;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 bg-gray-50 min-h-screen">
-      {/* HEADER */}
-
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-        <button
-          onClick={() => navigate("/school/class")}
-          className="flex items-center gap-2 text-indigo-600 font-medium"
-        >
-          <FaArrowLeft /> Back to Classes
-        </button>
+    <div className="space-y-4">
+      {/* info grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <InfoCard
+          icon={<FaDoorOpen />}
+          label="Room Number"
+          value={detail.roomNumber || "—"}
+          color="text-indigo-500"
+        />
+        <InfoCard
+          icon={<FaChalkboardTeacher />}
+          label="Class Teacher"
+          value={detail.teacherId?.fullName || "Not Assigned"}
+          color="text-amber-500"
+        />
+        <InfoCard
+          icon={<FaUserGraduate />}
+          label="Students"
+          value={`${detail.studentCount || 0} enrolled`}
+          color="text-green-500"
+        />
+        <InfoCard
+          icon={<FaLayerGroup />}
+          label="Capacity"
+          value={`${detail.studentCount || 0} / ${detail.capacity || "—"}`}
+          color="text-purple-500"
+        />
       </div>
 
-      {/* CLASS HEADER CARD */}
-
-      <div className="bg-white rounded-2xl shadow p-6 flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-        <div className="w-16 h-16 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xl font-bold">
-          {classData.name}
-        </div>
-
-        <div className="text-center sm:text-left">
-          <h2 className="text-xl sm:text-2xl font-semibold">
-            Class {classData.name}
-          </h2>
-
-          <p className="text-gray-500">Room {classData.roomNumber}</p>
-        </div>
-      </div>
-
-      {/* DETAILS GRID */}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* TEACHER */}
-
-        <div className="bg-white rounded-xl shadow p-5 space-y-2">
-          <div className="flex items-center gap-2 text-indigo-600">
-            <FaChalkboardTeacher />
-            <span className="font-medium">Class Teacher</span>
-          </div>
-
-          <p className="text-gray-600">
-            {classData.teacherId?.fullName || "Not Assigned"}
-          </p>
-        </div>
-
-        {/* SECTION */}
-
-        <div className="bg-white rounded-xl shadow p-5 space-y-2">
-          <div className="flex items-center gap-2 text-indigo-600">
-            <FaSchool />
-            <span className="font-medium">Section</span>
-          </div>
-
-          <p className="text-gray-600">
-            {classData.sectionId?.name || "Not Assigned"}
-          </p>
-        </div>
-
-        {/* STUDENTS */}
-
-        <div className="bg-white rounded-xl shadow p-5 space-y-2">
-          <div className="flex items-center gap-2 text-indigo-600">
-            <FaUserGraduate />
-            <span className="font-medium">Students</span>
-          </div>
-
-          <p className="text-gray-600">{classData.studentCount} Students</p>
-        </div>
-      </div>
-
-      {/* CAPACITY */}
-
-      <div className="bg-white rounded-xl shadow p-6 space-y-3">
-        <div className="flex justify-between flex-wrap gap-2">
-          <h3 className="font-semibold">Class Capacity</h3>
-
-          <span className="text-sm text-gray-500">
-            {classData.studentCount}/{classData.capacity}
+      {/* capacity bar */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold text-gray-700">Class Capacity</p>
+          <span
+            className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+              pct >= 90
+                ? "bg-red-100 text-red-600"
+                : pct >= 70
+                  ? "bg-amber-100 text-amber-600"
+                  : "bg-green-100 text-green-600"
+            }`}
+          >
+            {Math.round(pct)}% filled
           </span>
         </div>
-
-        <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
           <div
-            className="h-3 bg-pink-500 rounded-full"
-            style={{ width: `${percent}%` }}
+            className={`h-3 rounded-full transition-all ${
+              pct >= 90
+                ? "bg-red-400"
+                : pct >= 70
+                  ? "bg-amber-400"
+                  : "bg-linear-to-r from-pink-400 to-indigo-400"
+            }`}
+            style={{ width: `${pct}%` }}
           />
+        </div>
+        <div className="flex justify-between text-xs text-gray-400 mt-2">
+          <span>0</span>
+          <span>{detail.studentCount || 0} students</span>
+          <span>{detail.capacity || 0} max</span>
         </div>
       </div>
 
-      {/* SUBJECTS */}
-
-      <div className="bg-white rounded-xl shadow p-6 space-y-4">
-        <div className="flex items-center gap-2 text-indigo-600">
-          <FaBook />
-
-          <h3 className="font-semibold">Subjects</h3>
+      {/* subjects */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <FaBook className="text-indigo-500" size={14} />
+          <h3 className="text-sm font-semibold text-gray-700">
+            Subjects
+            <span className="ml-2 text-xs font-normal text-gray-400">
+              ({detail.subjects?.length || 0} assigned)
+            </span>
+          </h3>
         </div>
-
-        {classData.subjects?.length === 0 ? (
-          <p className="text-gray-400">No subjects assigned</p>
+        {!detail.subjects || detail.subjects.length === 0 ? (
+          <p className="text-sm text-gray-400">No subjects assigned yet.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {classData.subjects.map((sub) => (
+            {detail.subjects.map((sub) => (
               <span
                 key={sub._id}
-                className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm"
+                className="text-xs font-medium px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100"
               >
                 {sub.name}
               </span>
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Info Card ── */
+function InfoCard({ icon, label, value, color }) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-start gap-3">
+      <span className={`mt-0.5 shrink-0 text-base ${color}`}>{icon}</span>
+      <div>
+        <p className="text-xs text-gray-400 font-medium mb-0.5">{label}</p>
+        <p className="text-sm font-semibold text-gray-700">{value}</p>
       </div>
     </div>
   );

@@ -466,7 +466,9 @@ export default function Notice() {
                   {viewNotice.title}
                 </h2>
                 <button
-                  onClick={tryClose}
+                  onClick={() => {
+                    setViewNotice(null);
+                  }}
                   className="text-gray-400 hover:text-gray-600 shrink-0"
                 >
                   <FiX size={20} />
@@ -531,7 +533,9 @@ export default function Notice() {
 
               <div className="flex justify-end">
                 <button
-                  onClick={tryClose}
+                  onClick={() => {
+                    setViewNotice(null);
+                  }}
                   className="px-5 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
                 >
                   Close
@@ -642,28 +646,17 @@ export default function Notice() {
                     className="w-full border border-indigo-200 bg-indigo-50/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
                   >
                     <option value="">— Select a class —</option>
-                    {classes.length > 0
-                      ? classes.map((cls, i) => (
-                          <option key={i} value={cls.name}>
-                            {cls.name}
-                          </option>
-                        ))
-                      : [
-                          "Class 1",
-                          "Class 2",
-                          "Class 3",
-                          "Class 4",
-                          "Class 5",
-                          "Class 6",
-                          "Class 7",
-                          "Class 8",
-                          "Class 9",
-                          "Class 10",
-                        ].map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
+                    {classes.length > 0 ? (
+                      classes.map((cls, i) => (
+                        <option key={i} value={cls.name}>
+                          {cls.name}
+                        </option>
+                      ))
+                    ) : (
+                      <option key={c} value={c}>
+                        Class not available
+                      </option>
+                    )}
                   </select>
                 )}
               </div>
