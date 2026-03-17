@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
+const userData = JSON.parse(localStorage.getItem("userData"));
+const schoolId = userData?.school_id;
 
 const steps = [
   "Basic Information",
@@ -28,13 +30,12 @@ const emptyForm = {
   subject: "",
   department: "",
 
-  teacherId: "",
   designation: "",
   joiningDate: "",
   employmentType: "",
   salary: "",
 
-  assignedClasses: "",
+  assignedClasses: [],
   role: "",
   username: "",
   password: "",
@@ -53,7 +54,44 @@ const TeacherManagement = () => {
   const [confirmAction, setConfirmAction] = useState(null);
   const [confirmMessage, setConfirmMessage] = useState("");
 
+  // Dropdowns
+  const [subjects, setSubjects] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const progress = (step / steps.length) * 100;
+
+  /* FETCH DROPDOWN DATA */
+
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      if (!schoolId) {
+        toast.error("School ID not found");
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        const [subjectsRes, classesRes] = await Promise.all([
+          axios.get(`${API}/subjects/all`, { params: { schoolId } }),
+          axios.get(`${API}/classes/all`, { params: { schoolId } }),
+        ]);
+
+        setSubjects(subjectsRes.data.subjects || []);
+        setClasses(classesRes.data.classes || []);
+        console.log(subjectsRes.data.subjects  || []);
+        console.log(classesRes.data.classes || []);
+      } catch (error) {
+        toast.error("Failed to load dropdown data");
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDropdownData();
+  }, []);
 
   /* FETCH TEACHER */
 
@@ -62,7 +100,9 @@ const TeacherManagement = () => {
 
     const fetchTeacher = async () => {
       try {
-        const res = await axios.get(`${API}/teachers/${id}`);
+        const res = await axios.get(`${API}/teachers/${id}`, {
+          params: { schoolId },
+        });
 
         const t = res.data.data;
 
@@ -70,6 +110,7 @@ const TeacherManagement = () => {
           ...t,
           dob: t.dob ? t.dob.split("T")[0] : "",
           joiningDate: t.joiningDate ? t.joiningDate.split("T")[0] : "",
+          assignedClasses: t.assignedClasses || [],
         });
       } catch {
         toast.error("Failed to load teacher");
@@ -87,6 +128,18 @@ const TeacherManagement = () => {
     setForm((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  /* MULTI SELECT FOR CLASSES */
+
+  const handleClassChange = (e) => {
+    const options = Array.from(e.target.selectedOptions);
+    const values = options.map((opt) => opt.value);
+
+    setForm((prev) => ({
+      ...prev,
+      assignedClasses: values,
     }));
   };
 
@@ -112,7 +165,7 @@ const TeacherManagement = () => {
 
   /* DIRTY CHECK */
 
-  const isDirty = () => Object.values(form).some((v) => v !== "");
+  const isDirty = () => Object.values(form).some((v) => v !== "" && v !== null);
 
   /* VALIDATION */
 
@@ -126,6 +179,9 @@ const TeacherManagement = () => {
 
       if (form.phone && !/^[6-9]\d{9}$/.test(form.phone))
         errors.push("Invalid phone number");
+
+      if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+        errors.push("Invalid email format");
     }
 
     if (step === 2) {
@@ -134,12 +190,13 @@ const TeacherManagement = () => {
     }
 
     if (step === 3) {
-      if (!form.teacherId) errors.push("Teacher ID required");
       if (!form.designation) errors.push("Designation required");
+      if (!form.joiningDate) errors.push("Joining Date required");
     }
 
     if (step === 4) {
       if (!form.username) errors.push("Username required");
+      if (!isEdit && !form.password) errors.push("Password required");
       if (!form.role) errors.push("Role required");
     }
 
@@ -195,12 +252,24 @@ const TeacherManagement = () => {
   };
 
   const submitTeacher = async () => {
+    if (!schoolId) {
+      toast.error("School ID not found");
+      return;
+    }
+
     try {
       const data = new FormData();
 
       Object.keys(form).forEach((key) => {
-        data.append(key, form[key]);
+        if (key === "assignedClasses") {
+          // Send as JSON array
+          data.append(key, JSON.stringify(form[key]));
+        } else if (form[key] !== null && form[key] !== "") {
+          data.append(key, form[key]);
+        }
       });
+
+      data.append("schoolId", schoolId);
 
       if (isEdit) {
         await axios.put(`${API}/teachers/${id}`, data);
@@ -213,8 +282,9 @@ const TeacherManagement = () => {
       }
 
       navigate("/school/teachers");
-    } catch {
-      toast.error("Operation failed");
+    } catch (error) {
+      const message = error.response?.data?.message || "Operation failed";
+      toast.error(message);
     }
   };
 
@@ -233,6 +303,17 @@ const TeacherManagement = () => {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [form]);
 
+  if (loading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
       {/* HEADER */}
@@ -244,7 +325,7 @@ const TeacherManagement = () => {
 
         <button
           onClick={resetForm}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg"
+          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
         >
           Reset
         </button>
@@ -278,7 +359,7 @@ const TeacherManagement = () => {
 
                     setStep(index);
                   }}
-                  className={`flex items-center gap-3 p-3 rounded-lg mb-2 cursor-pointer
+                  className={`flex items-center gap-3 p-3 rounded-lg mb-2 cursor-pointer transition
                   ${
                     status === "active"
                       ? "bg-indigo-600 text-white"
@@ -313,11 +394,11 @@ const TeacherManagement = () => {
 
             <div className="mb-6">
               <div className="flex justify-between text-sm mb-2">
-                <span>
+                <span className="font-medium">
                   Step {step} of {steps.length}
                 </span>
 
-                <span>{Math.round(progress)}%</span>
+                <span className="text-gray-600">{Math.round(progress)}%</span>
               </div>
 
               <div className="w-full bg-gray-200 h-2 rounded-full">
@@ -337,6 +418,7 @@ const TeacherManagement = () => {
                   name="fullName"
                   value={form.fullName}
                   onChange={handleChange}
+                  placeholder="Enter full name"
                 />
                 <Input
                   type="date"
@@ -349,7 +431,7 @@ const TeacherManagement = () => {
                   label="Gender"
                   name="gender"
                   value={form.gender}
-                  options={["Male", "Female"]}
+                  options={["Male", "Female", "Other"]}
                   onChange={handleChange}
                 />
                 <Input
@@ -357,24 +439,30 @@ const TeacherManagement = () => {
                   name="phone"
                   value={form.phone}
                   onChange={handleChange}
+                  placeholder="10-digit mobile number"
                 />
                 <Input
+                  type="email"
                   label="Email *"
                   name="email"
                   value={form.email}
                   onChange={handleChange}
+                  placeholder="teacher@example.com"
                 />
                 <Input
                   label="Government ID"
                   name="governmentId"
                   value={form.governmentId}
                   onChange={handleChange}
+                  placeholder="Aadhaar/PAN/etc"
                 />
                 <Input
                   label="Address"
                   name="address"
                   value={form.address}
                   onChange={handleChange}
+                  placeholder="Full address"
+                  className="md:col-span-2"
                 />
                 <File
                   label="Teacher Photo"
@@ -387,21 +475,25 @@ const TeacherManagement = () => {
             {step === 2 && (
               <div className="grid md:grid-cols-2 gap-6">
                 <Input
-                  label="Qualification"
+                  label="Qualification *"
                   name="qualification"
                   value={form.qualification}
                   onChange={handleChange}
+                  placeholder="B.Ed, M.A, etc"
                 />
                 <Input
-                  label="Experience"
+                  type="number"
+                  label="Experience (Years)"
                   name="experience"
                   value={form.experience}
                   onChange={handleChange}
+                  placeholder="Years of teaching"
                 />
-                <Input
-                  label="Subject"
+                <Select
+                  label="Subject *"
                   name="subject"
                   value={form.subject}
+                  options={subjects.map((s) => s.name || s.subjectName)}
                   onChange={handleChange}
                 />
                 <Input
@@ -409,6 +501,7 @@ const TeacherManagement = () => {
                   name="department"
                   value={form.department}
                   onChange={handleChange}
+                  placeholder="e.g., Science, Arts"
                 />
               </div>
             )}
@@ -416,20 +509,15 @@ const TeacherManagement = () => {
             {step === 3 && (
               <div className="grid md:grid-cols-2 gap-6">
                 <Input
-                  label="Teacher ID"
-                  name="teacherId"
-                  value={form.teacherId}
-                  onChange={handleChange}
-                />
-                <Input
-                  label="Designation"
+                  label="Designation *"
                   name="designation"
                   value={form.designation}
                   onChange={handleChange}
+                  placeholder="e.g., Senior Teacher, HOD"
                 />
                 <Input
                   type="date"
-                  label="Joining Date"
+                  label="Joining Date *"
                   name="joiningDate"
                   value={form.joiningDate}
                   onChange={handleChange}
@@ -442,46 +530,95 @@ const TeacherManagement = () => {
                   onChange={handleChange}
                 />
                 <Input
+                  type="number"
                   label="Salary"
                   name="salary"
                   value={form.salary}
                   onChange={handleChange}
+                  placeholder="Monthly salary"
                 />
               </div>
             )}
 
             {step === 4 && (
               <div className="grid md:grid-cols-2 gap-6">
-                <Input
-                  label="Assigned Classes"
-                  name="assignedClasses"
-                  value={form.assignedClasses}
-                  onChange={handleChange}
-                />
-                <Input
-                  label="Role"
+                <div className="md:col-span-2">
+                  <label className="block text-sm mb-1 text-gray-600">
+                    Assigned Classes
+                  </label>
+                  <select
+                    multiple
+                    value={form.assignedClasses}
+                    onChange={handleClassChange}
+                    className="w-full border px-3 py-2 rounded-lg h-32"
+                  >
+                    {classes.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.name || c.className}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Hold Ctrl/Cmd to select multiple classes
+                  </p>
+                </div>
+
+                <Select
+                  label="Role *"
                   name="role"
                   value={form.role}
+                  options={["Teacher", "Class Teacher", "HOD", "Coordinator"]}
                   onChange={handleChange}
                 />
+
                 <Input
-                  label="Username"
+                  label="Username *"
                   name="username"
                   value={form.username}
                   onChange={handleChange}
+                  placeholder="Login username"
                 />
+
                 <Input
-                  label="Password"
+                  type="password"
+                  label={
+                    isEdit
+                      ? "Password (leave blank to keep current)"
+                      : "Password *"
+                  }
                   name="password"
                   value={form.password}
                   onChange={handleChange}
+                  placeholder="Create password"
                 />
               </div>
             )}
 
             {step === 5 && (
-              <div className="bg-gray-50 border rounded-xl p-6 overflow-auto">
-                <pre className="text-sm">{JSON.stringify(form, null, 2)}</pre>
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Review Details</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <ReviewField label="Full Name" value={form.fullName} />
+                  <ReviewField label="Email" value={form.email} />
+                  <ReviewField label="Phone" value={form.phone} />
+                  <ReviewField label="Gender" value={form.gender} />
+                  <ReviewField
+                    label="Qualification"
+                    value={form.qualification}
+                  />
+                  <ReviewField label="Subject" value={form.subject} />
+                  <ReviewField label="Designation" value={form.designation} />
+                  <ReviewField
+                    label="Employment Type"
+                    value={form.employmentType}
+                  />
+                  <ReviewField label="Role" value={form.role} />
+                  <ReviewField label="Username" value={form.username} />
+                  <ReviewField
+                    label="Assigned Classes"
+                    value={`${form.assignedClasses.length} class(es) selected`}
+                  />
+                </div>
               </div>
             )}
 
@@ -491,7 +628,7 @@ const TeacherManagement = () => {
               {step > 1 && (
                 <button
                   onClick={prev}
-                  className="px-6 py-2 bg-gray-200 rounded-lg"
+                  className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
                 >
                   Back
                 </button>
@@ -501,7 +638,7 @@ const TeacherManagement = () => {
                 <button
                   onClick={next}
                   disabled={validateStep().length > 0}
-                  className={`px-6 py-2 rounded-lg text-white
+                  className={`px-6 py-2 rounded-lg text-white ml-auto transition
                   ${
                     validateStep().length
                       ? "bg-gray-400 cursor-not-allowed"
@@ -513,7 +650,7 @@ const TeacherManagement = () => {
               ) : (
                 <button
                   onClick={handleSubmit}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg"
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition ml-auto"
                 >
                   {isEdit ? "Update Teacher" : "Save Teacher"}
                 </button>
@@ -539,20 +676,28 @@ const TeacherManagement = () => {
 
 export default TeacherManagement;
 
-const Input = ({ label, ...props }) => (
-  <div>
+const Input = ({ label, className = "", ...props }) => (
+  <div className={className}>
     <label className="block text-sm mb-1 text-gray-600">{label}</label>
-    <input {...props} className="w-full border px-3 py-2 rounded-lg" />
+    <input
+      {...props}
+      className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+    />
   </div>
 );
 
 const Select = ({ label, options, ...props }) => (
   <div>
     <label className="block text-sm mb-1 text-gray-600">{label}</label>
-    <select {...props} className="w-full border px-3 py-2 rounded-lg">
+    <select
+      {...props}
+      className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+    >
       <option value="">Select</option>
       {options.map((o, i) => (
-        <option key={i}>{o}</option>
+        <option key={i} value={o}>
+          {o}
+        </option>
       ))}
     </select>
   </div>
@@ -565,24 +710,36 @@ const File = ({ label, name, onChange }) => (
       type="file"
       name={name}
       onChange={onChange}
-      className="w-full border px-3 py-2 rounded-lg"
+      accept="image/*"
+      className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
     />
+    <p className="text-xs text-gray-500 mt-1">Max size: 2MB</p>
+  </div>
+);
+
+const ReviewField = ({ label, value }) => (
+  <div className="bg-gray-50 p-3 rounded-lg">
+    <p className="text-xs text-gray-500 mb-1">{label}</p>
+    <p className="text-sm font-medium">{value || "Not provided"}</p>
   </div>
 );
 
 const ConfirmModal = ({ message, onCancel, onConfirm }) => (
-  <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-    <div className="bg-white rounded-xl p-6 w-100">
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl p-6 w-96 max-w-full mx-4">
       <h3 className="text-lg font-semibold mb-3">Confirmation</h3>
-      <p className="mb-6">{message}</p>
+      <p className="mb-6 text-gray-600">{message}</p>
 
       <div className="flex justify-end gap-3">
-        <button onClick={onCancel} className="px-4 py-2 bg-gray-200 rounded-lg">
+        <button
+          onClick={onCancel}
+          className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+        >
           Cancel
         </button>
         <button
           onClick={onConfirm}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
         >
           Confirm
         </button>

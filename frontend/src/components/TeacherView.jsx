@@ -4,6 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
+const userData = JSON.parse(localStorage.getItem("userData"));
+const schoolId = userData?.school_id;
 
 const TeacherView = () => {
   const { id } = useParams();
@@ -16,7 +18,9 @@ const TeacherView = () => {
 
   const fetchTeacher = async () => {
     try {
-      const res = await axios.get(`${API}/teachers/${id}`);
+      const res = await axios.get(`${API}/teachers/${id}`, {
+        params: { schoolId },
+      });
 
       setTeacher(res.data.data);
     } catch {
@@ -115,7 +119,16 @@ const TeacherView = () => {
         </Card>
 
         <Card title="ERP Details">
-          <Info label="Assigned Classes" value={teacher.assignedClasses} />
+          <Info
+            label="Assigned Classes"
+            value={
+              teacher.assignedClasses?.length
+                ? teacher.assignedClasses
+                    .map((c) => c.name || c.className)
+                    .join(", ")
+                : "-"
+            }
+          />
           <Info label="Role" value={teacher.role} />
           <Info label="Username" value={teacher.username} />
         </Card>
