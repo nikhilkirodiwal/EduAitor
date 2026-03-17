@@ -3,38 +3,47 @@ import Class from "../models/class.js";
 /* ── CREATE CLASS ── */
 export const createClass = async (req, res) => {
   try {
-    const { name, details, status } = req.body;
+    let { name, details, status, schoolId } = req.body;
+
+    if (!schoolId)
+      return res.status(400).json({
+        success: false,
+        message: "schoolId is required",
+      });
 
     if (!name)
-      return res
-        .status(400)
-        .json({ success: false, message: "Class name is required" });
-    if (!details || details.length === 0)
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "At least one detail entry is required",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Class name is required",
+      });
 
-    /* validate each detail has roomNumber */
+    if (!details || details.length === 0)
+      return res.status(400).json({
+        success: false,
+        message: "At least one detail entry is required",
+      });
+
+    name = name.trim();
+
+    const exists = await Class.findOne({
+      schoolId,
+      name: { $regex: `^${name}$`, $options: "i" },
+    });
+
+    if (exists)
+      return res.status(400).json({
+        success: false,
+        message: `"${name}" already exists`,
+      });
+
     for (const d of details) {
       if (!d.roomNumber)
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: "Room number is required for each entry",
-          });
+        return res.status(400).json({
+          success: false,
+          message: "Room number required",
+        });
     }
 
-    const exists = await Class.findOne({ name: name.trim() });
-    if (exists)
-      return res
-        .status(400)
-        .json({ success: false, message: `"${name}" already exists` });
-
-    /* sanitize — empty strings to null */
     const sanitized = details.map((d) => ({
       ...d,
       sectionId: d.sectionId || null,
@@ -44,7 +53,8 @@ export const createClass = async (req, res) => {
     }));
 
     const newClass = await Class.create({
-      name: name.trim(),
+      name,
+      schoolId,
       details: sanitized,
       status,
     });
@@ -54,13 +64,11 @@ export const createClass = async (req, res) => {
       .populate("details.teacherId", "fullName")
       .populate("details.subjects", "name");
 
-    res
-      .status(201)
-      .json({
-        success: true,
-        message: "Class created successfully",
-        class: populated,
-      });
+    res.status(201).json({
+      success: true,
+      message: "Class created successfully",
+      class: populated,
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -69,7 +77,15 @@ export const createClass = async (req, res) => {
 /* ── GET ALL CLASSES ── */
 export const getClasses = async (req, res) => {
   try {
-    const classes = await Class.find()
+    const { schoolId } = req.query;
+
+    if (!schoolId)
+      return res.status(400).json({
+        success: false,
+        message: "schoolId is required",
+      });
+
+    const classes = await Class.find({ schoolId })
       .populate("details.sectionId", "name status")
       .populate("details.teacherId", "fullName")
       .populate("details.subjects", "name")
@@ -84,15 +100,28 @@ export const getClasses = async (req, res) => {
 /* ── GET SINGLE CLASS ── */
 export const getClassById = async (req, res) => {
   try {
-    const cls = await Class.findById(req.params.id)
+    const { schoolId } = req.query;
+
+    if (!schoolId)
+      return res.status(400).json({
+        success: false,
+        message: "schoolId is required",
+      });
+
+    const cls = await Class.findOne({
+      _id: req.params.id,
+      schoolId,
+    })
       .populate("details.sectionId", "name status")
       .populate("details.teacherId", "fullName")
       .populate("details.subjects", "name");
 
     if (!cls)
-      return res
-        .status(404)
-        .json({ success: false, message: "Class not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Class not found",
+      });
+
     res.json({ success: true, class: cls });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -107,11 +136,23 @@ export const getClassById = async (req, res) => {
 */
 export const getClassesFlat = async (req, res) => {
   try {
-    const classes = await Class.find({ status: "Active" })
+    const { schoolId } = req.query;
+
+    if (!schoolId)
+      return res.status(400).json({
+        success: false,
+        message: "schoolId is required",
+      });
+
+    const classes = await Class.find({
+      schoolId,
+      status: "Active",
+    })
       .populate("details.sectionId", "name status")
       .sort({ name: 1 });
 
     const result = [];
+
     classes.forEach((cls) => {
       cls.details.forEach((d) => {
         result.push({
@@ -137,7 +178,38 @@ export const getClassesFlat = async (req, res) => {
 /* ── UPDATE CLASS ── */
 export const updateClass = async (req, res) => {
   try {
-    const { name, details, status } = req.body;
+    const { schoolId, name, details, status } = req.body;
+
+    if (!schoolId)
+      return res.status(400).json({
+        success: false,
+        message: "schoolId is required",
+      });
+
+    const cls = await Class.findOne({
+      _id: req.params.id,
+      schoolId,
+    });
+
+    if (!cls)
+      return res.status(404).json({
+        success: false,
+        message: "Class not found",
+      });
+
+    if (name && name !== cls.name) {
+      const exists = await Class.findOne({
+        schoolId,
+        name: { $regex: `^${name}$`, $options: "i" },
+        _id: { $ne: cls._id },
+      });
+
+      if (exists)
+        return res.status(400).json({
+          success: false,
+          message: "Class name already exists",
+        });
+    }
 
     const sanitized = details?.map((d) => ({
       ...d,
@@ -147,23 +219,21 @@ export const updateClass = async (req, res) => {
       capacity: d.capacity || 40,
     }));
 
-    const updated = await Class.findByIdAndUpdate(
-      req.params.id,
-      { name, details: sanitized, status },
-      { new: true, runValidators: true },
-    )
+    cls.name = name || cls.name;
+    cls.details = sanitized || cls.details;
+    cls.status = status || cls.status;
+
+    await cls.save();
+
+    const populated = await Class.findById(cls._id)
       .populate("details.sectionId", "name status")
       .populate("details.teacherId", "fullName")
       .populate("details.subjects", "name");
 
-    if (!updated)
-      return res
-        .status(404)
-        .json({ success: false, message: "Class not found" });
     res.json({
       success: true,
       message: "Class updated successfully",
-      class: updated,
+      class: populated,
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -173,8 +243,25 @@ export const updateClass = async (req, res) => {
 /* ── DELETE CLASS ── */
 export const deleteClass = async (req, res) => {
   try {
-    await Class.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: "Class deleted successfully" });
+    const { schoolId } = req.query;
+
+    const cls = await Class.findOne({
+      _id: req.params.id,
+      schoolId,
+    });
+
+    if (!cls)
+      return res.status(404).json({
+        success: false,
+        message: "Class not found",
+      });
+
+    await cls.deleteOne();
+
+    res.json({
+      success: true,
+      message: "Class deleted successfully",
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

@@ -1,6 +1,5 @@
 import Timetable from "../models/timetable.js";
 
-/* ── helpers ── */
 const buildAssignments = (schedule) => {
   const assignments = {};
   schedule.forEach((dayData) => {
@@ -41,18 +40,19 @@ const buildSchedule = (assignments) =>
 /* ── SAVE / UPDATE ── */
 export const saveTimetable = async (req, res) => {
   try {
-    const { classId, detailId, periodConfigs, assignments } = req.body;
+    const { schoolId, classId, detailId, periodConfigs, assignments } =
+      req.body; // ← schoolId
 
+    if (!schoolId)
+      return res
+        .status(400)
+        .json({ success: false, message: "schoolId is required" });
     if (!classId)
       return res
         .status(400)
         .json({ success: false, message: "classId is required" });
 
-    const filter = {
-      classId,
-      detailId: detailId || null,
-    };
-
+    const filter = { schoolId, classId, detailId: detailId || null }; // ← schoolId in filter
     const schedule = buildSchedule(assignments);
 
     let timetable = await Timetable.findOne(filter);
@@ -80,8 +80,14 @@ export const getTimetable = async (req, res) => {
   try {
     const { classId } = req.params;
     const detailId = req.query.detailId || null;
+    const schoolId = req.query.schoolId; // ← schoolId from query param
 
-    const timetable = await Timetable.findOne({ classId, detailId })
+    if (!schoolId)
+      return res
+        .status(400)
+        .json({ success: false, message: "schoolId is required" });
+
+    const timetable = await Timetable.findOne({ schoolId, classId, detailId }) // ← schoolId
       .populate("schedule.periods.subjectId", "name")
       .populate("schedule.periods.teacherId", "fullName")
       .populate("schedule.periods.substituteTeacherId", "fullName");
@@ -91,6 +97,7 @@ export const getTimetable = async (req, res) => {
     res.json({
       success: true,
       data: {
+        schoolId: timetable.schoolId,
         classId: timetable.classId,
         detailId: timetable.detailId,
         periodConfigs: timetable.periodConfigs,
@@ -105,12 +112,18 @@ export const getTimetable = async (req, res) => {
 /* ── MARK TEACHER ABSENT ── */
 export const markTeacherAbsent = async (req, res) => {
   try {
-    const { classId, detailId, day, periodId } = req.body;
+    const { schoolId, classId, detailId, day, periodId } = req.body; // ← schoolId
+
+    if (!schoolId)
+      return res
+        .status(400)
+        .json({ success: false, message: "schoolId is required" });
 
     const timetable = await Timetable.findOne({
+      schoolId,
       classId,
       detailId: detailId || null,
-    });
+    }); // ← schoolId
 
     if (!timetable)
       return res

@@ -8,7 +8,11 @@ const subjectSchema = new mongoose.Schema(
       trim: true,
       unique: true,
     },
-
+    schoolId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "School",
+      required: true,
+    },
     status: {
       type: String,
       enum: ["Active", "Inactive"],
@@ -16,6 +20,12 @@ const subjectSchema = new mongoose.Schema(
     },
   },
   { timestamps: true },
+);
+
+// Unique index scoped to school
+subjectSchema.index(
+  { schoolId: 1, name: 1 },
+  { unique: true },
 );
 
 export default mongoose.model("Subject", subjectSchema);

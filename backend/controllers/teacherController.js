@@ -5,14 +5,12 @@ import { deleteFromCloudinary } from "../utils/deleteFromCloudinary.js";
 
 /* ================= GENERATE TEACHER ID ================= */
 
-const generateTeacherId = async () => {
-
-  const count = await Teacher.countDocuments();
+const generateTeacherId = async (schoolId) => {
+  const count = await Teacher.countDocuments({ schoolId });
 
   const next = count + 1;
 
-  return `TCH${String(next).padStart(4,"0")}`;
-
+  return `TCH${String(next).padStart(4, "0")}`;
 };
 
 

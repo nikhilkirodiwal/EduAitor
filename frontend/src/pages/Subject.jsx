@@ -5,6 +5,8 @@ import { FiX, FiCheckCircle, FiAlertTriangle } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
+const userData = JSON.parse(localStorage.getItem("userData"));
+const schoolId = userData?.school_id;
 
 const EMPTY_FORM = { name: "", status: "Active" };
 
@@ -25,7 +27,9 @@ export default function Subject() {
   const fetchSubjects = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${API}/subjects/all`);
+      const { data } = await axios.get(`${API}/subjects/all`, {
+        params: { schoolId },
+      });
       setSubjects(data.subjects || []);
     } catch {
       toast.error("Failed to load subjects");
@@ -93,10 +97,16 @@ export default function Subject() {
     try {
       setSubmitting(true);
       if (editing) {
-        await axios.put(`${API}/subjects/update/${editing._id}`, form);
+        await axios.put(`${API}/subjects/update/${editing._id}`, {
+          ...form,
+          schoolId,
+        });
         toast.success("Subject updated successfully!");
       } else {
-        await axios.post(`${API}/subjects/create`, form);
+        await axios.post(`${API}/subjects/create`, {
+          ...form,
+          schoolId,
+        });
         toast.success("Subject created successfully!");
       }
       closeModal();
@@ -111,7 +121,7 @@ export default function Subject() {
   /* ── delete ── */
   const handleDelete = async () => {
     try {
-      await axios.delete(`${API}/subjects/delete/${deleteId}`);
+      await axios.delete(`${API}/subjects/delete/${deleteId}`, {params: { schoolId },});
       toast.success("Subject deleted successfully!");
       setDeleteId(null);
       fetchSubjects();

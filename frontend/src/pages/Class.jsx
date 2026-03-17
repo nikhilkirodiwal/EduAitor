@@ -16,6 +16,8 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
+const userData = JSON.parse(localStorage.getItem("userData"));
+const schoolId = userData?.school_id;
 
 /* one blank detail row */
 const EMPTY_DETAIL = {
@@ -55,16 +57,16 @@ export default function ClassPage() {
   const fetchAll = async () => {
     try {
       setLoading(true);
-      const [cls, sec, tch, sub] = await Promise.all([
-        axios.get(`${API}/classes/all`),
-        axios.get(`${API}/sections/all`),
-        axios.get(`${API}/teachers`),
-        axios.get(`${API}/subjects/all`),
+      const [cls, sec, sub, tch] = await Promise.all([
+        axios.get(`${API}/classes/all`, { params: { schoolId } }),
+        axios.get(`${API}/sections/all`, { params: { schoolId } }),
+        axios.get(`${API}/subjects/all`, { params: { schoolId } }),
+        axios.get(`${API}/teachers`, { params: { schoolId } }),
       ]);
       setClasses(cls.data.classes || []);
       setSections(sec.data.sections || []);
-      setTeachers(tch.data.data || []);
       setSubjects(sub.data.subjects || []);
+      setTeachers(tch.data.data || []);
     } catch {
       toast.error("Failed to load data");
     } finally {
@@ -177,10 +179,16 @@ export default function ClassPage() {
     try {
       setSubmitting(true);
       if (editingClass) {
-        await axios.put(`${API}/classes/update/${editingClass._id}`, form);
+        await axios.put(`${API}/classes/update/${editingClass._id}`, {
+          ...form,
+          schoolId,
+        });
         toast.success("Class updated successfully!");
       } else {
-        await axios.post(`${API}/classes/create`, form);
+        await axios.post(`${API}/classes/create`, {
+          ...form,
+          schoolId,
+        });
         toast.success("Class created successfully!");
       }
       closeModal();
@@ -194,7 +202,9 @@ export default function ClassPage() {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`${API}/classes/delete/${deleteId}`);
+      await axios.delete(`${API}/classes/delete/${deleteId}`, {
+        params: { schoolId },
+      });
       toast.success("Class deleted successfully!");
       setDeleteId(null);
       fetchAll();

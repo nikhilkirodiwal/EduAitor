@@ -7,14 +7,13 @@ const subSectionSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-
     status: {
       type: String,
       enum: ["Active", "Inactive"],
       default: "Active",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const sectionSchema = new mongoose.Schema(
@@ -25,6 +24,12 @@ const sectionSchema = new mongoose.Schema(
       trim: true,
     },
 
+    schoolId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "School",
+      required: true,
+    },
+
     status: {
       type: String,
       enum: ["Active", "Inactive"],
@@ -33,7 +38,10 @@ const sectionSchema = new mongoose.Schema(
 
     subsections: [subSectionSchema],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+/* ✅ Unique per school */
+sectionSchema.index({ schoolId: 1, name: 1 }, { unique: true });
 
 export default mongoose.model("Section", sectionSchema);

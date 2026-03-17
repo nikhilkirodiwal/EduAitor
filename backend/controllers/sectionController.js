@@ -4,11 +4,31 @@ import Section from "../models/section.js";
 
 export const createSection = async (req, res) => {
   try {
-    const { name, status } = req.body;
+    let { name, status, schoolId } = req.body;
+
+    if (!schoolId)
+      return res.status(400).json({
+        success: false,
+        message: "schoolId is required",
+      });
+
+    name = name.trim();
+
+    const existing = await Section.findOne({
+      schoolId,
+      name: { $regex: `^${name}$`, $options: "i" },
+    });
+
+    if (existing)
+      return res.status(400).json({
+        success: false,
+        message: "Section already exists",
+      });
 
     const section = await Section.create({
       name,
       status,
+      schoolId,
       subsections: [],
     });
 
@@ -26,7 +46,17 @@ export const createSection = async (req, res) => {
 
 export const getSections = async (req, res) => {
   try {
-    const sections = await Section.find().sort({ createdAt: -1 });
+    const { schoolId } = req.query;
+
+    if (!schoolId)
+      return res.status(400).json({
+        success: false,
+        message: "schoolId is required",
+      });
+
+    const sections = await Section.find({ schoolId }).sort({
+      createdAt: -1,
+    });
 
     res.status(200).json({
       success: true,
@@ -42,21 +72,41 @@ export const getSections = async (req, res) => {
 export const updateSection = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, status } = req.body;
+    let { name, status, schoolId } = req.body;
 
-    const section = await Section.findById(id);
+    if (!schoolId)
+      return res.status(400).json({
+        success: false,
+        message: "schoolId is required",
+      });
 
-    if (!section) {
+    const section = await Section.findOne({ _id: id, schoolId });
+
+    if (!section)
       return res.status(404).json({
         success: false,
         message: "Section not found",
       });
+
+    if (name) {
+      name = name.trim();
+
+      const existing = await Section.findOne({
+        schoolId,
+        name: { $regex: `^${name}$`, $options: "i" },
+        _id: { $ne: id },
+      });
+
+      if (existing)
+        return res.status(400).json({
+          success: false,
+          message: "Section name already exists",
+        });
     }
 
-    section.name = name;
-    section.status = status;
+    section.name = name || section.name;
+    section.status = status || section.status;
 
-    // RULE: If section becomes inactive -> all subsections inactive
     if (status === "Inactive") {
       section.subsections = section.subsections.map((sub) => ({
         ...sub.toObject(),
@@ -80,9 +130,20 @@ export const updateSection = async (req, res) => {
 
 export const deleteSection = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { schoolId } = req.query;
 
-    await Section.findByIdAndDelete(id);
+    const section = await Section.findOne({
+      _id: req.params.id,
+      schoolId,
+    });
+
+    if (!section)
+      return res.status(404).json({
+        success: false,
+        message: "Section not found",
+      });
+
+    await section.deleteOne();
 
     res.status(200).json({
       success: true,
@@ -98,24 +159,32 @@ export const deleteSection = async (req, res) => {
 export const addSubSection = async (req, res) => {
   try {
     const { sectionId } = req.params;
-    const { name, status } = req.body;
+    const { name, status, schoolId } = req.body;
 
-    const section = await Section.findById(sectionId);
+    const section = await Section.findOne({
+      _id: sectionId,
+      schoolId,
+    });
 
-    if (!section) {
+    if (!section)
       return res.status(404).json({
         success: false,
         message: "Section not found",
       });
-    }
 
-    // If section inactive → subsection must also be inactive
+    const exists = section.subsections.find(
+      (s) => s.name.toLowerCase() === name.toLowerCase(),
+    );
+
+    if (exists)
+      return res.status(400).json({
+        success: false,
+        message: "Subsection already exists",
+      });
+
     const subStatus = section.status === "Inactive" ? "Inactive" : status;
 
-    section.subsections.push({
-      name,
-      status: subStatus,
-    });
+    section.subsections.push({ name, status: subStatus });
 
     await section.save();
 
@@ -134,31 +203,31 @@ export const addSubSection = async (req, res) => {
 export const updateSubSection = async (req, res) => {
   try {
     const { sectionId, subId } = req.params;
-    const { name, status } = req.body;
+    const { name, status, schoolId } = req.body;
 
-    const section = await Section.findById(sectionId);
+    const section = await Section.findOne({
+      _id: sectionId,
+      schoolId,
+    });
 
-    if (!section) {
+    if (!section)
       return res.status(404).json({
         success: false,
         message: "Section not found",
       });
-    }
 
     const subsection = section.subsections.id(subId);
 
-    if (!subsection) {
+    if (!subsection)
       return res.status(404).json({
         success: false,
         message: "Subsection not found",
       });
-    }
 
-    // RULE: cannot activate subsection if section inactive
     if (status === "Active" && section.status === "Inactive") {
       return res.status(400).json({
         success: false,
-        message: "Activate section first to activate subsection",
+        message: "Activate section first",
       });
     }
 
@@ -182,15 +251,18 @@ export const updateSubSection = async (req, res) => {
 export const deleteSubSection = async (req, res) => {
   try {
     const { sectionId, subId } = req.params;
+    const { schoolId } = req.query;
 
-    const section = await Section.findById(sectionId);
+    const section = await Section.findOne({
+      _id: sectionId,
+      schoolId,
+    });
 
-    if (!section) {
+    if (!section)
       return res.status(404).json({
         success: false,
         message: "Section not found",
       });
-    }
 
     section.subsections.pull(subId);
 

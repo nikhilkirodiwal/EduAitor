@@ -16,6 +16,9 @@ import { MdOutlineClass } from "react-icons/md";
 import { FiX } from "react-icons/fi";
 
 const API = import.meta.env.VITE_API_URL;
+const userData = JSON.parse(localStorage.getItem("userData"));
+const schoolId = userData?.school_id;
+
 const DAYS = [
   "Monday",
   "Tuesday",
@@ -54,9 +57,9 @@ export default function TimeTable() {
   const loadData = async () => {
     try {
       const [cls, sub, tea] = await Promise.all([
-        axios.get(`${API}/classes/flat`),
-        axios.get(`${API}/subjects/all`),
-        axios.get(`${API}/teachers`),
+        axios.get(`${API}/classes/flat`, { params: { schoolId } }),
+        axios.get(`${API}/subjects/all`, { params: { schoolId } }),
+        axios.get(`${API}/teachers`, { params: { schoolId } }),
       ]);
       setClasses(cls.data.classes || []);
       setSubjects(sub.data.subjects || []);
@@ -78,8 +81,10 @@ export default function TimeTable() {
   const fetchTimetable = async () => {
     try {
       setLoading(true);
-      const params = detailId ? `?detailId=${detailId}` : "";
-      const res = await axios.get(`${API}/timetable/${classId}${params}`);
+      const params = new URLSearchParams({ schoolId });
+      if (detailId) params.append("detailId", detailId);
+
+      const res = await axios.get(`${API}/timetable/${classId}?${params}`);
       if (res.data.data) {
         const pc = res.data.data.periodConfigs || [];
         const as = res.data.data.assignments || {};
@@ -160,6 +165,7 @@ export default function TimeTable() {
     if (!classId) return toast.warning("Select a class first");
     try {
       await axios.post(`${API}/timetable/save`, {
+        schoolId, // ← schoolId
         classId,
         detailId: detailId || null,
         periodConfigs,
@@ -176,6 +182,7 @@ export default function TimeTable() {
   const saveTeacherUpdate = async () => {
     try {
       await axios.post(`${API}/timetable/save`, {
+        schoolId, // ← schoolId
         classId,
         detailId: detailId || null,
         periodConfigs,

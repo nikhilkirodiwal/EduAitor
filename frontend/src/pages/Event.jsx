@@ -90,7 +90,9 @@ export default function EventsPage() {
 
   const fetchClasses = async () => {
     try {
-      const { data } = await axios.get(`${API}/classes/all`);
+      const { data } = await axios.get(`${API}/classes/all`, {
+        params: { schoolId },
+      });
       setClasses(data.classes || []);
     } catch {
       toast.error("Failed to load classes");

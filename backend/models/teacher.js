@@ -30,7 +30,12 @@ const teacherSchema = new mongoose.Schema(
     employmentType: String,
     salary: Number,
 
-    assignedClasses: String,
+    assignedClasses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Class",
+      },
+    ],
     role: String,
     username: String,
     password: String,
@@ -40,6 +45,12 @@ const teacherSchema = new mongoose.Schema(
       default: 4,
     },
 
+    schoolId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "School",
+      required: true,
+    },
+
     status: {
       type: String,
       default: "Present",
@@ -47,5 +58,8 @@ const teacherSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+// unique index scoped to school
+teacherSchema.index({ schoolId: 1, teacherId: 1 }, { unique: true });
 
 export default mongoose.model("Teacher", teacherSchema);

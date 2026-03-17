@@ -1,12 +1,11 @@
 import mongoose from "mongoose";
 
-/* ── per-section fields (or class-level if no sections) ── */
 const sectionDetailSchema = new mongoose.Schema(
   {
     sectionId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Section",
-      default: null, // null = class-level entry (no section)
+      default: null,
     },
 
     roomNumber: {
@@ -41,21 +40,20 @@ const sectionDetailSchema = new mongoose.Schema(
   { _id: true },
 );
 
-/* ── main class schema ── */
 const classSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
       trim: true,
-      unique: true, // only one "Class 1" document
     },
 
-    /*
-      details array rules:
-      - no sections → one entry with sectionId: null
-      - with sections → one entry per section, sectionId populated
-    */
+    schoolId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "School",
+      required: true,
+    },
+
     details: [sectionDetailSchema],
 
     status: {
@@ -66,5 +64,8 @@ const classSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+/* ✅ Unique per school */
+classSchema.index({ schoolId: 1, name: 1 }, { unique: true });
 
 export default mongoose.model("Class", classSchema);
