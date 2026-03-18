@@ -2,8 +2,9 @@
 import mongoose from "mongoose";
 
 const counterSchema = new mongoose.Schema({
-  _id: { type: String, required: true },  // e.g. "receiptNo"
-  seq: { type: Number, default: 1000 }    // starts at 1000, first receipt = 1001
+ _id: { type: String, required: true }, // Will be "receiptNo_SCHOOLID"
+  seq: { type: Number, default: 1000 },
+  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: "School" }
 });
 
 export default mongoose.model("Counter", counterSchema);

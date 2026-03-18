@@ -28,6 +28,8 @@ import Event from "./pages/Event";
 import EventView from "./components/EventView";
 import Notice from "./pages/Notice";
 import FeeCollection from "./pages/FeeCollection";
+import FeeHistory from "./pages/FeeHistory";
+import Defaulters from "./pages/Defaulters";
 
 const App = () => {
   return (
@@ -82,7 +84,9 @@ const App = () => {
         <Route path="subject" element={<Subject />} />
         <Route path="timetable" element={<TimeTable />} />
         <Route path="fee-structure" element={<FeeStructure />} />
-         <Route path="fee-collection" element={<FeeCollection />} />
+        <Route path="fee-collection" element={<FeeCollection />} />
+        <Route path="fee-history" element={<FeeHistory />} />
+        <Route path="defaulters" element={<Defaulters />} />
         <Route path="event" element={<Event />} />
         <Route path="event/:id" element={<EventView />} />
         <Route path="notice" element={<Notice />} />

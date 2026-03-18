@@ -13,7 +13,7 @@ const studentSchema = new mongoose.Schema(
     gender: String,
     bloodGroup: String,
     admissionDate: Date,
-    
+
     studentId: {
       type: String,
       unique: true,
@@ -42,7 +42,7 @@ const studentSchema = new mongoose.Schema(
     discountType: String,
     discountValue: Number,
     finalFee: Number,
-    totalPaid: Number,    
+    totalPaid: Number,
     totalDue: Number,
 
     documents: {
@@ -57,6 +57,10 @@ const studentSchema = new mongoose.Schema(
       studentAadhar: fileSchema,
       fatherAadhar: fileSchema,
       motherAadhar: fileSchema,
+    },
+    schoolId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "School", // or whatever your school model is named
     },
   },
   { timestamps: true },

@@ -54,6 +54,8 @@ app.use("/api/subjects", subjectRoute);
 app.use("/api/timetable", timetableRoute);
 app.use("/api/fee-structure", feeRoute);
 app.use("/api/fee-collect", feeRoute);
+app.use("/api/fee-history",feeRoute)
+app.use("/api/fees",feeRoute)
 app.use("/api/events", eventRoute)
 app.use("/api/notices", noticeRoute)
 

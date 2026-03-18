@@ -108,6 +108,8 @@ const Sidebar = ({ closeSidebar }) => {
       children: [
         { name: "Fee Structure", path: "/school/fee-structure" },
         { name: "Fee Collection", path: "/school/fee-collection" },
+        { name: "Fee History", path: "/school/fee-history" },
+        { name: "Defaulters", path: "/school/defaulters" },
       ],
     },
 

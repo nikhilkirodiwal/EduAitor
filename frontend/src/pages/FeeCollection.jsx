@@ -12,8 +12,21 @@ function FeeCollection() {
   const API = import.meta.env.VITE_API_URL;
   /* Fetch all classes for the dropdown */
   const fetchClasses = async () => {
+    // 1. Get the string from localStorage
+    const savedUserData = localStorage.getItem("userData");
+
+    // 2. Parse it back into an object
+    const userData = savedUserData ? JSON.parse(savedUserData) : null;
+    const schoolId = userData?.school_id;
+
+    if (!schoolId) {
+      console.error("No School ID found");
+      return;
+    }
     try {
-      const { data } = await axios.get(`${API}/classes/all`);
+      const { data } = await axios.get(`${API}/classes/all`, {
+        params: { schoolId },
+      });
       setClasses(data.classes);
       console.log(data.classes);
     } catch {
@@ -23,8 +36,14 @@ function FeeCollection() {
 
   //   fetch student
   const fetchStudents = async () => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const schoolId = userData?.school_id;
+
+    if (!schoolId) return;
     try {
-      const res = await axios.get(`${API}/students`);
+      const res = await axios.get(`${API}/students`, {
+        params: { schoolId },
+      });
       setStudents(res.data.data);
       console.log(res.data.data);
     } catch {
@@ -79,6 +98,9 @@ function FeeCollection() {
   };
 
   const confirmPayment = async () => {
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    const schoolId = userData?.school_id;
+
     if (!amountToPay || Number(amountToPay) <= 0) {
       toast.error("Please enter a valid amount");
       return;
@@ -89,6 +111,7 @@ function FeeCollection() {
       amountPaid: Number(amountToPay),
       paymentMode: paymentMode,
       remarks: "Fee collection via Accountant",
+      schoolId: schoolId,
     };
 
     const loadingToast = toast.loading("Processing payment...");
@@ -115,8 +138,47 @@ function FeeCollection() {
       setSelectedStudent(null);
       setAmountToPay("");
       setPaymentMode("Cash");
-      fetchStudents();
-      handleClassChange();
+
+      try {
+        const userData = JSON.parse(localStorage.getItem("userData"));
+        const schoolId = userData?.school_id;
+        // 1. Fetch the fresh data from the server
+        const res = await axios.get(`${API}/students`, {
+          params: { schoolId }, //  school id
+        });
+        const freshStudents = res.data.data;
+
+        if (freshStudents) {
+          // 2. Update the master list
+          setStudents(freshStudents);
+
+          // 3. Re-apply the current filters to the fresh data
+          const query = inputValue.toLowerCase();
+          const refreshedFilteredList = freshStudents.filter((s) => {
+            const fullName = `${s.firstName} ${s.lastName}`.toLowerCase();
+
+            // Check if matches current search query
+            const matchesSearch =
+              fullName.includes(query) ||
+              s.studentId.toLowerCase().includes(query);
+
+            // Check if matches current class selection
+            const matchesClass = selectedClass
+              ? s.className === selectedClass
+              : true;
+
+            return matchesSearch && matchesClass;
+          });
+
+          // 4. Finally, update the UI list
+          setFilteredStudents(refreshedFilteredList);
+        }
+      } catch (error) {
+        console.error("Error refreshing student list:", error);
+        toast.error(
+          "Payment successful, but failed to refresh the list. Please reload.",
+        );
+      }
     }
   };
 
