@@ -222,7 +222,7 @@ const StudentManagement = () => {
   useEffect(() => {
     const annual = feeStructure.reduce((sum, f) => {
       if (f.isOptional) return sum;
-      return sum + (f.amount || 0) * 12; // always annual
+      return sum + (f.amount || 0);
     }, 0);
 
     let discount = Number(form.discountValue) || 0;
@@ -739,7 +739,7 @@ const StudentManagement = () => {
                         ₹
                         {feeStructure.reduce(
                           (s, f) =>
-                            f.isOptional ? s : s + (f.amount || 0) * 12,
+                            f.isOptional ? s : s + (f.amount || 0),
                           0,
                         )}
                       </span>
