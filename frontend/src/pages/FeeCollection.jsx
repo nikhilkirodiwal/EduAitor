@@ -45,7 +45,6 @@ function FeeCollection() {
       });
       setStudents(res.data.data);
       setFilteredStudents(res.data.data);
-      console.log(res.data.data);
     } catch {
       toast.error("Failed to load students");
     }

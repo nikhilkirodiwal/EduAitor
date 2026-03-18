@@ -86,7 +86,32 @@ const StudentManagement = () => {
     annually: 12,
   };
 
-  const calcAmount = (amount) => amount * FREQ_MULTIPLIER[freqFilter];
+  const calcAmount = (amount) => {
+    let value;
+
+    switch (freqFilter) {
+      case "monthly":
+        value = amount / 12;
+        break;
+
+      case "quarterly":
+        value = amount / 4;
+        break;
+
+      case "half-yearly":
+        value = amount / 2;
+        break;
+
+      case "annually":
+        value = amount;
+        break;
+
+      default:
+        value = amount;
+    }
+
+    return Number(value).toFixed(2);
+  };
 
   const progress = (step / steps.length) * 100;
 
@@ -196,6 +221,8 @@ const StudentManagement = () => {
         sectionId: "",
         discountType: "",
         discountValue: "",
+        totalFee: "",
+        finalFee: "",
       }),
     }));
   };
@@ -222,7 +249,7 @@ const StudentManagement = () => {
   useEffect(() => {
     const annual = feeStructure.reduce((sum, f) => {
       if (f.isOptional) return sum;
-      return sum + (f.amount || 0);
+      return sum + (f.amount || 0); // ✅ correct
     }, 0);
 
     let discount = Number(form.discountValue) || 0;
@@ -236,14 +263,12 @@ const StudentManagement = () => {
       final = annual - discount;
     }
 
-    setForm((prev) => {
-      if (prev.totalFee === annual && prev.finalFee === final) return prev;
-      return {
-        ...prev,
-        totalFee: annual,
-        finalFee: final >= 0 ? final : 0,
-      };
-    });
+    // 🔥 FORCE UPDATE (no condition)
+    setForm((prev) => ({
+      ...prev,
+      totalFee: annual,
+      finalFee: final >= 0 ? final : 0,
+    }));
   }, [feeStructure, form.discountType, form.discountValue]);
 
   const isDirty = () =>
@@ -738,8 +763,7 @@ const StudentManagement = () => {
                       <span>
                         ₹
                         {feeStructure.reduce(
-                          (s, f) =>
-                            f.isOptional ? s : s + (f.amount || 0),
+                          (s, f) => (f.isOptional ? s : s + (f.amount || 0)),
                           0,
                         )}
                       </span>
