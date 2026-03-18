@@ -38,12 +38,14 @@ function FeeCollection() {
     const userData = JSON.parse(localStorage.getItem("userData"));
     const schoolId = userData?.school_id;
 
-    if (!schoolId) return;
+    if (!schoolId) return alert("school id not found");
     try {
       const res = await axios.get(`${API}/students`, {
         params: { schoolId },
       });
       setStudents(res.data.data);
+      setFilteredStudents(res.data.data);
+      console.log(res.data.data);
     } catch {
       toast.error("Failed to load students");
     }
@@ -54,29 +56,46 @@ function FeeCollection() {
   }, []);
 
   const handleClassChange = (e) => {
-    if (!e.target.value || selectedClass) {
-      setSelectedClass("");
-      setFilteredStudents([]);
-      return;
-    }
-    const className = e.target.value;
-    setSelectedClass(className);
-    setFilteredStudents(students.filter((s) => s.className == className));
+    const classId = e.target.value;
+    setSelectedClass(classId);
+
+    const query = inputValue.toLowerCase();
+
+    const filtered = students.filter((s) => {
+      // Check Class
+      const isClassMatch = !classId
+        ? true
+        : s.classId === classId || s.classId?._id === classId;
+
+      // Check Search
+      const fullName = `${s.firstName} ${s.lastName}`.toLowerCase();
+      const isSearchMatch =
+        fullName.includes(query) || s.studentId.toLowerCase().includes(query);
+
+      return isClassMatch && isSearchMatch;
+    });
+
+    setFilteredStudents(filtered);
   };
 
   const handleinput = (e) => {
-    const newValue = e.target.value; // Get the fresh value from the event
-    setInputValue(newValue); // Still update state for the input field
-
-    const query = newValue.toLowerCase();
+    const query = e.target.value.toLowerCase();
+    setInputValue(query); // Update the search box state
 
     const filtered = students.filter((s) => {
-      // Combine first and last name for a full name search
+      // 1. Search Match (Name or ID)
       const fullName = `${s.firstName} ${s.lastName}`.toLowerCase();
-      const idMatch = s.studentId.toLowerCase().includes(query);
-      const nameMatch = fullName.includes(query);
+      const isSearchMatch =
+        fullName.includes(query) || s.studentId.toLowerCase().includes(query);
 
-      return nameMatch || idMatch;
+      // 2. Class Match
+      // If selectedClass is empty (""), it's 'All Classes', so always true.
+      // Otherwise, check if the student's classId matches.
+      const isClassMatch = !selectedClass
+        ? true
+        : s.classId === selectedClass || s.classId?._id === selectedClass;
+
+      return isSearchMatch && isClassMatch;
     });
 
     setFilteredStudents(filtered);
@@ -139,9 +158,10 @@ function FeeCollection() {
       try {
         const userData = JSON.parse(localStorage.getItem("userData"));
         const schoolId = userData?.school_id;
+
         // 1. Fetch the fresh data from the server
         const res = await axios.get(`${API}/students`, {
-          params: { schoolId }, //  school id
+          params: { schoolId },
         });
         const freshStudents = res.data.data;
 
@@ -151,6 +171,7 @@ function FeeCollection() {
 
           // 3. Re-apply the current filters to the fresh data
           const query = inputValue.toLowerCase();
+
           const refreshedFilteredList = freshStudents.filter((s) => {
             const fullName = `${s.firstName} ${s.lastName}`.toLowerCase();
 
@@ -159,9 +180,11 @@ function FeeCollection() {
               fullName.includes(query) ||
               s.studentId.toLowerCase().includes(query);
 
-            // Check if matches current class selection
+            /* ─────────────────────────────────────────────────────────────
+               CHANGE HERE: We match based on ID now, not className string
+               ───────────────────────────────────────────────────────────── */
             const matchesClass = selectedClass
-              ? s.className === selectedClass
+              ? s.classId === selectedClass || s.classId?._id === selectedClass
               : true;
 
             return matchesSearch && matchesClass;
@@ -196,23 +219,23 @@ function FeeCollection() {
         {classes.length === 0 ? (
           <div> Classs not found</div>
         ) : (
-          <select
-            name=""
-            id=""
-            value={selectedClass}
-            onChange={handleClassChange}
-            className="fc-select"
-          >
-            <option value="">Select a class</option>
-            {classes.map((cls) => {
-              return (
-                <option key={cls._id} value={cls.name}>
-                  {" "}
-                  {cls.name} {cls.sectionId?.name}
+          <div className="flex flex-col gap-2 max-w-xs">
+            <label className="text-sm font-semibold text-gray-700">
+              Select class
+            </label>
+            <select
+              onChange={handleClassChange}
+              value={selectedClass}
+              className="block w-full px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer appearance-none"
+            >
+              <option value="">All Classes</option>
+              {classes.map((c) => (
+                <option key={c._id} value={c._id}>
+                  Class {c.name}
                 </option>
-              );
-            })}
-          </select>
+              ))}
+            </select>
+          </div>
         )}
 
         <div className="mt-6">

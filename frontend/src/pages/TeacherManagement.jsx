@@ -175,7 +175,7 @@ const TeacherManagement = () => {
       if (!form.phone.trim()) errors.push("Phone required");
       if (!form.email.trim()) errors.push("Email required");
 
-      if (form.phone && !/^[6-9]\d{9}$/.test(form.phone))
+      if (form.phone && !/^\d{10}$/.test(form.phone))
         errors.push("Invalid phone number");
 
       if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))

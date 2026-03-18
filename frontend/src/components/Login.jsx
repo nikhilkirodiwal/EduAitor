@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { FaUserShield, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const API = import.meta.env.VITE_API_URL;
 
 export default function Login() {
-  const navigate = useNavigate();
 
   const [form, setForm] = useState({
     email: "",
@@ -68,7 +66,7 @@ export default function Login() {
   return (
     <div className="min-h-screen grid md:grid-cols-2">
       {/* LEFT PANEL */}
-      <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 text-white p-12">
+      <div className="hidden md:flex flex-col justify-center items-center bg-linear-to-br from-indigo-600 via-purple-600 to-indigo-700 text-white p-12">
         <h1 className="text-5xl font-bold mb-4">EduAitor</h1>
 
         <p className="text-lg opacity-90 text-center max-w-md">
@@ -78,7 +76,7 @@ export default function Login() {
       </div>
 
       {/* RIGHT PANEL */}
-      <div className="flex items-center justify-center bg-gradient-to-br from-[#e6edf8] via-[#d7e2f5] to-[#eef1fb] p-6">
+      <div className="flex items-center justify-center bg-linear-to-br from-[#e6edf8] via-[#d7e2f5] to-[#eef1fb] p-6">
         <div className="w-full max-w-md bg-white/80 backdrop-blur-xl shadow-xl rounded-2xl p-8 border border-white/40">
           {/* HEADER */}
           <div className="text-center mb-8">
@@ -141,7 +139,7 @@ export default function Login() {
               ${
                 loading
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-purple-500 to-indigo-500 hover:opacity-90"
+                  : "bg-linear-to-r from-purple-500 to-indigo-500 hover:opacity-90"
               }`}
             >
               {loading ? (

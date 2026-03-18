@@ -17,22 +17,24 @@ const FeeStructure = () => {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
   // calculate amount for monthly wise drop down
-  const [freqFilter, setFreqFilter] = useState("monthly");
+  const [freqFilter, setFreqFilter] = useState("annually");
 
   // for delete coinfirmation dialog state
   const [confirmId, setConfirmId] = useState(null); // which fee is pending deletion
   const [confirmVisible, setConfirmVisible] = useState(false);
 
-  // Multiplier map — amount is stored as MONTHLY, multiply to get per-period amount
-  const FREQ_MULTIPLIER = {
-    monthly: 1,
-    quarterly: 3,
-    "half-yearly": 6,
-    annually: 12,
+  // divide for change months
+  const FREQ_DIVISOR = {
+    annually: 1, // 1 payment of the full amount
+    "half-yearly": 2, // 2 payments (Total / 2)
+    quarterly: 4, // 4 payments (Total / 4)
+    monthly: 12, // 12 payments (Total / 12)
   };
-  const calcAmount = (amount) => amount * FREQ_MULTIPLIER[freqFilter];
-  // console.log(freqFilter, FREQ_MULTIPLIER[freqFilter], fee.amount);
-
+  const calcAmount = (annualAmount) => {
+    if (!annualAmount) return 0;
+    const result = annualAmount / FREQ_DIVISOR[freqFilter];
+    return Math.round(result);
+  };
   const API = import.meta.env.VITE_API_URL;
 
   /* Fetch all classes for the dropdown */
@@ -293,10 +295,10 @@ const FeeStructure = () => {
               onChange={(e) => setFreqFilter(e.target.value)}
               className="fs-select  bg-white border border-[#e2dff0] rounded-lg px-3 py-2 text-sm text-[#1a1625] cursor-pointer"
             >
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="half-yearly">Half Yearly</option>
               <option value="annually">Annually</option>
+              <option value="half-yearly">Half Yearly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="monthly">Monthly</option>
             </select>
           </div>
         )}

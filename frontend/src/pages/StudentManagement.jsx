@@ -220,32 +220,31 @@ const StudentManagement = () => {
 
   /* FEE CALCULATION */
   useEffect(() => {
-    const total = feeStructure.reduce((sum, f) => {
+    const annual = feeStructure.reduce((sum, f) => {
       if (f.isOptional) return sum;
-      return sum + calcAmount(f.amount || 0);
+      return sum + (f.amount || 0) * 12; // always annual
     }, 0);
 
     let discount = Number(form.discountValue) || 0;
-    let final = total;
+    let final = annual;
 
     if (form.discountType === "Percentage") {
-      final = total - (total * discount) / 100;
+      final = annual - (annual * discount) / 100;
     }
 
     if (form.discountType === "Rupees") {
-      final = total - discount;
+      final = annual - discount;
     }
 
     setForm((prev) => {
-      if (prev.totalFee === total && prev.finalFee === final) return prev;
-
+      if (prev.totalFee === annual && prev.finalFee === final) return prev;
       return {
         ...prev,
-        totalFee: total,
+        totalFee: annual,
         finalFee: final >= 0 ? final : 0,
       };
     });
-  }, [feeStructure, freqFilter, form.discountType, form.discountValue]);
+  }, [feeStructure, form.discountType, form.discountValue]);
 
   const isDirty = () =>
     Object.values(form).some((v) => v !== "" && v !== null && v !== undefined);
@@ -265,8 +264,7 @@ const StudentManagement = () => {
       if (!form.fatherName.trim()) errors.push("Father name required");
       if (!form.fatherMobile.trim()) errors.push("Father mobile required");
       if (!form.address.trim()) errors.push("Address required");
-
-      if (form.fatherMobile && !/^[6-9]\d{9}$/.test(form.fatherMobile))
+      if (form.fatherMobile && !/^\d{10}$/.test(form.fatherMobile))
         errors.push("Invalid Father Mobile Number");
     }
 
@@ -339,7 +337,7 @@ const StudentManagement = () => {
           data.append(key, value);
         }
       });
-      data.append("feeFrequency", freqFilter);
+      data.set("feeFrequency", freqFilter);
       data.append("schoolId", schoolId);
 
       if (isEdit) {
@@ -736,14 +734,21 @@ const StudentManagement = () => {
                     ))}
 
                     <div className="flex justify-between font-bold border-t mt-2 pt-2">
-                      <span>Total</span>
-                      <span>₹{form.totalFee}</span>
+                      <span>Annual Total</span>
+                      <span>
+                        ₹
+                        {feeStructure.reduce(
+                          (s, f) =>
+                            f.isOptional ? s : s + (f.amount || 0) * 12,
+                          0,
+                        )}
+                      </span>
                     </div>
                   </div>
                 )}
 
                 <Input
-                  label="Total Fee (₹)"
+                  label="Total Annual Fee (₹)"
                   name="totalFee"
                   value={form.totalFee}
                   readOnly

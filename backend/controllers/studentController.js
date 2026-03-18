@@ -18,6 +18,8 @@ export const createStudent = async (req, res) => {
   try {
     const { schoolId, ...safeBody } = req.body;
 
+    const totalDue = safeBody.finalFee;
+    
     if (!schoolId) {
       return res.status(400).json({
         success: false,
@@ -59,6 +61,8 @@ export const createStudent = async (req, res) => {
       ...safeBody,
       schoolId,
       studentId,
+      totalDue,
+      totalPaid: 0,
       documents,
     });
 

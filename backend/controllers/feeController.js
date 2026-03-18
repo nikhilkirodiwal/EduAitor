@@ -201,9 +201,6 @@ export const collectStudentFee = async (req, res) => {
 //  get all history of that particular school students
 export const AllStudentHistory = async (req, res) => {
   try {
-    /* ─────────────────────────────────────────────
-       1. Parse & Sanitise Query Parameters
-    ───────────────────────────────────────────── */
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
     const skip = (page - 1) * limit;
@@ -219,11 +216,6 @@ export const AllStudentHistory = async (req, res) => {
         .json({ success: false, message: "School ID required" });
     }
 
-    /* ─────────────────────────────────────────────
-       2. Build Match Conditions (Pre-Lookup & Post-Lookup)
-    ───────────────────────────────────────────── */
-
-    // Stage 1 Match: Filters payments by School and Date (Fast)
     const initialMatch = {
       schoolId: new mongoose.Types.ObjectId(schoolId),
     };
@@ -232,7 +224,6 @@ export const AllStudentHistory = async (req, res) => {
       initialMatch["$expr"] = { $eq: [{ $year: "$paidDate" }, year] };
     }
     if (month) {
-      // If year already used $expr, we merge them
       if (initialMatch["$expr"]) {
         initialMatch["$expr"] = {
           $and: [
@@ -245,7 +236,6 @@ export const AllStudentHistory = async (req, res) => {
       }
     }
 
-    // Stage 4 Match: Filters by Student Name (Must happen after $lookup)
     let studentMatch = {};
     if (search) {
       const words = search.split(/\s+/);
@@ -260,15 +250,8 @@ export const AllStudentHistory = async (req, res) => {
       studentMatch = { $and: wordConditions };
     }
 
-    /* ─────────────────────────────────────────────
-       3. Build the Aggregation Pipeline
-    ───────────────────────────────────────────── */
-
     const pipeline = [
-      // Step 1: Filter by School and Date immediately
       { $match: initialMatch },
-
-      // Step 2: Join with Students collection
       {
         $lookup: {
           from: "students",
@@ -277,8 +260,6 @@ export const AllStudentHistory = async (req, res) => {
           as: "studentData",
         },
       },
-
-      // Step 3: Flatten studentData array
       {
         $unwind: {
           path: "$studentData",
@@ -286,10 +267,32 @@ export const AllStudentHistory = async (req, res) => {
         },
       },
 
-      // Step 4: Filter by Search Text (Student names are now available)
+      /* ─── NEW STEP: Join with Classes and Sections ─── */
+      {
+        $lookup: {
+          from: "classes", // Make sure this is your actual collection name
+          localField: "studentData.classId",
+          foreignField: "_id",
+          as: "classDetails",
+        },
+      },
+      { $unwind: { path: "$classDetails", preserveNullAndEmptyArrays: true } },
+
+      {
+        $lookup: {
+          from: "sections", // Make sure this is your actual collection name
+          localField: "studentData.sectionId",
+          foreignField: "_id",
+          as: "sectionDetails",
+        },
+      },
+      {
+        $unwind: { path: "$sectionDetails", preserveNullAndEmptyArrays: true },
+      },
+      /* ────────────────────────────────────────────── */
+
       { $match: studentMatch },
 
-      // Step 5: Facet for Pagination and Totals
       {
         $facet: {
           records: [
@@ -309,8 +312,9 @@ export const AllStudentHistory = async (req, res) => {
                   studentId: "$studentData.studentId",
                   firstName: "$studentData.firstName",
                   lastName: "$studentData.lastName",
-                  className: "$studentData.className",
-                  section: "$studentData.section",
+                  // Use the joined names from classDetails and sectionDetails
+                  className: "$classDetails.name",
+                  section: "$sectionDetails.name",
                 },
               },
             },
@@ -323,9 +327,6 @@ export const AllStudentHistory = async (req, res) => {
       },
     ];
 
-    /* ─────────────────────────────────────────────
-       4. Execute and Send Response
-    ───────────────────────────────────────────── */
     const [result] = await Payment.aggregate(pipeline);
 
     const records = result.records || [];
@@ -336,16 +337,8 @@ export const AllStudentHistory = async (req, res) => {
     return res.status(200).json({
       success: true,
       Allhistory: records,
-      pagination: {
-        total,
-        totalPages,
-        currentPage: page,
-        limit,
-      },
-      summary: {
-        totalAmount,
-        appliedFilters: { search, month, year },
-      },
+      pagination: { total, totalPages, currentPage: page, limit },
+      summary: { totalAmount, appliedFilters: { search, month, year } },
     });
   } catch (error) {
     console.error("AllStudentHistory error:", error);
@@ -360,48 +353,51 @@ export const AllStudentHistory = async (req, res) => {
 // all defaulter of particular school students
 export const getAllDefaulter = async (req, res) => {
   try {
-    const { className, search, page = 1, limit = 10, schoolId } = req.query;
+    // 1. Extract classId (not className) from query
+    const { classId, search, page = 1, limit = 10, schoolId } = req.query;
 
-    // 1. Validation
-    if (!schoolId) {
+    if (!schoolId)
       return res.status(400).json({ message: "School Id is required" });
-    }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const pageSize = parseInt(limit);
-
-    // 2. Define the current month range
     const now = new Date();
     const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // 3. Build the Initial Match Filter (Now includes schoolId)
+    // 2. Build matchQuery using classId
     let matchQuery = {
       schoolId: new mongoose.Types.ObjectId(schoolId),
     };
 
-    if (className) matchQuery.className = className;
+    // Use classId because your Schema uses classId
+    if (classId) matchQuery.classId = new mongoose.Types.ObjectId(classId);
 
     if (search) {
-      matchQuery.$and = [
-        {
-          $or: [
-            { firstName: { $regex: search, $options: "i" } },
-            { lastName: { $regex: search, $options: "i" } },
-            { studentId: { $regex: search, $options: "i" } },
-          ],
-        },
+      matchQuery.$or = [
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+        { studentId: { $regex: search, $options: "i" } },
       ];
     }
 
-    // 4. Aggregation Pipeline
     const result = await Student.aggregate([
-      // Step A: Filter by School + Optional Class/Search
       { $match: matchQuery },
 
-      // Step B: Join Payments (Ensuring we only look at this school's payments)
+      // JOIN with Classes to get the Name for the UI
       {
         $lookup: {
-          from: "payments", // Check if your collection is "payments" or "Payments" (lowercase is standard)
+          from: "classes",
+          localField: "classId",
+          foreignField: "_id",
+          as: "classInfo",
+        },
+      },
+      { $unwind: { path: "$classInfo", preserveNullAndEmptyArrays: true } },
+
+      // JOIN with Payments
+      {
+        $lookup: {
+          from: "payments",
           let: { studId: "$_id" },
           pipeline: [
             {
@@ -421,9 +417,10 @@ export const getAllDefaulter = async (req, res) => {
         },
       },
 
-      // Step C: Logic for Defaulters
       {
         $addFields: {
+          // Map the joined class name to a field the UI expects
+          className: "$classInfo.name",
           hasPaidThisMonth: {
             $gt: [
               {
@@ -449,19 +446,14 @@ export const getAllDefaulter = async (req, res) => {
               0,
             ],
           },
-          calculatedDue: { $subtract: ["$finalFee", "$totalPaid"] },
+          calculatedDue: {
+            $subtract: ["$finalFee", { $ifNull: ["$totalPaid", 0] }],
+          },
         },
       },
 
-      // Step D: Match only Defaulters
-      {
-        $match: {
-          hasPaidThisMonth: false,
-          calculatedDue: { $gt: 0 },
-        },
-      },
+      { $match: { hasPaidThisMonth: false, calculatedDue: { $gt: 0 } } },
 
-      // Step E: Facet for Pagination
       {
         $facet: {
           metadata: [{ $count: "total" }],
@@ -481,9 +473,6 @@ export const getAllDefaulter = async (req, res) => {
       currentPage: parseInt(page),
     });
   } catch (error) {
-    console.error("Defaulter Error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
