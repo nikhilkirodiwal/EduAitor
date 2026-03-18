@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FaUserShield, FaLock } from "react-icons/fa";
+import { FaUserShield, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -14,18 +14,24 @@ export default function Login() {
   });
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  // Redirect if already logged in
+  /* ================= REDIRECT IF LOGGED IN ================= */
+
   useEffect(() => {
     const role = localStorage.getItem("userRole");
 
     if (role === "super_admin") {
-      navigate("/admin/dashboard", { replace: true });
+      window.location.href = "/admin/dashboard";
     }
+
     if (role === "school_admin") {
-      navigate("/school/dashboard", { replace: true });
+      window.location.href = "/school/dashboard";
     }
-  }, [navigate]);
+  }, []);
+
+  /* ================= HANDLERS ================= */
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -35,38 +41,46 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const res = await axios.post(`${API}/auth/login`, form);
+      setLoading(true);
+      setError("");
 
+      const res = await axios.post(`${API}/auth/login`, form);
       const user = res.data.data;
 
       localStorage.setItem("userRole", user.role);
       localStorage.setItem("userData", JSON.stringify(user));
 
-      if (user.role === "super_admin") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/school/dashboard");
-      }
+      // smooth delay for UX
+      setTimeout(() => {
+        window.location.href =
+          user.role === "super_admin"
+            ? "/admin/dashboard"
+            : "/school/dashboard";
+      }, 800);
     } catch {
       setError("Invalid credentials");
+      setLoading(false);
     }
   };
+
+  /* ================= UI ================= */
 
   return (
     <div className="min-h-screen grid md:grid-cols-2">
       {/* LEFT PANEL */}
-      <div className="hidden md:flex flex-col justify-center items-center bg-linear-to-br from-indigo-600 via-purple-600 to-indigo-700 text-white p-12">
+      <div className="hidden md:flex flex-col justify-center items-center bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 text-white p-12">
         <h1 className="text-5xl font-bold mb-4">EduAitor</h1>
 
         <p className="text-lg opacity-90 text-center max-w-md">
-          Super Admin Control Panel for managing schools, users, reports and
-          system configuration.
+          Manage schools, students, teachers, fees and analytics in one powerful
+          platform.
         </p>
       </div>
 
       {/* RIGHT PANEL */}
-      <div className="flex items-center justify-center bg-linear-to-br from-[#e6edf8] via-[#d7e2f5] to-[#eef1fb] p-6">
+      <div className="flex items-center justify-center bg-gradient-to-br from-[#e6edf8] via-[#d7e2f5] to-[#eef1fb] p-6">
         <div className="w-full max-w-md bg-white/80 backdrop-blur-xl shadow-xl rounded-2xl p-8 border border-white/40">
+          {/* HEADER */}
           <div className="text-center mb-8">
             <FaUserShield className="mx-auto text-4xl text-indigo-500 mb-3" />
 
@@ -75,11 +89,14 @@ export default function Login() {
             <p className="text-gray-500 text-sm">EduAitor Control Panel</p>
           </div>
 
+          {/* ERROR */}
           {error && (
             <p className="text-red-500 text-sm text-center mb-4">{error}</p>
           )}
 
+          {/* FORM */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* EMAIL */}
             <div className="relative">
               <FaUserShield className="absolute left-4 top-4 text-gray-400" />
 
@@ -94,28 +111,54 @@ export default function Login() {
               />
             </div>
 
+            {/* PASSWORD */}
             <div className="relative">
               <FaLock className="absolute left-4 top-4 text-gray-400" />
 
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Password"
                 value={form.password}
                 onChange={handleChange}
                 required
-                className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-400 outline-none"
+                className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-400 outline-none"
               />
+
+              <div
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-4 cursor-pointer text-gray-400"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </div>
             </div>
 
+            {/* BUTTON */}
             <button
               type="submit"
-              className="w-full py-3 rounded-xl text-white font-semibold bg-linear-to-r from-purple-500 to-indigo-500 hover:opacity-90 transition shadow-md"
+              disabled={loading}
+              className={`w-full py-3 rounded-xl text-white font-semibold transition shadow-md
+              ${
+                loading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-gradient-to-r from-purple-500 to-indigo-500 hover:opacity-90"
+              }`}
             >
-              Login to Admin Panel
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Logging in...
+                </div>
+              ) : (
+                "Login to Admin Panel"
+              )}
             </button>
-            <p className="text-center">admin demo: super@admin.com / admin</p>
-            <p className="text-center">school demo: school@admin.com / admin</p>
+
+            {/* DEMO */}
+            <div className="text-center text-xs text-gray-500 space-y-1 mt-2">
+              <p>Super Admin: super@admin.com / admin</p>
+              <p>School Admin: school@admin.com / admin</p>
+            </div>
           </form>
         </div>
       </div>

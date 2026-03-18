@@ -33,8 +33,14 @@ const studentSchema = new mongoose.Schema(
 
     address: String,
 
-    className: String,
-    section: String,
+    classId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Class",
+    },
+    sectionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Section",
+    },
     rollNo: String,
     studentType: String,
 
@@ -44,6 +50,7 @@ const studentSchema = new mongoose.Schema(
     finalFee: Number,
     totalPaid: Number,
     totalDue: Number,
+    feeFrequency: String,
 
     documents: {
       studentPhoto: fileSchema,
@@ -66,4 +73,9 @@ const studentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+// Unique index set for schools
+studentSchema.index(
+  { schoolId: 1, studentId: 1 },
+  { unique: true }
+);
 export default mongoose.model("Student", studentSchema);

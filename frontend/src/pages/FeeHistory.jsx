@@ -233,7 +233,6 @@ function FeeHistory() {
         setRecords(data.Allhistory || []);
         setPagination(data.pagination || { total: 0, totalPages: 1 });
         setTotalAmount(data.summary?.totalAmount || 0);
-        console.log(data.Allhistory);
       } catch (err) {
         setError("Could not load fee history. Please try again.");
       } finally {

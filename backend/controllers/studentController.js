@@ -4,14 +4,10 @@ import { deleteFromCloudinary } from "../utils/deleteFromCloudinary.js";
 
 /* ================= GENERATE STUDENT ID ================= */
 
-const generateStudentId = async () => {
-  const lastStudent = await Student.findOne().sort({ createdAt: -1 });
+const generateStudentId = async (schoolId) => {
+  const count = await Student.countDocuments({ schoolId });
 
-  let next = 1;
-
-  if (lastStudent?.studentId) {
-    next = parseInt(lastStudent.studentId.replace("STU", "")) + 1;
-  }
+  const next = count + 1;
 
   return `STU${String(next).padStart(4, "0")}`;
 };
@@ -20,17 +16,14 @@ const generateStudentId = async () => {
 
 export const createStudent = async (req, res) => {
   try {
-    const {
-      _id,
-      __v,
-      createdAt,
-      updatedAt,
-      studentId: incomingId,
-      ...safeBody
-    } = req.body;
+    const { schoolId, ...safeBody } = req.body;
 
-    console.log("BODY:", req.body);
-    console.log("FILES:", req.files);
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "School ID is required",
+      });
+    }
 
     const files = req.files || {};
     const documents = {};
@@ -46,11 +39,13 @@ export const createStudent = async (req, res) => {
       };
     };
 
+    // Upload images
     await uploadFile("studentPhoto", "students");
     await uploadFile("fatherPhoto", "students");
     await uploadFile("motherPhoto", "students");
     await uploadFile("guardianPhoto", "students");
 
+    // Upload documents
     await uploadFile("birthCertificate", "documents");
     await uploadFile("transferCertificate", "documents");
 
@@ -58,10 +53,11 @@ export const createStudent = async (req, res) => {
     await uploadFile("fatherAadhar", "documents");
     await uploadFile("motherAadhar", "documents");
 
-    const studentId = await generateStudentId();
+    const studentId = await generateStudentId(schoolId);
 
     const student = await Student.create({
       ...safeBody,
+      schoolId,
       studentId,
       documents,
     });
@@ -72,10 +68,11 @@ export const createStudent = async (req, res) => {
       data: student,
     });
   } catch (error) {
-    console.log(error)
+    console.error("Create student error:", error);
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Failed to create student",
     });
   }
 };
@@ -84,16 +81,30 @@ export const createStudent = async (req, res) => {
 
 export const getStudents = async (req, res) => {
   try {
-    const students = await Student.find().sort({ createdAt: -1 });
+    const { schoolId } = req.query;
+
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "School ID is required",
+      });
+    }
+
+    const students = await Student.find({ schoolId })
+      .populate("classId", "name className")
+      .populate("sectionId", "name sectionName")
+      .sort({ createdAt: -1 });
 
     res.json({
       success: true,
       data: students,
     });
   } catch (error) {
+    console.error("Get students error:", error);
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Failed to fetch students",
     });
   }
 };
@@ -102,7 +113,21 @@ export const getStudents = async (req, res) => {
 
 export const getStudent = async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id);
+    const { schoolId } = req.query;
+
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "School ID is required",
+      });
+    }
+
+    const student = await Student.findOne({
+      _id: req.params.id,
+      schoolId,
+    })
+      .populate("classId", "name className")
+      .populate("sectionId", "name sectionName");
 
     if (!student) {
       return res.status(404).json({
@@ -116,9 +141,11 @@ export const getStudent = async (req, res) => {
       data: student,
     });
   } catch (error) {
+    console.error("Get student error:", error);
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Failed to fetch student",
     });
   }
 };
@@ -127,7 +154,19 @@ export const getStudent = async (req, res) => {
 
 export const updateStudent = async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id);
+    const { schoolId, ...safeBody } = req.body;
+
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "School ID is required",
+      });
+    }
+
+    const student = await Student.findOne({
+      _id: req.params.id,
+      schoolId,
+    });
 
     if (!student) {
       return res.status(404).json({
@@ -141,6 +180,7 @@ export const updateStudent = async (req, res) => {
 
     const updateFile = async (field, folder) => {
       if (files[field] && files[field][0]) {
+        // Delete old file
         if (documents[field]?.public_id) {
           await deleteFromCloudinary(documents[field].public_id);
         }
@@ -154,11 +194,13 @@ export const updateStudent = async (req, res) => {
       }
     };
 
+    // Update images
     await updateFile("studentPhoto", "students");
     await updateFile("fatherPhoto", "students");
     await updateFile("motherPhoto", "students");
     await updateFile("guardianPhoto", "students");
 
+    // Update documents
     await updateFile("birthCertificate", "documents");
     await updateFile("transferCertificate", "documents");
 
@@ -166,14 +208,16 @@ export const updateStudent = async (req, res) => {
     await updateFile("fatherAadhar", "documents");
     await updateFile("motherAadhar", "documents");
 
-    const updatedStudent = await Student.findByIdAndUpdate(
-      req.params.id,
+    const updatedStudent = await Student.findOneAndUpdate(
+      { _id: req.params.id, schoolId },
       {
-        ...req.body,
+        ...safeBody,
         documents,
       },
-      { new: true },
-    );
+      { new: true }
+    )
+      .populate("classId", "name className")
+      .populate("sectionId", "name sectionName");
 
     res.json({
       success: true,
@@ -181,9 +225,11 @@ export const updateStudent = async (req, res) => {
       data: updatedStudent,
     });
   } catch (error) {
+    console.error("Update student error:", error);
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Failed to update student",
     });
   }
 };
@@ -192,7 +238,19 @@ export const updateStudent = async (req, res) => {
 
 export const deleteStudent = async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id);
+    const { schoolId } = req.query;
+
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "School ID is required",
+      });
+    }
+
+    const student = await Student.findOne({
+      _id: req.params.id,
+      schoolId,
+    });
 
     if (!student) {
       return res.status(404).json({
@@ -203,6 +261,7 @@ export const deleteStudent = async (req, res) => {
 
     const docs = student.documents || {};
 
+    // Delete all files from Cloudinary
     for (const key in docs) {
       if (docs[key]?.public_id) {
         await deleteFromCloudinary(docs[key].public_id);
@@ -216,9 +275,11 @@ export const deleteStudent = async (req, res) => {
       message: "Student deleted successfully",
     });
   } catch (error) {
+    console.error("Delete student error:", error);
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Failed to delete student",
     });
   }
 };

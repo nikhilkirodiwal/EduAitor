@@ -80,8 +80,6 @@ const TeacherManagement = () => {
 
         setSubjects(subjectsRes.data.subjects || []);
         setClasses(classesRes.data.classes || []);
-        console.log(subjectsRes.data.subjects  || []);
-        console.log(classesRes.data.classes || []);
       } catch (error) {
         toast.error("Failed to load dropdown data");
         console.error(error);

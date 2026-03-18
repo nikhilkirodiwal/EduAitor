@@ -28,7 +28,6 @@ function FeeCollection() {
         params: { schoolId },
       });
       setClasses(data.classes);
-      console.log(data.classes);
     } catch {
       console.error("Failed to load classes");
     }
@@ -45,7 +44,6 @@ function FeeCollection() {
         params: { schoolId },
       });
       setStudents(res.data.data);
-      console.log(res.data.data);
     } catch {
       toast.error("Failed to load students");
     }
@@ -56,7 +54,6 @@ function FeeCollection() {
   }, []);
 
   const handleClassChange = (e) => {
-    console.log("Selected class ID:", e.target.value);
     if (!e.target.value || selectedClass) {
       setSelectedClass("");
       setFilteredStudents([]);

@@ -4,6 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
+const userData = JSON.parse(localStorage.getItem("userData"));
+const schoolId = userData?.school_id;
 
 const StudentView = () => {
   const { id } = useParams();
@@ -12,11 +14,15 @@ const StudentView = () => {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  /* FETCH */
+  /* ================= FETCH ================= */
 
   const fetchStudent = async () => {
+    if (!schoolId) return;
+
     try {
-      const res = await axios.get(`${API}/students/${id}`);
+      const res = await axios.get(`${API}/students/${id}`, {
+        params: { schoolId },
+      });
 
       setStudent(res.data.data);
     } catch {
@@ -28,36 +34,34 @@ const StudentView = () => {
 
   useEffect(() => {
     fetchStudent();
-  }, []);
+  }, [id, schoolId]);
 
-  if (loading) return <div className="p-6 sm:p-10">Loading...</div>;
+  if (loading) return <Loader />;
 
-  if (!student) return <div className="p-6 sm:p-10">Student not found</div>;
+  if (!student) return <Empty />;
 
   const docs = student.documents || {};
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
       {/* HEADER */}
-
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold">Student Details</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold">Student Profile</h1>
 
         <button
           onClick={() => navigate(`/school/student-manage/${student._id}`)}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
         >
           Edit Student
         </button>
       </div>
 
-      {/* PROFILE */}
-
-      <div className="bg-white rounded-xl shadow p-6 mb-6 flex flex-col sm:flex-row gap-6 items-center">
+      {/* PROFILE CARD */}
+      <div className="bg-white rounded-2xl shadow p-6 mb-6 flex flex-col sm:flex-row gap-6 items-center">
         <img
           src={docs.studentPhoto?.url || "https://via.placeholder.com/120"}
           alt="student"
-          className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border"
+          className="w-28 h-28 rounded-full object-cover border-4 border-indigo-100"
         />
 
         <div className="text-center sm:text-left">
@@ -65,55 +69,58 @@ const StudentView = () => {
             {student.firstName} {student.lastName}
           </h2>
 
-          <p className="text-gray-500">
-            Class {student.className} - {student.section}
+          <p className="text-gray-500 mt-1">
+            Class {student.classId?.name || "-"}{" "}
+            {student.sectionId?.name && `- ${student.sectionId.name}`}
           </p>
 
-          <p className="text-gray-500">Roll No: {student.rollNo}</p>
+          <p className="text-gray-500">Roll No: {student.rollNo || "-"}</p>
+
+          <span className="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-indigo-100 text-indigo-600 font-medium">
+            {student.studentType || "Student"}
+          </span>
         </div>
       </div>
 
-      {/* STUDENT INFO */}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* STUDENT DETAILS */}
-
+      {/* GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <Card title="Student Details">
           <Info label="First Name" value={student.firstName} />
           <Info label="Last Name" value={student.lastName} />
           <Info label="Gender" value={student.gender} />
           <Info label="Blood Group" value={student.bloodGroup} />
-          <Info label="DOB" value={student.dob?.slice(0, 10)} />
+          <Info label="DOB" value={formatDate(student.dob)} />
           <Info
             label="Admission Date"
-            value={student.admissionDate?.slice(0, 10)}
+            value={formatDate(student.admissionDate)}
           />
         </Card>
 
-        {/* CLASS DETAILS */}
-
         <Card title="Class Details">
-          <Info label="Class" value={student.className} />
-          <Info label="Section" value={student.section} />
+          <Info label="Class" value={student.classId?.name} />
+          <Info label="Section" value={student.sectionId?.name} />
           <Info label="Roll Number" value={student.rollNo} />
           <Info label="Student Type" value={student.studentType} />
         </Card>
 
-        {/* PARENT DETAILS */}
+        <Card title="Fee Details">
+          <Info label="Total Fee" value={`₹ ${student.totalFee || 0}`} />
+          <Info label="Discount Type" value={student.discountType} />
+          <Info label="Discount Value" value={student.discountValue} />
+          <Info label="Final Fee" value={`₹ ${student.finalFee || 0}`} />
+        </Card>
 
         <Card title="Parent Details">
           <Info label="Father Name" value={student.fatherName} />
           <Info label="Father Mobile" value={student.fatherMobile} />
           <Info label="Father Email" value={student.fatherEmail} />
 
-          <hr className="my-2" />
+          <Divider />
 
           <Info label="Mother Name" value={student.motherName} />
           <Info label="Mother Mobile" value={student.motherMobile} />
           <Info label="Mother Email" value={student.motherEmail} />
         </Card>
-
-        {/* GUARDIAN */}
 
         <Card title="Guardian Details">
           <Info label="Guardian Name" value={student.guardianName} />
@@ -121,17 +128,6 @@ const StudentView = () => {
           <Info label="Relation" value={student.guardianRelation} />
           <Info label="Address" value={student.address} />
         </Card>
-
-        {/* FEE DETAILS */}
-
-        <Card title="Fee Details">
-          <Info label="Total Fee" value={`₹ ${student.totalFee}`} />
-          <Info label="Discount Type" value={student.discountType} />
-          <Info label="Discount Value" value={student.discountValue} />
-          <Info label="Final Fee" value={`₹ ${student.finalFee}`} />
-        </Card>
-
-        {/* DOCUMENTS */}
 
         <Card title="Documents">
           <Doc label="Birth Certificate" file={docs.birthCertificate} />
@@ -147,37 +143,32 @@ const StudentView = () => {
 
 export default StudentView;
 
-/* CARD */
+/* ================= COMPONENTS ================= */
 
 const Card = ({ title, children }) => (
-  <div className="bg-white rounded-xl shadow p-6">
+  <div className="bg-white rounded-xl shadow p-5">
     <h3 className="text-lg font-semibold mb-4">{title}</h3>
-
-    <div className="space-y-2">{children}</div>
+    <div className="space-y-2 text-sm">{children}</div>
   </div>
 );
 
-/* INFO */
-
 const Info = ({ label, value }) => (
-  <div className="flex justify-between items-start text-sm gap-4">
+  <div className="flex justify-between gap-3">
     <span className="text-gray-500">{label}</span>
-
     <span className="font-medium text-right">{value || "-"}</span>
   </div>
 );
 
-/* DOCUMENT */
-
 const Doc = ({ label, file }) => (
-  <div className="flex justify-between items-start text-sm gap-4">
+  <div className="flex justify-between">
     <span className="text-gray-500">{label}</span>
 
     {file?.url ? (
       <a
         href={file.url}
         target="_blank"
-        className="text-indigo-600 font-medium"
+        rel="noreferrer"
+        className="text-indigo-600 font-medium hover:underline"
       >
         View
       </a>
@@ -186,3 +177,18 @@ const Doc = ({ label, file }) => (
     )}
   </div>
 );
+
+const Divider = () => <hr className="my-2" />;
+
+const Loader = () => (
+  <div className="p-10 text-center text-gray-500">Loading...</div>
+);
+
+const Empty = () => (
+  <div className="p-10 text-center text-gray-400">Student not found</div>
+);
+
+const formatDate = (date) => {
+  if (!date) return "-";
+  return new Date(date).toISOString().slice(0, 10);
+};

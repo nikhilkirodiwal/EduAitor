@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
+const userData = JSON.parse(localStorage.getItem("userData"));
+const schoolId = userData?.school_id;
 
 const steps = [
   "Student Details",
@@ -36,8 +38,8 @@ const emptyForm = {
 
   address: "",
 
-  className: "",
-  section: "",
+  classId: "",
+  sectionId: "",
   rollNo: "",
   studentType: "",
 
@@ -71,20 +73,105 @@ const StudentManagement = () => {
   const [confirmAction, setConfirmAction] = useState(null);
   const [confirmMessage, setConfirmMessage] = useState("");
 
+  const [classes, setClasses] = useState([]);
+  const [sections, setSections] = useState([]);
+
+  const [feeStructure, setFeeStructure] = useState([]);
+  const [freqFilter, setFreqFilter] = useState("monthly");
+
+  const FREQ_MULTIPLIER = {
+    monthly: 1,
+    quarterly: 3,
+    "half-yearly": 6,
+    annually: 12,
+  };
+
+  const calcAmount = (amount) => amount * FREQ_MULTIPLIER[freqFilter];
+
   const progress = (step / steps.length) * 100;
 
-  /* FETCH STUDENT */
-
+  /* FETCH CLASS */
   useEffect(() => {
-    if (!id) return;
+    const fetchClasses = async () => {
+      if (!schoolId) return;
+
+      try {
+        const res = await axios.get(`${API}/classes/all`, {
+          params: { schoolId },
+        });
+
+        setClasses(res.data.classes || []);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load classes");
+      }
+    };
+
+    fetchClasses();
+  }, [schoolId]);
+
+  /* FETCH SECTION CLASS BASED*/
+  useEffect(() => {
+    if (!form.classId) {
+      setSections([]);
+      return;
+    }
+
+    const selectedClass = classes.find((c) => c._id === form.classId);
+    if (!selectedClass) return;
+
+    const derivedSections =
+      selectedClass.details?.map((d) => ({
+        label: d.sectionId?.name || d.sectionId?.sectionName || "Section",
+        value: d.sectionId?._id,
+      })) || [];
+
+    setSections(derivedSections);
+    if (
+      form.sectionId &&
+      !derivedSections.find((s) => s.value === form.sectionId)
+    ) {
+      setForm((prev) => ({ ...prev, sectionId: "" }));
+    }
+  }, [form.classId, classes]);
+
+  /* FETCH FEE STRUCTURE */
+  useEffect(() => {
+    if (!form.classId || !schoolId) return;
+
+    const fetchFeeStructure = async () => {
+      try {
+        const res = await axios.get(`${API}/fee-structure/${form.classId}`, {
+          params: { schoolId },
+        });
+
+        const fees = res.data?.fees || [];
+        setFeeStructure(fees);
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load fee structure");
+        setFeeStructure([]);
+      }
+    };
+
+    fetchFeeStructure();
+  }, [form.classId, schoolId]);
+
+  /* FETCH STUDENT */
+  useEffect(() => {
+    if (!id || !schoolId) return;
 
     const fetchStudent = async () => {
       try {
-        const res = await axios.get(`${API}/students/${id}`);
+        const res = await axios.get(`${API}/students/${id}`, {
+          params: { schoolId },
+        });
         const student = res.data.data;
 
         setForm({
           ...student,
+          classId: student.classId?._id || student.classId,
+          sectionId: student.sectionId?._id || student.sectionId,
           dob: student.dob ? student.dob.split("T")[0] : "",
           admissionDate: student.admissionDate
             ? student.admissionDate.split("T")[0]
@@ -96,21 +183,24 @@ const StudentManagement = () => {
     };
 
     fetchStudent();
-  }, [id]);
+  }, [id, schoolId]);
 
   /* CHANGE */
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     setForm((prev) => ({
       ...prev,
       [name]: value,
+      ...(name === "classId" && {
+        sectionId: "",
+        discountType: "",
+        discountValue: "",
+      }),
     }));
   };
 
   /* FILE */
-
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     const file = files[0];
@@ -129,11 +219,13 @@ const StudentManagement = () => {
   };
 
   /* FEE CALCULATION */
-
   useEffect(() => {
-    let total = Number(form.totalFee) || 0;
-    let discount = Number(form.discountValue) || 0;
+    const total = feeStructure.reduce((sum, f) => {
+      if (f.isOptional) return sum;
+      return sum + calcAmount(f.amount || 0);
+    }, 0);
 
+    let discount = Number(form.discountValue) || 0;
     let final = total;
 
     if (form.discountType === "Percentage") {
@@ -144,13 +236,19 @@ const StudentManagement = () => {
       final = total - discount;
     }
 
-    setForm((prev) => ({
-      ...prev,
-      finalFee: final >= 0 ? final : 0,
-    }));
-  }, [form.totalFee, form.discountType, form.discountValue]);
+    setForm((prev) => {
+      if (prev.totalFee === total && prev.finalFee === final) return prev;
 
-  const isDirty = () => Object.values(form).some((v) => v !== "");
+      return {
+        ...prev,
+        totalFee: total,
+        finalFee: final >= 0 ? final : 0,
+      };
+    });
+  }, [feeStructure, freqFilter, form.discountType, form.discountValue]);
+
+  const isDirty = () =>
+    Object.values(form).some((v) => v !== "" && v !== null && v !== undefined);
 
   const validateStep = () => {
     const errors = [];
@@ -173,13 +271,19 @@ const StudentManagement = () => {
     }
 
     if (step === 4) {
-      if (!form.className) errors.push("Class required");
-      if (!form.section) errors.push("Section required");
+      if (!form.classId) errors.push("Class required");
+
+      if (sections.length > 0 && !form.sectionId) {
+        errors.push("Section required");
+      }
+
       if (!form.rollNo) errors.push("Roll number required");
     }
 
     if (step === 5) {
-      if (!form.totalFee) errors.push("Total fee required");
+      if (form.totalFee === "" || form.totalFee === null) {
+        errors.push("Total fee required");
+      }
     }
 
     return errors;
@@ -231,10 +335,12 @@ const StudentManagement = () => {
 
         if (forbidden.includes(key)) return;
 
-        if (value !== null && value !== "") {
+        if (value !== null && value !== "" && key !== "documents") {
           data.append(key, value);
         }
       });
+      data.append("feeFrequency", freqFilter);
+      data.append("schoolId", schoolId);
 
       if (isEdit) {
         await axios.put(`${API}/students/${id}`, data);
@@ -306,21 +412,21 @@ const StudentManagement = () => {
                     setStep(index);
                   }}
                   className={`flex items-center gap-3 p-3 rounded-lg mb-2 cursor-pointer
-                  ${
-                    status === "active"
-                      ? "bg-indigo-600 text-white"
-                      : "bg-gray-100 hover:bg-gray-200"
-                  }`}
+                    ${
+                      status === "active"
+                        ? "bg-indigo-600 text-white"
+                        : "bg-gray-100 hover:bg-gray-200"
+                    }`}
                 >
                   <div
                     className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-semibold
-                    ${
-                      status === "complete"
-                        ? "bg-green-500 text-white"
-                        : status === "active"
-                          ? "bg-white text-indigo-600"
-                          : "bg-gray-300"
-                    }`}
+                      ${
+                        status === "complete"
+                          ? "bg-green-500 text-white"
+                          : status === "active"
+                            ? "bg-white text-indigo-600"
+                            : "bg-gray-300"
+                      }`}
                   >
                     {status === "complete" ? "✓" : index}
                   </div>
@@ -476,54 +582,63 @@ const StudentManagement = () => {
                 <File
                   label="Student Photo"
                   name="studentPhoto"
+                  existingUrl={form?.documents?.studentPhoto?.url}
                   onChange={handleFileChange}
                 />
 
                 <File
                   label="Father Photo"
                   name="fatherPhoto"
+                  existingUrl={form?.documents?.fatherPhoto?.url}
                   onChange={handleFileChange}
                 />
 
                 <File
                   label="Mother Photo"
                   name="motherPhoto"
+                  existingUrl={form?.documents?.motherPhoto?.url}
                   onChange={handleFileChange}
                 />
 
                 <File
                   label="Guardian Photo"
                   name="guardianPhoto"
+                  existingUrl={form?.documents?.guardianPhoto?.url}
                   onChange={handleFileChange}
                 />
 
                 <File
                   label="Birth Certificate"
                   name="birthCertificate"
+                  existingUrl={form?.documents?.birthCertificate?.url}
                   onChange={handleFileChange}
                 />
 
                 <File
                   label="Transfer Certificate"
                   name="transferCertificate"
+                  existingUrl={form?.documents?.transferCertificate?.url}
                   onChange={handleFileChange}
                 />
 
                 <File
                   label="Student Aadhar"
                   name="studentAadhar"
+                  existingUrl={form?.documents?.studentAadhar?.url}
                   onChange={handleFileChange}
                 />
 
                 <File
                   label="Father Aadhar"
                   name="fatherAadhar"
+                  existingUrl={form?.documents?.fatherAadhar?.url}
                   onChange={handleFileChange}
                 />
 
                 <File
                   label="Mother Aadhar"
                   name="motherAadhar"
+                  existingUrl={form?.documents?.motherAadhar?.url}
                   onChange={handleFileChange}
                 />
               </div>
@@ -533,19 +648,26 @@ const StudentManagement = () => {
 
             {step === 4 && (
               <div className="grid gap-4">
-                <Input
-                  label="Class"
-                  name="className"
-                  value={form.className}
+                <Select
+                  label="Class *"
+                  name="classId"
+                  value={form.classId}
+                  options={classes.map((c) => ({
+                    label: c.name || c.className,
+                    value: c._id,
+                  }))}
                   onChange={handleChange}
                 />
 
-                <Input
-                  label="Section"
-                  name="section"
-                  value={form.section}
-                  onChange={handleChange}
-                />
+                {form.classId && sections.length > 0 && (
+                  <Select
+                    label="Section"
+                    name="sectionId"
+                    value={form.sectionId}
+                    options={sections}
+                    onChange={handleChange}
+                  />
+                )}
 
                 <Input
                   label="Roll Number"
@@ -568,11 +690,63 @@ const StudentManagement = () => {
 
             {step === 5 && (
               <div className="grid gap-4">
+                {feeStructure.length === 0 && form.classId && (
+                  <div className="text-sm text-gray-400">
+                    No fee structure found for this class
+                  </div>
+                )}
+
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold mb-1">
+                    View As
+                  </label>
+
+                  <select
+                    value={freqFilter}
+                    onChange={(e) => setFreqFilter(e.target.value)}
+                    className="w-full border px-3 py-2 rounded-lg"
+                  >
+                    <option value="monthly">Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="half-yearly">Half Yearly</option>
+                    <option value="annually">Annually</option>
+                  </select>
+                </div>
+
+                {feeStructure.length > 0 && (
+                  <div className="bg-gray-50 border rounded-lg p-4 mb-4">
+                    <h3 className="font-semibold mb-2">Fee Breakdown</h3>
+
+                    {feeStructure.map((f, i) => (
+                      <div
+                        key={i}
+                        className="flex justify-between text-sm py-1"
+                      >
+                        <span>
+                          {f.name}
+                          {f.isOptional && (
+                            <span className="text-xs text-gray-400 ml-2">
+                              (Optional)
+                            </span>
+                          )}
+                        </span>
+
+                        <span>₹{calcAmount(f.amount)}</span>
+                      </div>
+                    ))}
+
+                    <div className="flex justify-between font-bold border-t mt-2 pt-2">
+                      <span>Total</span>
+                      <span>₹{form.totalFee}</span>
+                    </div>
+                  </div>
+                )}
+
                 <Input
                   label="Total Fee (₹)"
                   name="totalFee"
                   value={form.totalFee}
-                  onChange={handleChange}
+                  readOnly
                 />
 
                 <Select
@@ -623,11 +797,11 @@ const StudentManagement = () => {
                   onClick={next}
                   disabled={validateStep().length > 0}
                   className={`px-6 py-2 rounded-lg text-white
-                  ${
-                    validateStep().length > 0
-                      ? "bg-gray-400"
-                      : "bg-indigo-600 hover:bg-indigo-700"
-                  }`}
+                    ${
+                      validateStep().length > 0
+                        ? "bg-gray-400"
+                        : "bg-indigo-600 hover:bg-indigo-700"
+                    }`}
                 >
                   Next
                 </button>
@@ -709,27 +883,49 @@ const Select = ({ label, options, ...props }) => (
     >
       <option value="">Select</option>
 
-      {options.map((o, i) => (
-        <option key={i} value={o}>
-          {o}
-        </option>
-      ))}
+      {options.map((o, i) => {
+        if (typeof o === "string") {
+          return (
+            <option key={i} value={o}>
+              {o}
+            </option>
+          );
+        }
+
+        return (
+          <option key={i} value={o.value}>
+            {o.label}
+          </option>
+        );
+      })}
     </select>
   </div>
 );
-
 /* FILE */
 
-const File = ({ label, name, onChange }) => {
-  const [preview, setPreview] = useState(null);
+const File = ({ label, name, onChange, existingUrl }) => {
+  const [preview, setPreview] = useState(existingUrl || null);
 
   const handlePreview = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setPreview(URL.createObjectURL(file));
+    if (preview && preview.startsWith("blob:")) {
+      URL.revokeObjectURL(preview);
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setPreview(objectUrl);
     onChange(e);
   };
+
+  useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith("blob:")) {
+        URL.revokeObjectURL(preview);
+      }
+    };
+  }, [preview]);
 
   return (
     <div className="border rounded-xl p-4 bg-gray-50">

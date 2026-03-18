@@ -5,18 +5,43 @@ import { MdPersonOutline } from "react-icons/md";
 import { PiChartPieSliceBold } from "react-icons/pi";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { FiTrash2 } from "react-icons/fi";
 
 const API = import.meta.env.VITE_API_URL;
+const userData = JSON.parse(localStorage.getItem("userData"));
+const schoolId = userData?.school_id;
 
 const Students = () => {
   const navigate = useNavigate();
 
   const [students, setStudents] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
+  const [classes, setClasses] = useState([]);
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmMessage, setConfirmMessage] = useState("");
+
+  const fetchClasses = async () => {
+    try {
+      const res = await axios.get(`${API}/classes/all`, {
+        params: { schoolId },
+      });
+
+      setClasses(res.data.classes || []);
+    } catch {
+      toast.error("Failed to load classes");
+    }
+  };
 
   const fetchStudents = async () => {
+    if (!schoolId) return;
+
     try {
-      const res = await axios.get(`${API}/students`);
+      const res = await axios.get(`${API}/students`, {
+        params: { schoolId },
+      });
+
       setStudents(res.data.data);
     } catch {
       toast.error("Failed to load students");
@@ -24,8 +49,10 @@ const Students = () => {
   };
 
   useEffect(() => {
+    if (!schoolId) return;
     fetchStudents();
-  }, []);
+    fetchClasses();
+  }, [schoolId]);
 
   /* ================= STATS ================= */
 
@@ -34,13 +61,37 @@ const Students = () => {
   const maleCount = students.filter((s) => s.gender === "Male").length;
   const femaleCount = students.filter((s) => s.gender === "Female").length;
 
-  const present = Math.floor(totalStudents * 0.64);
+  const present = totalStudents;
 
-  const classes = [...new Set(students.map((s) => s.className))];
+  const classCount = new Set(
+    students.map((s) => s.classId?._id).filter(Boolean),
+  ).size;
 
   const filteredStudents = selectedClass
-    ? students.filter((s) => s.className === selectedClass)
-    : [];
+    ? students.filter((s) => s.classId?._id === selectedClass)
+    : students;
+
+  const handleDelete = (id) => {
+    setConfirmMessage("Are you sure you want to delete this student?");
+    setConfirmAction(() => () => deleteStudent(id));
+    setConfirmOpen(true);
+  };
+
+  const deleteStudent = async (id) => {
+    try {
+      await axios.delete(`${API}/students/${id}`, {
+        params: { schoolId },
+      });
+
+      toast.success("Student deleted successfully");
+
+      // remove from UI instantly
+      setStudents((prev) => prev.filter((s) => s._id !== id));
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete student");
+    }
+  };
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
@@ -99,12 +150,14 @@ const Students = () => {
         <select
           value={selectedClass}
           onChange={(e) => setSelectedClass(e.target.value)}
-          className="border rounded-lg px-4 py-2 w-full sm:w-72 focus:ring-2 focus:ring-indigo-500 outline-none"
+          className="border rounded-lg px-4 py-2 w-full sm:w-72"
         >
           <option value="">-- Select a Class --</option>
 
           {classes.map((cls) => (
-            <option key={cls}>{cls}</option>
+            <option key={cls._id} value={cls._id}>
+              {cls.name}
+            </option>
           ))}
         </select>
       </div>
@@ -118,11 +171,9 @@ const Students = () => {
           </h2>
         </div>
 
-        {!selectedClass && (
-          <EmptyState text="Select a class to view students" />
-        )}
+        {students.length === 0 && <EmptyState text="No students available" />}
 
-        {selectedClass && (
+        {students.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full min-w-175 text-sm">
               <thead className="bg-gray-100">
@@ -142,7 +193,7 @@ const Students = () => {
                       {student.firstName} {student.lastName}
                     </td>
 
-                    <td className="p-3">{student.className}</td>
+                    <td className="p-3">{student.classId?.name || "-"}</td>
 
                     <td className="p-3">{student.fatherName}</td>
 
@@ -167,6 +218,13 @@ const Students = () => {
                         >
                           <FaEdit />
                         </button>
+
+                        <button
+                          onClick={() => handleDelete(student._id)}
+                          className="bg-red-100 text-red-600 p-2 rounded-md hover:bg-red-200"
+                        >
+                          <FiTrash2 />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -184,6 +242,34 @@ const Students = () => {
           </div>
         )}
       </div>
+      {confirmOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-2">Confirmation</h3>
+
+            <p className="text-gray-600 mb-6">{confirmMessage}</p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmOpen(false)}
+                className="px-4 py-2 bg-gray-200 rounded-lg"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={() => {
+                  confirmAction?.();
+                  setConfirmOpen(false);
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

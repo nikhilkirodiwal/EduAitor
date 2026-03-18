@@ -65,7 +65,6 @@ const Defaulters = () => {
 
       setDefaulters(response.data.defaulters || []);
       setTotalPages(response.data.totalPages || 1);
-      console.log(response.data.defaulters)
     } catch (error) {
       console.error("Error fetching defaulters:", error);
       setDefaulters([]);
