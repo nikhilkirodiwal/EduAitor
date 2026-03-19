@@ -38,6 +38,8 @@ import timetableRoute from "./routes/timetableRoute.js";
 import feeRoute from "./routes/feeRoute.js";
 import eventRoute from "./routes/eventRoute.js"
 import noticeRoute from "./routes/noticeRoute.js"
+import transportRoute from "./routes/transportRoute.js"
+import examRoute from "./routes/examRoute.js";
 
 app.use("/api/auth", authRoutes);
 
@@ -58,6 +60,8 @@ app.use("/api/fee-history",feeRoute)
 app.use("/api/fees",feeRoute)
 app.use("/api/events", eventRoute)
 app.use("/api/notices", noticeRoute)
+app.use("/transport", transportRoute);
+app.use("/api/exam",examRoute)
 
 // Error middleware
 app.use(errorHandler);

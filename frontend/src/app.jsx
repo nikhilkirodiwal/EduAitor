@@ -23,18 +23,22 @@ import Class from "./pages/Class";
 import ClassView from "./components/ClassView";
 import Subject from "./pages/Subject";
 import TimeTable from "./pages/TimeTable";
-import FeeStructure from "./pages/FeeStructure"
+import FeeStructure from "./pages/FeeStructure";
 import Event from "./pages/Event";
 import EventView from "./components/EventView";
 import Notice from "./pages/Notice";
 import FeeCollection from "./pages/FeeCollection";
 import FeeHistory from "./pages/FeeHistory";
 import Defaulters from "./pages/Defaulters";
+import Transport from "./pages/Transport";
+import DriverManagement from "./pages/DriverManagement";
+import BusManagement from "./pages/BusManagement";
+import RouteManagement from "./pages/RouteManagement";
+import ExamCreate from "./pages/ExamCreate";
 
 const App = () => {
   return (
     <Routes>
-
       {/* Default redirect */}
       <Route path="*" element={<Navigate to="/admin/login" />} />
 
@@ -56,11 +60,11 @@ const App = () => {
         <Route path="schools" element={<Schools />} />
         <Route path="school-manage" element={<SchoolManagement />} />
         <Route path="subscription-plan" element={<SchoolSubscription />} />
-        <Route path="school-view/:id" element={<SchoolView />}/>
+        <Route path="school-view/:id" element={<SchoolView />} />
 
         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
       </Route>
-      
+
       <Route
         path="/school"
         element={
@@ -73,7 +77,7 @@ const App = () => {
         <Route path="students" element={<Students />} />
         <Route path="student-manage" element={<StudentManagement />} />
         <Route path="student-manage/:id" element={<StudentManagement />} />
-        <Route path="student-view/:id" element={<StudentView />}/>
+        <Route path="student-view/:id" element={<StudentView />} />
         <Route path="teachers" element={<Teachers />} />
         <Route path="teacher-manage" element={<TeacherManagement />} />
         <Route path="teacher-manage/:id" element={<TeacherManagement />} />
@@ -90,10 +94,14 @@ const App = () => {
         <Route path="event" element={<Event />} />
         <Route path="event/:id" element={<EventView />} />
         <Route path="notice" element={<Notice />} />
+        <Route path="transport" element={<Transport />} />
+        {/* <Route path="transport-driver" element={<DriverManagement />} /> */}
+        <Route path="transport-bus" element={<BusManagement />} />
+        {/* <Route path="transport-route" element={<RouteManagement />} /> */}
+        <Route path="exam-structure" element={<ExamCreate />} />
 
         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
       </Route>
-
     </Routes>
   );
 };

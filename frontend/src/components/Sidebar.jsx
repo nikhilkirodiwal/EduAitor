@@ -11,13 +11,13 @@ import {
   FaSchool,
   FaCalendarAlt,
   FaBell,
+  FaBusAlt,
 } from "react-icons/fa";
 
 import {
   FiUsers,
   FiBookOpen,
   FiBarChart2,
-  FiTruck,
   FiBook,
   FiDollarSign,
 } from "react-icons/fi";
@@ -99,7 +99,11 @@ const Sidebar = ({ closeSidebar }) => {
     },
 
     { name: "Attendance", icon: <FiUsers />, path: "/school/attendance" },
-    { name: "Exams", icon: <FiBookOpen />, path: "/school/exams" },
+    {
+      name: "Exam Management",
+      icon: <FiBookOpen />,
+      children: [{ name: "Exam Structure", path: "/school/exam-structure" }],
+    },
     { name: "Timetable", icon: <FaClock />, path: "/school/timetable" },
 
     {
@@ -116,7 +120,16 @@ const Sidebar = ({ closeSidebar }) => {
     { name: "Events", icon: <FaCalendarAlt />, path: "/school/event" },
     { name: "Notices", icon: <FaBell />, path: "/school/notice" },
     // { name: "Reports", icon: <FiBarChart2 />, path: "/school/reports" },
-    { name: "Transport", icon: <FiTruck />, path: "/school/transport" },
+    {
+      name: "Transport Management",
+      icon: <FaBusAlt />,
+      children: [
+        { name: "Transport", path: "/school/transport" },
+        { name: "Route Manage", path: "/school/transport-route" },
+        { name: "Bus Manage", path: "/school/transport-bus" },
+        { name: "Driver Manage", path: "/school/transport-driver" },
+      ],
+    },
     { name: "Library", icon: <FiBook />, path: "/school/library" },
   ];
 

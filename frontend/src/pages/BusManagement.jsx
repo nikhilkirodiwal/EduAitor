@@ -1,0 +1,700 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { FaPlus, FaTrash, FaEdit, FaBus, FaTools } from "react-icons/fa";
+import { toast } from "react-toastify";
+
+const API = import.meta.env.VITE_API_URL;
+const userData = JSON.parse(localStorage.getItem("userData"));
+const schoolId = userData?.school_id;
+
+const EMPTY_FORM = {
+  busId: "",
+  regNo: "",
+  model: "",
+  capacity: "",
+  driver: "",
+  route: "",
+};
+
+const BusManagement = () => {
+  const [buses, setBuses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+
+  // Modals
+  const [deleteModal, setDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const [formModal, setFormModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [formLoading, setFormLoading] = useState(false);
+
+  const [serviceModal, setServiceModal] = useState(false);
+  const [serviceTarget, setServiceTarget] = useState(null);
+
+  const [drivers, setDrivers] = useState([]);
+  const [routes, setRoutes] = useState([]);
+
+  /* ── FETCH ────────────────────────────────────────────────────────────── */
+  const fetchMeta = async () => {
+    try {
+      const [d, r] = await Promise.all([
+        axios.get(`${API}/transport/drivers`, {
+          params: { school_id: schoolId },
+        }),
+        axios.get(`${API}/transport/routes`, {
+          params: { school_id: schoolId },
+        }),
+      ]);
+
+      setDrivers(d.data.data || []);
+      setRoutes(r.data.data || []);
+    } catch (err) {
+      toast.error("Failed to load drivers/routes");
+    }
+  };
+
+  const fetchBuses = async () => {
+    if (!schoolId) return toast.error("School ID not found");
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API}/transport/buses`, {
+        params: { school_id: schoolId },
+      });
+      setBuses(res.data.data || []);
+    } catch {
+      toast.error("Failed to load buses");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!schoolId) return;
+    fetchBuses();
+    fetchMeta();
+  }, [schoolId]);
+
+  /* ── ADD / EDIT ───────────────────────────────────────────────────────── */
+
+  const openAdd = () => {
+    setIsEdit(false);
+    setEditId(null);
+    setForm(EMPTY_FORM);
+    setFormModal(true);
+  };
+
+  const openEdit = (bus) => {
+    setIsEdit(true);
+    setEditId(bus._id);
+    setForm({
+      busId: bus.busId || "",
+      regNo: bus.regNo || "",
+      model: bus.model || "",
+      capacity: String(bus.capacity || ""),
+      driver: bus.driver?._id || "",
+      route: bus.route?._id || "",
+    });
+    setFormModal(true);
+  };
+
+  const handleFormSubmit = async () => {
+    if (!form.busId.trim() || !form.regNo.trim()) {
+      return toast.error("Bus ID and registration number are required");
+    }
+    if (form.capacity && (form.capacity < 1 || form.capacity > 100)) {
+      return toast.error("Capacity must be between 1–100");
+    }
+
+    try {
+      setFormLoading(true);
+      const payload = {
+        id: form.busId,
+        regNo: form.regNo,
+        model: form.model,
+        capacity: form.capacity ? Number(form.capacity) : undefined,
+        driver: form.driver || null,
+        route: form.route || null,
+        school_id: schoolId,
+      };
+      if (isEdit) {
+        await axios.put(`${API}/transport/buses/${editId}`, payload);
+        toast.success("Bus updated successfully");
+      } else {
+        await axios.post(`${API}/transport/buses`, payload);
+        toast.success("Bus registered successfully");
+      }
+      setFormModal(false);
+      fetchBuses();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to save bus");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  /* ── DELETE ───────────────────────────────────────────────────────────── */
+
+  const handleDeleteClick = (bus) => {
+    setDeleteTarget(bus);
+    setDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await axios.delete(`${API}/transport/buses/${deleteTarget._id}`, {
+        params: { school_id: schoolId },
+      });
+      toast.success("Bus deleted successfully");
+      setDeleteModal(false);
+      setDeleteTarget(null);
+      fetchBuses();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete bus");
+    }
+  };
+
+  /* ── SERVICE TOGGLE ───────────────────────────────────────────────────── */
+
+  const handleServiceClick = (bus) => {
+    setServiceTarget(bus);
+    setServiceModal(true);
+  };
+
+  const confirmServiceToggle = async () => {
+    const nextStatus =
+      serviceTarget.status === "Maintenance" ? "Active" : "Maintenance";
+    try {
+      await axios.patch(`${API}/transport/buses/${serviceTarget._id}/status`, {
+        school_id: schoolId,
+        status: nextStatus,
+      });
+      toast.success(
+        nextStatus === "Maintenance"
+          ? `${serviceTarget.busId} sent for maintenance`
+          : `${serviceTarget.busId} marked as active`,
+      );
+      setServiceModal(false);
+      setServiceTarget(null);
+      fetchBuses();
+    } catch {
+      toast.error("Status update failed");
+    }
+  };
+
+  /* ── FILTER ───────────────────────────────────────────────────────────── */
+
+  const filtered = buses.filter((b) => {
+    const s = search.toLowerCase();
+    const matchSearch =
+      b.busId?.toLowerCase().includes(s) ||
+      b.model?.toLowerCase().includes(s) ||
+      b.regNo?.toLowerCase().includes(s) ||
+      b.driver?.name?.toLowerCase().includes(s);
+    const matchStatus = filterStatus ? b.status === filterStatus : true;
+    return matchSearch && matchStatus;
+  });
+
+  /* ── STATS ────────────────────────────────────────────────────────────── */
+
+  const totalBuses = buses.length;
+  const activeBuses = buses.filter((b) => b.status === "Active").length;
+  const inMaintenance = buses.filter((b) => b.status === "Maintenance").length;
+  const inactiveBuses = buses.filter((b) => b.status === "Inactive").length;
+
+  /* ── LOADING ──────────────────────────────────────────────────────────── */
+
+  if (loading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading buses...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
+      {/* HEADER */}
+      <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            Bus Management (WORKING)
+          </h1>
+          <p className="text-gray-500 text-sm sm:text-base">
+            Manage school fleet & maintenance
+          </p>
+        </div>
+        <button
+          onClick={openAdd}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-blue-700 transition"
+        >
+          <FaPlus />
+          Add Bus
+        </button>
+      </div>
+
+      {/* STATS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard title="TOTAL FLEET" value={totalBuses} color="blue" />
+        <StatCard title="ACTIVE" value={activeBuses} color="green" />
+        <StatCard title="IN MAINTENANCE" value={inMaintenance} color="yellow" />
+        <StatCard title="INACTIVE" value={inactiveBuses} color="gray" />
+      </div>
+
+      {/* FILTERS */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
+        <h2 className="text-lg font-semibold text-gray-700">Fleet Directory</h2>
+        <div className="flex gap-2 flex-wrap">
+          <input
+            type="text"
+            placeholder="Search bus ID, model, driver..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border rounded-lg px-3 py-2 w-full sm:w-64 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+          />
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+          >
+            <option value="">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      {/* TABLE */}
+      <div className="bg-white rounded-xl shadow">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-4 text-left">Bus</th>
+                <th className="p-4 text-left">Model</th>
+                <th className="p-4 text-left">Driver / Route</th>
+                <th className="p-4 text-left">Capacity</th>
+                <th className="p-4 text-left">Next Service</th>
+                <th className="p-4 text-left">Status</th>
+                <th className="p-4 text-center">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {filtered.map((bus) => (
+                <tr key={bus._id} className="border-t hover:bg-gray-50">
+                  {/* BUS ID */}
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+                        <FaBus />
+                      </div>
+                      <div>
+                        <p className="font-bold text-blue-700">{bus.busId}</p>
+                        <p className="text-gray-400 text-xs">{bus.regNo}</p>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* MODEL */}
+                  <td className="p-4 text-gray-700">{bus.model || "-"}</td>
+
+                  {/* DRIVER / ROUTE */}
+                  <td className="p-4">
+                    <p className="font-medium text-gray-800">
+                      {bus.driver?.name || "Unassigned"}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {bus.route?.name || "No route"}
+                    </p>
+                  </td>
+
+                  {/* CAPACITY */}
+                  <td className="p-4 text-gray-700">
+                    {bus.capacity ?? 0}
+                    <span className="text-gray-400 text-xs"> seats</span>
+                  </td>
+
+                  {/* NEXT SERVICE */}
+                  <td className="p-4 text-gray-600 text-xs">
+                    {bus.nextService || "N/A"}
+                  </td>
+
+                  {/* STATUS */}
+                  <td className="p-4">
+                    <span
+                      className={`px-3 py-1 text-xs font-medium rounded-full ${
+                        bus.status === "Active"
+                          ? "bg-green-100 text-green-600"
+                          : bus.status === "Maintenance"
+                            ? "bg-yellow-100 text-yellow-600"
+                            : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      {bus.status || "Active"}
+                    </span>
+                  </td>
+
+                  {/* ACTIONS */}
+                  <td className="p-4">
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      <button
+                        onClick={() => openEdit(bus)}
+                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition text-xs font-medium flex items-center gap-1"
+                      >
+                        <FaEdit className="text-xs" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleServiceClick(bus)}
+                        className={`px-3 py-1 rounded transition text-xs font-medium flex items-center gap-1 ${
+                          bus.status === "Maintenance"
+                            ? "bg-green-100 text-green-600 hover:bg-green-200"
+                            : "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
+                        }`}
+                      >
+                        <FaTools className="text-xs" />
+                        {bus.status === "Maintenance"
+                          ? "Mark Active"
+                          : "Send for Service"}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(bus)}
+                        className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition text-xs font-medium flex items-center gap-1"
+                      >
+                        <FaTrash className="text-xs" />
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan="8" className="text-center py-10 text-gray-400">
+                    No buses found. Click "Add Bus" to register one.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* MODALS */}
+
+      {formModal && (
+        <BusFormModal
+          isEdit={isEdit}
+          form={form}
+          setForm={setForm}
+          onClose={() => {
+            setFormModal(false);
+            setForm(EMPTY_FORM);
+          }}
+          onSubmit={handleFormSubmit}
+          loading={formLoading}
+          drivers={drivers}
+          routes={routes}
+        />
+      )}
+
+      {serviceModal && serviceTarget && (
+        <ServiceModal
+          bus={serviceTarget}
+          onCancel={() => {
+            setServiceModal(false);
+            setServiceTarget(null);
+          }}
+          onConfirm={confirmServiceToggle}
+        />
+      )}
+
+      {deleteModal && deleteTarget && (
+        <DeleteModal
+          bus={deleteTarget}
+          onCancel={() => {
+            setDeleteModal(false);
+            setDeleteTarget(null);
+          }}
+          onConfirm={confirmDelete}
+        />
+      )}
+    </div>
+  );
+};
+
+export default BusManagement;
+
+/* ── STAT CARD ────────────────────────────────────────────────────────────── */
+
+const StatCard = ({ title, value, color = "blue" }) => {
+  const colors = {
+    blue: "border-l-blue-500",
+    green: "border-l-green-500",
+    yellow: "border-l-yellow-500",
+    gray: "border-l-gray-400",
+  };
+  return (
+    <div
+      className={`bg-white rounded-xl shadow p-5 border-l-4 ${colors[color]}`}
+    >
+      <p className="text-xs sm:text-sm text-gray-500 font-medium">{title}</p>
+      <p className="text-xl sm:text-2xl font-bold mt-1">{value}</p>
+    </div>
+  );
+};
+
+/* ── BUS FORM MODAL (ADD / EDIT) ──────────────────────────────────────────── */
+
+const BusFormModal = ({
+  isEdit,
+  form,
+  setForm,
+  onClose,
+  onSubmit,
+  loading,
+  drivers,
+  routes,
+}) => {
+  const fields = [
+    {
+      label: "Bus ID",
+      key: "busId",
+      placeholder: "e.g. BUS-07",
+      disabled: isEdit,
+    },
+    {
+      label: "Registration No.",
+      key: "regNo",
+      placeholder: "e.g. RJ14-CA-2211",
+    },
+    { label: "Model", key: "model", placeholder: "e.g. Tata Starbus" },
+    {
+      label: "Seating Capacity",
+      key: "capacity",
+      placeholder: "e.g. 48",
+      type: "number",
+    },
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+              <FaBus className="text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">
+                {isEdit ? "Edit Bus" : "Register New Bus"}
+              </h3>
+              <p className="text-sm text-gray-500">
+                {isEdit ? "Update bus details" : "Add a new bus to the fleet"}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Fields */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {fields.map(({ label, key, placeholder, type, disabled }) => (
+            <div key={key}>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                {label}
+              </label>
+              <input
+                type={type || "text"}
+                placeholder={placeholder}
+                value={form[key]}
+                disabled={disabled}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, [key]: e.target.value }))
+                }
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${
+                  disabled ? "bg-gray-50 text-gray-400 cursor-not-allowed" : ""
+                }`}
+              />
+            </div>
+          ))}
+          {/* DRIVER */}
+          <div>
+            <label className="text-xs font-semibold text-gray-500 mb-1 block">
+              Assigned Driver
+            </label>
+            <select
+              value={form.driver}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, driver: e.target.value }))
+              }
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="">Select Driver</option>
+
+              {drivers.length === 0 ? (
+                <option disabled>No drivers available</option>
+              ) : (
+                drivers.map((d) => (
+                  <option key={d._id} value={d._id}>
+                    {d.name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+
+          {/* ROUTE */}
+          <div>
+            <label className="text-xs font-semibold text-gray-500 mb-1 block">
+              Assigned Route
+            </label>
+            <select
+              value={form.route}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, route: e.target.value }))
+              }
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="">Select Route</option>
+
+              {routes.length === 0 ? (
+                <option disabled>No routes available</option>
+              ) : (
+                routes.map((r) => (
+                  <option key={r._id} value={r._id}>
+                    {r.name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+          >
+            Discard
+          </button>
+          <button
+            onClick={onSubmit}
+            disabled={loading}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
+          >
+            {loading ? "Saving..." : isEdit ? "Update Bus" : "Register Bus"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── SERVICE MODAL ────────────────────────────────────────────────────────── */
+
+const ServiceModal = ({ bus, onCancel, onConfirm }) => {
+  const isInMaintenance = bus.status === "Maintenance";
+  return (
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-96 max-w-full mx-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div
+            className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              isInMaintenance ? "bg-green-100" : "bg-yellow-100"
+            }`}
+          >
+            <FaTools
+              className={isInMaintenance ? "text-green-600" : "text-yellow-600"}
+            />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">
+              {isInMaintenance ? "Mark as Active?" : "Send for Maintenance?"}
+            </h3>
+            <p className="text-sm text-gray-500">
+              {bus.busId} — {bus.regNo}
+            </p>
+          </div>
+        </div>
+        <p className="text-gray-600 mb-6 text-sm">
+          {isInMaintenance
+            ? `Bus ${bus.busId} will be returned to active service and can be assigned to routes.`
+            : `Bus ${bus.busId} will be taken off its route and marked under maintenance.`}
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`px-4 py-2 text-white rounded-lg transition text-sm ${
+              isInMaintenance
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-yellow-500 hover:bg-yellow-600"
+            }`}
+          >
+            {isInMaintenance ? "Mark Active" : "Send for Service"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── DELETE MODAL ─────────────────────────────────────────────────────────── */
+
+const DeleteModal = ({ bus, onCancel, onConfirm }) => (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-xl p-6 w-96 max-w-full mx-4">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+          <FaTrash className="text-red-600" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold">Delete Bus</h3>
+          <p className="text-sm text-gray-500">This action cannot be undone</p>
+        </div>
+      </div>
+      <p className="text-gray-600 mb-6 text-sm">
+        Are you sure you want to delete{" "}
+        <span className="font-semibold">{bus.busId}</span> ({bus.regNo})? It
+        will be permanently removed from the fleet.
+      </p>
+      <div className="flex justify-end gap-3">
+        <button
+          onClick={onCancel}
+          className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={onConfirm}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm"
+        >
+          Delete Bus
+        </button>
+      </div>
+    </div>
+  </div>
+);
