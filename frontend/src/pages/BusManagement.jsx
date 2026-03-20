@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaPlus, FaTrash, FaEdit, FaBus, FaTools } from "react-icons/fa";
+import { FaPlus, FaTrash, FaEdit, FaBus } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
@@ -8,12 +8,15 @@ const userData = JSON.parse(localStorage.getItem("userData"));
 const schoolId = userData?.school_id;
 
 const EMPTY_FORM = {
+  _id: null,
   busId: "",
   regNo: "",
   model: "",
   capacity: "",
   driver: "",
   route: "",
+  nextService: "",
+  status: "Active",
 };
 
 const BusManagement = () => {
@@ -31,9 +34,6 @@ const BusManagement = () => {
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [formLoading, setFormLoading] = useState(false);
-
-  const [serviceModal, setServiceModal] = useState(false);
-  const [serviceTarget, setServiceTarget] = useState(null);
 
   const [drivers, setDrivers] = useState([]);
   const [routes, setRoutes] = useState([]);
@@ -58,15 +58,18 @@ const BusManagement = () => {
   };
 
   const fetchBuses = async () => {
-    if (!schoolId) return toast.error("School ID not found");
+    if (!schoolId) {
+      toast.error("Session expired. Please login again");
+      return;
+    }
     try {
       setLoading(true);
       const res = await axios.get(`${API}/transport/buses`, {
         params: { school_id: schoolId },
       });
       setBuses(res.data.data || []);
-    } catch {
-      toast.error("Failed to load buses");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to load buses");
     } finally {
       setLoading(false);
     }
@@ -83,7 +86,7 @@ const BusManagement = () => {
   const openAdd = () => {
     setIsEdit(false);
     setEditId(null);
-    setForm(EMPTY_FORM);
+    setForm({ ...EMPTY_FORM });
     setFormModal(true);
   };
 
@@ -91,12 +94,20 @@ const BusManagement = () => {
     setIsEdit(true);
     setEditId(bus._id);
     setForm({
+      _id: bus._id,
       busId: bus.busId || "",
       regNo: bus.regNo || "",
       model: bus.model || "",
       capacity: String(bus.capacity || ""),
       driver: bus.driver?._id || "",
       route: bus.route?._id || "",
+      nextService:
+        bus.nextService &&
+        bus.nextService !== "N/A" &&
+        !isNaN(new Date(bus.nextService))
+          ? new Date(bus.nextService).toISOString().slice(0, 10)
+          : "",
+      status: bus.status || "Active",
     });
     setFormModal(true);
   };
@@ -105,7 +116,9 @@ const BusManagement = () => {
     if (!form.busId.trim() || !form.regNo.trim()) {
       return toast.error("Bus ID and registration number are required");
     }
-    if (form.capacity && (form.capacity < 1 || form.capacity > 100)) {
+
+    const capacityNum = Number(form.capacity);
+    if (form.capacity && (capacityNum < 1 || capacityNum > 100)) {
       return toast.error("Capacity must be between 1–100");
     }
 
@@ -119,6 +132,8 @@ const BusManagement = () => {
         driver: form.driver || null,
         route: form.route || null,
         school_id: schoolId,
+        nextService: form.nextService || null,
+        status: form.status,
       };
       if (isEdit) {
         await axios.put(`${API}/transport/buses/${editId}`, payload);
@@ -129,6 +144,7 @@ const BusManagement = () => {
       }
       setFormModal(false);
       fetchBuses();
+      fetchMeta();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to save bus");
     } finally {
@@ -157,34 +173,6 @@ const BusManagement = () => {
     }
   };
 
-  /* ── SERVICE TOGGLE ───────────────────────────────────────────────────── */
-
-  const handleServiceClick = (bus) => {
-    setServiceTarget(bus);
-    setServiceModal(true);
-  };
-
-  const confirmServiceToggle = async () => {
-    const nextStatus =
-      serviceTarget.status === "Maintenance" ? "Active" : "Maintenance";
-    try {
-      await axios.patch(`${API}/transport/buses/${serviceTarget._id}/status`, {
-        school_id: schoolId,
-        status: nextStatus,
-      });
-      toast.success(
-        nextStatus === "Maintenance"
-          ? `${serviceTarget.busId} sent for maintenance`
-          : `${serviceTarget.busId} marked as active`,
-      );
-      setServiceModal(false);
-      setServiceTarget(null);
-      fetchBuses();
-    } catch {
-      toast.error("Status update failed");
-    }
-  };
-
   /* ── FILTER ───────────────────────────────────────────────────────────── */
 
   const filtered = buses.filter((b) => {
@@ -193,7 +181,8 @@ const BusManagement = () => {
       b.busId?.toLowerCase().includes(s) ||
       b.model?.toLowerCase().includes(s) ||
       b.regNo?.toLowerCase().includes(s) ||
-      b.driver?.name?.toLowerCase().includes(s);
+      b.driver?.name?.toLowerCase().includes(s) ||
+      b.route?.name?.toLowerCase().includes(s);
     const matchStatus = filterStatus ? b.status === filterStatus : true;
     return matchSearch && matchStatus;
   });
@@ -323,8 +312,16 @@ const BusManagement = () => {
                   </td>
 
                   {/* NEXT SERVICE */}
-                  <td className="p-4 text-gray-600 text-xs">
-                    {bus.nextService || "N/A"}
+                  <td
+                    className={`p-4 text-xs ${
+                      bus.nextService && new Date(bus.nextService) <= new Date()
+                        ? "text-red-600 font-semibold"
+                        : "text-gray-600"
+                    }`}
+                  >
+                    {bus.nextService
+                      ? new Date(bus.nextService).toLocaleDateString()
+                      : "N/A"}
                   </td>
 
                   {/* STATUS */}
@@ -351,19 +348,6 @@ const BusManagement = () => {
                       >
                         <FaEdit className="text-xs" />
                         Edit
-                      </button>
-                      <button
-                        onClick={() => handleServiceClick(bus)}
-                        className={`px-3 py-1 rounded transition text-xs font-medium flex items-center gap-1 ${
-                          bus.status === "Maintenance"
-                            ? "bg-green-100 text-green-600 hover:bg-green-200"
-                            : "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
-                        }`}
-                      >
-                        <FaTools className="text-xs" />
-                        {bus.status === "Maintenance"
-                          ? "Mark Active"
-                          : "Send for Service"}
                       </button>
                       <button
                         onClick={() => handleDeleteClick(bus)}
@@ -398,23 +382,12 @@ const BusManagement = () => {
           setForm={setForm}
           onClose={() => {
             setFormModal(false);
-            setForm(EMPTY_FORM);
+            setForm({ ...EMPTY_FORM });
           }}
           onSubmit={handleFormSubmit}
           loading={formLoading}
           drivers={drivers}
           routes={routes}
-        />
-      )}
-
-      {serviceModal && serviceTarget && (
-        <ServiceModal
-          bus={serviceTarget}
-          onCancel={() => {
-            setServiceModal(false);
-            setServiceTarget(null);
-          }}
-          onConfirm={confirmServiceToggle}
         />
       )}
 
@@ -470,7 +443,7 @@ const BusFormModal = ({
       label: "Bus ID",
       key: "busId",
       placeholder: "e.g. BUS-07",
-      disabled: isEdit,
+      disabled: false,
     },
     {
       label: "Registration No.",
@@ -485,6 +458,16 @@ const BusFormModal = ({
       type: "number",
     },
   ];
+
+  const availableDrivers = drivers.filter((d) => {
+    const assignedBus = typeof d.bus === "object" ? d.bus?._id : d.bus;
+    return !assignedBus || assignedBus === form._id;
+  });
+
+  const availableRoutes = routes.filter((r) => {
+    const assignedBus = typeof r.bus === "object" ? r.bus?._id : r.bus;
+    return !assignedBus || assignedBus === form._id;
+  });
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -550,7 +533,7 @@ const BusFormModal = ({
               {drivers.length === 0 ? (
                 <option disabled>No drivers available</option>
               ) : (
-                drivers.map((d) => (
+                availableDrivers.map((d) => (
                   <option key={d._id} value={d._id}>
                     {d.name}
                   </option>
@@ -576,12 +559,42 @@ const BusFormModal = ({
               {routes.length === 0 ? (
                 <option disabled>No routes available</option>
               ) : (
-                routes.map((r) => (
+                availableRoutes.map((r) => (
                   <option key={r._id} value={r._id}>
                     {r.name}
                   </option>
                 ))
               )}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">
+              Next Service Date
+            </label>
+            <input
+              type="date"
+              value={form.nextService}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, nextService: e.target.value }))
+              }
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-500 mb-1">
+              Status
+            </label>
+            <select
+              value={form.status || "Active"}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, status: e.target.value }))
+              }
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="Active">Active</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Inactive">Inactive</option>
             </select>
           </div>
         </div>
@@ -608,59 +621,6 @@ const BusFormModal = ({
   );
 };
 
-/* ── SERVICE MODAL ────────────────────────────────────────────────────────── */
-
-const ServiceModal = ({ bus, onCancel, onConfirm }) => {
-  const isInMaintenance = bus.status === "Maintenance";
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-96 max-w-full mx-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div
-            className={`w-12 h-12 rounded-full flex items-center justify-center ${
-              isInMaintenance ? "bg-green-100" : "bg-yellow-100"
-            }`}
-          >
-            <FaTools
-              className={isInMaintenance ? "text-green-600" : "text-yellow-600"}
-            />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">
-              {isInMaintenance ? "Mark as Active?" : "Send for Maintenance?"}
-            </h3>
-            <p className="text-sm text-gray-500">
-              {bus.busId} — {bus.regNo}
-            </p>
-          </div>
-        </div>
-        <p className="text-gray-600 mb-6 text-sm">
-          {isInMaintenance
-            ? `Bus ${bus.busId} will be returned to active service and can be assigned to routes.`
-            : `Bus ${bus.busId} will be taken off its route and marked under maintenance.`}
-        </p>
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className={`px-4 py-2 text-white rounded-lg transition text-sm ${
-              isInMaintenance
-                ? "bg-green-600 hover:bg-green-700"
-                : "bg-yellow-500 hover:bg-yellow-600"
-            }`}
-          >
-            {isInMaintenance ? "Mark Active" : "Send for Service"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 /* ── DELETE MODAL ─────────────────────────────────────────────────────────── */
 

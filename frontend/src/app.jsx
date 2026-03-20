@@ -35,6 +35,7 @@ import DriverManagement from "./pages/DriverManagement";
 import BusManagement from "./pages/BusManagement";
 import RouteManagement from "./pages/RouteManagement";
 import ExamCreate from "./pages/ExamCreate";
+import LibraryManagement from "./pages/LibraryManagement";
 
 const App = () => {
   return (
@@ -95,10 +96,11 @@ const App = () => {
         <Route path="event/:id" element={<EventView />} />
         <Route path="notice" element={<Notice />} />
         <Route path="transport" element={<Transport />} />
-        {/* <Route path="transport-driver" element={<DriverManagement />} /> */}
+        <Route path="transport-driver" element={<DriverManagement />} />
         <Route path="transport-bus" element={<BusManagement />} />
-        {/* <Route path="transport-route" element={<RouteManagement />} /> */}
+        <Route path="transport-route" element={<RouteManagement />} />
         <Route path="exam-structure" element={<ExamCreate />} />
+        <Route path="library" element={<LibraryManagement />} />
 
         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
       </Route>

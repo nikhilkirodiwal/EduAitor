@@ -17,6 +17,7 @@ const driverSchema = new mongoose.Schema(
     phone: {
       type: String,
       required: true,
+      trim: true,
       match: [/^[0-9]{10}$/, "Invalid phone number"],
     },
 
@@ -60,7 +61,6 @@ driverSchema.pre("save", function (next) {
     const shortId = this._id.toString().slice(-4).toUpperCase();
     this.driverId = `DRV-${shortId}`;
   }
-  next();
 });
 
 /* ───────────────── BUS ───────────────── */
@@ -73,7 +73,12 @@ const busSchema = new mongoose.Schema(
       required: true,
     },
 
-    busId: { type: String, required: true, trim: true },
+    busId: {
+      type: String,
+      required: true,
+      trim: true,
+      uppercase: true,
+    },
     regNo: { type: String, required: true, trim: true },
 
     model: { type: String, trim: true },
@@ -97,10 +102,16 @@ const busSchema = new mongoose.Schema(
       default: "Active",
     },
 
-    nextService: Date,
+    nextService: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true },
 );
+
+busSchema.index({ driver: 1 }, { unique: true, sparse: true });
+busSchema.index({ route: 1 }, { unique: true, sparse: true });
 
 busSchema.index({ schoolId: 1, busId: 1 }, { unique: true });
 
@@ -155,7 +166,6 @@ routeSchema.pre("save", function (next) {
     const shortId = this._id.toString().slice(-3).toUpperCase();
     this.routeId = `RT-${shortId}`;
   }
-  next();
 });
 
 /* ───────────────── ACTIVITY ───────────────── */

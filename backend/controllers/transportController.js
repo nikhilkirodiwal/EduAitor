@@ -78,14 +78,40 @@ export const getActivity = async (req, res) => {
       .sort({ date: -1 })
       .lean();
 
-    const data = activity.map((a) => ({
-      _id: a._id,
-      bus: a.bus?.busId || "",
-      route: a.route?.name || "",
-      driver: a.driver?.name || "",
-      time: a.time,
-      status: a.status,
-    }));
+    const data = await Promise.all(
+      activity.map(async (a) => {
+        let bus = a.bus?.busId;
+        let route = a.route?.name;
+        let driver = a.driver?.name;
+
+        /* ── BUS FALLBACK ── */
+        if (!bus && a.driver) {
+          const d = await Driver.findById(a.driver).populate("bus", "busId");
+          bus = d?.bus?.busId || "";
+        }
+
+        /* ── ROUTE FALLBACK 1: FROM BUS ── */
+        if (!route && a.bus) {
+          const b = await Bus.findById(a.bus).populate("route", "name");
+          route = b?.route?.name || "";
+        }
+
+        /* 🔥 ROUTE FALLBACK 2: FROM DRIVER (IMPORTANT FIX) */
+        if (!route && a.driver) {
+          const d = await Driver.findById(a.driver).populate("route", "name");
+          route = d?.route?.name || "";
+        }
+
+        return {
+          _id: a._id,
+          bus: bus || "",
+          route: route || "",
+          driver: driver || "",
+          time: a.time,
+          status: a.status,
+        };
+      }),
+    );
 
     res.json({ success: true, data });
   } catch (err) {
@@ -109,13 +135,7 @@ export const getDrivers = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    const data = drivers.map((d) => ({
-      ...d,
-      bus: d.bus?.busId || "",
-      route: d.route?.name || "",
-    }));
-
-    res.json({ success: true, data });
+    res.json({ success: true, data: drivers });
   } catch (err) {
     serverError(res, err);
   }
@@ -128,46 +148,92 @@ export const createDriver = async (req, res) => {
   session.startTransaction();
 
   try {
-    const { school_id, name, phone, bus, route } = req.body;
+    const {
+      school_id,
+      name,
+      phone,
+      license,
+      licenseExpiry,
+      bus,
+      route,
+      experience,
+      status,
+    } = req.body;
 
     if (!school_id || !name || !phone)
       return res.status(400).json({ message: "Required fields missing" });
 
-    const driver = await Driver.create(
-      [
-        {
-          schoolId: school_id,
-          name,
-          phone,
-          bus,
-          route,
-        },
-      ],
-      { session },
-    );
+    const busId = resolveId(bus);
+    const routeId = resolveId(route);
 
-    // Sync Bus
-    if (bus) {
-      await Bus.findByIdAndUpdate(bus, { driver: driver[0]._id }, { session });
+    // 🔥 FIX: add schoolId in conflict check
+    if (busId) {
+      const existing = await Driver.findOne({
+        bus: busId,
+        schoolId: toId(school_id),
+      });
+      if (existing) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          message: "Bus already assigned to another driver",
+        });
+      }
     }
 
-    // Sync Route
-    if (route) {
-      await TransportRoute.findByIdAndUpdate(
-        route,
-        { driver: driver[0]._id },
-        { session },
-      );
+    if (routeId) {
+      const existing = await Driver.findOne({
+        route: routeId,
+        schoolId: toId(school_id),
+      });
+      if (existing) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          message: "Route already assigned to another driver",
+        });
+      }
+    }
+
+    const driver = new Driver({
+      schoolId: toId(school_id),
+      name,
+      phone,
+      license: license || "",
+      licenseExpiry: licenseExpiry || null,
+      experience: experience || "",
+      bus: busId,
+      route: routeId,
+      status: req.body.status || "Active",
+    });
+
+    if (req.body.status && req.body.status !== "Active") {
+      driver.bus = null;
+      driver.route = null;
+    }
+
+    await driver.save({ session });
+
+    if (driver.status === "Active") {
+      if (busId) {
+        await Bus.findByIdAndUpdate(busId, { driver: driver._id }, { session });
+      }
+
+      if (routeId) {
+        await TransportRoute.findByIdAndUpdate(
+          routeId,
+          { driver: driver._id },
+          { session },
+        );
+      }
     }
 
     // Activity
     await Activity.create(
       [
         {
-          schoolId: school_id,
-          driver: driver[0]._id,
-          bus,
-          route,
+          schoolId: toId(school_id),
+          driver: driver._id,
+          bus: busId || undefined,
+          route: routeId || undefined,
           status: "Driver Assigned",
           time: new Date().toLocaleTimeString(),
         },
@@ -177,9 +243,10 @@ export const createDriver = async (req, res) => {
 
     await session.commitTransaction();
 
-    res.status(201).json({ success: true, data: driver[0] });
+    res.status(201).json({ success: true, data: driver });
   } catch (err) {
     await session.abortTransaction();
+    console.log(err);
     res.status(500).json({ message: err.message });
   } finally {
     session.endSession();
@@ -196,28 +263,84 @@ export const updateDriver = async (req, res) => {
     const { id } = req.params;
     const { school_id, bus, route } = req.body;
 
-    const driver = await Driver.findOne({ _id: id, schoolId: school_id });
+    const driver = await Driver.findOne({ _id: id, schoolId: toId(school_id) });
 
     if (!driver) return res.status(404).json({ message: "Driver not found" });
 
-    driver.bus = bus || null;
-    driver.route = route || null;
+    const busId = resolveId(bus);
+    const routeId = resolveId(route);
+
+    driver.name = req.body.name ?? driver.name;
+    driver.phone = req.body.phone ?? driver.phone;
+    driver.license = req.body.license ?? driver.license;
+    driver.licenseExpiry = req.body.licenseExpiry || null;
+    driver.experience = req.body.experience ?? driver.experience;
+    driver.status = req.body.status ?? driver.status;
+
+    driver.bus = busId;
+    driver.route = routeId;
+
+    if (busId) {
+      const existing = await Driver.findOne({
+        bus: busId,
+        schoolId: toId(school_id),
+        _id: { $ne: id },
+      }).session(session);
+
+      if (existing) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          message: "Bus already assigned",
+        });
+      }
+    }
+
+    if (routeId) {
+      const existing = await Driver.findOne({
+        route,
+        schoolId: toId(school_id),
+        _id: { $ne: id },
+      }).session(session);
+
+      if (existing) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          message: "Route already assigned",
+        });
+      }
+    }
+
+    // Remove old relations
+    await Bus.updateMany(
+      { driver: id },
+      { $set: { driver: null } },
+      { session },
+    );
+
+    await TransportRoute.updateMany(
+      { driver: id },
+      { $set: { driver: null } },
+      { session },
+    );
+
+    if (driver.status === "Active") {
+      if (busId) {
+        await Bus.findByIdAndUpdate(bus, { driver: id }, { session });
+      }
+
+      if (routeId) {
+        await TransportRoute.findByIdAndUpdate(
+          route,
+          { driver: id },
+          { session },
+        );
+      }
+    } else {
+      driver.bus = null;
+      driver.route = null;
+    }
 
     await driver.save({ session });
-
-    // Sync bus
-    if (bus) {
-      await Bus.findByIdAndUpdate(bus, { driver: id }, { session });
-    }
-
-    // Sync route
-    if (route) {
-      await TransportRoute.findByIdAndUpdate(
-        route,
-        { driver: id },
-        { session },
-      );
-    }
 
     await session.commitTransaction();
 
@@ -270,20 +393,18 @@ export const deleteDriver = async (req, res) => {
     const { school_id } = req.query;
 
     const driver = await Driver.findOneAndDelete(
-      { _id: id, schoolId: school_id },
+      { _id: id, schoolId: toId(school_id) },
       { session },
     );
 
     if (!driver) return res.status(404).json({ message: "Driver not found" });
 
-    // Remove from Bus
+    // REMOVE old relations
     await Bus.updateMany(
       { driver: id },
       { $set: { driver: null } },
       { session },
     );
-
-    // Remove from Route
     await TransportRoute.updateMany(
       { driver: id },
       { $set: { driver: null } },
@@ -317,24 +438,14 @@ export const getBuses = async (req, res) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    const data = buses.map((b) => ({
-      ...b,
-      id: b.busId,
-      driver: b.driver,
-      route: b.route,
-      nextService: b.nextService
-        ? new Date(b.nextService).toISOString().slice(0, 10)
-        : "N/A",
-    }));
-
-    res.json({ success: true, data });
+    res.json({ success: true, data: buses });
   } catch (err) {
     serverError(res, err);
   }
 };
 
 // POST /transport/buses
-// body: { school_id, id (busId), regNo, model, capacity, driver, route, fuel }
+// body: { school_id, id (busId), regNo, model, capacity, driver, route }
 export const createBus = async (req, res) => {
   try {
     const {
@@ -345,74 +456,193 @@ export const createBus = async (req, res) => {
       capacity,
       driver,
       route,
-      fuel,
     } = req.body;
 
     if (!school_id) return missingSchoolId(res);
-    if (!busId?.trim() || !regNo?.trim())
-      return res.status(400).json({
-        success: false,
-        message: "Bus ID and registration number are required",
-      });
-
-    const exists = await Bus.findOne({
-      schoolId: toId(school_id),
-      busId: busId.trim(),
-    });
-    if (exists)
-      return res.status(400).json({
-        success: false,
-        message: "Bus ID already exists for this school",
-      });
 
     const bus = await Bus.create({
       schoolId: toId(school_id),
-      busId: busId.trim(),
-      regNo: regNo.trim(),
-      model: model?.trim() || "",
-      capacity: Number(capacity) || 0,
+      busId,
+      regNo,
+      model,
+      capacity,
       driver: resolveId(driver),
       route: resolveId(route),
-      fuel: Number(fuel) || 100,
-      status: "Active",
     });
 
-    res.status(201).json({
-      success: true,
-      message: "Bus registered successfully",
-      data: bus,
-    });
+    // 🔥 FIX: update driver ALSO
+    if (driver) {
+      await Driver.findByIdAndUpdate(driver, {
+        bus: bus._id,
+        route: resolveId(route),
+      });
+    }
+
+    if (route) {
+      await TransportRoute.findByIdAndUpdate(route, {
+        bus: bus._id,
+      });
+    }
+
+    res.json({ success: true, data: bus });
   } catch (err) {
     serverError(res, err);
   }
 };
 
 // PUT /transport/buses/:id
-// body: { school_id, regNo, model, capacity, driver, route, fuel, status }
+// body: { school_id, regNo, model, capacity, driver, route, status }
 export const updateBus = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { id } = req.params;
-    const { school_id, regNo, model, capacity, driver, route, fuel, status } =
-      req.body;
+    const {
+      school_id,
+      regNo,
+      model,
+      capacity,
+      driver,
+      route,
+      status,
+      id: busId,
+      nextService,
+    } = req.body;
 
     if (!school_id) return missingSchoolId(res);
 
-    const bus = await Bus.findOne({ _id: id, schoolId: toId(school_id) });
+    const bus = await Bus.findOne({
+      _id: id,
+      schoolId: toId(school_id),
+    }).session(session);
+
     if (!bus) return notFound(res, "Bus");
 
+    /* ── DRIVER CHECK ── */
+    if (driver) {
+      const existing = await Bus.findOne({
+        driver,
+        _id: { $ne: id },
+      }).session(session);
+
+      if (existing) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          message: "Driver already assigned to another bus",
+        });
+      }
+    }
+
+    /* ── ROUTE CHECK ── */
+    if (route) {
+      const existing = await Bus.findOne({
+        route,
+        _id: { $ne: id },
+      }).session(session);
+
+      if (existing) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          message: "Route already assigned to another bus",
+        });
+      }
+    }
+
+    /* ── BUS ID UNIQUE CHECK ── */
+    if (busId) {
+      const exists = await Bus.findOne({
+        schoolId: toId(school_id),
+        busId: busId.trim(),
+        _id: { $ne: id },
+      });
+
+      if (exists) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          message: "Bus ID already exists for this school",
+        });
+      }
+
+      bus.busId = busId.trim();
+    }
+
+    /* ── BASIC FIELDS ── */
     if (regNo !== undefined) bus.regNo = regNo.trim();
     if (model !== undefined) bus.model = model.trim();
     if (capacity !== undefined) bus.capacity = Number(capacity);
+
+    /* ── NEXT SERVICE + AUTO STATUS ── */
+    if (nextService !== undefined) {
+      bus.nextService = nextService || null;
+
+      if (!status && nextService) {
+        const today = new Date();
+        const serviceDate = new Date(nextService);
+
+        bus.status = serviceDate <= today ? "Maintenance" : "Active";
+      }
+    }
+
+    if (status !== undefined) {
+      bus.status = status;
+    }
+
+    /* ── MANUAL STATUS (OPTIONAL OVERRIDE) ── */
+    if (status !== undefined) {
+      bus.status = status;
+    }
+
+    const prevDriver = bus.driver;
+    const prevRoute = bus.route;
+
+    /* ── UPDATE RELATIONS ── */
     if (driver !== undefined) bus.driver = resolveId(driver);
     if (route !== undefined) bus.route = resolveId(route);
-    if (fuel !== undefined) bus.fuel = Number(fuel);
-    if (status !== undefined) bus.status = status;
 
-    await bus.save();
+    /* ── REMOVE OLD RELATIONS ── */
+    if (prevDriver && prevDriver.toString() !== driver) {
+      await Driver.findByIdAndUpdate(prevDriver, { bus: null }, { session });
+    }
 
-    res.json({ success: true, message: "Bus updated successfully", data: bus });
+    if (prevRoute && prevRoute.toString() !== route) {
+      await TransportRoute.findByIdAndUpdate(
+        prevRoute,
+        { bus: null },
+        { session },
+      );
+    }
+
+    /* ── ASSIGN NEW RELATIONS ── */
+    if (driver) {
+      await Driver.findByIdAndUpdate(
+        driver,
+        {
+          bus: id,
+          route: resolveId(route), // 🔥 IMPORTANT FIX
+        },
+        { session },
+      );
+    }
+
+    if (route) {
+      await TransportRoute.findByIdAndUpdate(route, { bus: id }, { session });
+    }
+
+    await bus.save({ session });
+
+    await session.commitTransaction();
+
+    res.json({
+      success: true,
+      message: "Bus updated successfully",
+      data: bus,
+    });
   } catch (err) {
+    await session.abortTransaction();
     serverError(res, err);
+  } finally {
+    session.endSession();
   }
 };
 
@@ -449,7 +679,8 @@ export const deleteBus = async (req, res) => {
     const { school_id } = req.query;
 
     if (!school_id) return missingSchoolId(res);
-
+    await Driver.updateMany({ bus: id }, { $set: { bus: null } });
+    await TransportRoute.updateMany({ bus: id }, { $set: { bus: null } });
     const bus = await Bus.findOneAndDelete({
       _id: id,
       schoolId: toId(school_id),
@@ -481,8 +712,6 @@ export const getRoutes = async (req, res) => {
     const data = routes.map((r) => ({
       ...r,
       id: r.routeId,
-      bus: r.bus?.busId || "",
-      driver: r.driver?.name || "",
     }));
 
     res.json({ success: true, data });
@@ -494,6 +723,9 @@ export const getRoutes = async (req, res) => {
 // POST /transport/routes
 // body: { school_id, name, bus, driver, stops, students, startTime, endTime, stopsList }
 export const createRoute = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const {
       school_id,
@@ -509,35 +741,88 @@ export const createRoute = async (req, res) => {
 
     if (!school_id) return missingSchoolId(res);
     if (!name?.trim())
-      return res
-        .status(400)
-        .json({ success: false, message: "Route name is required" });
+      return res.status(400).json({ message: "Route name is required" });
 
-    const route = await TransportRoute.create({
+    const busId = resolveId(bus);
+    const driverId = resolveId(driver);
+
+    const route = new TransportRoute({
       schoolId: toId(school_id),
       name: name.trim(),
-      bus: resolveId(bus),
-      driver: resolveId(driver),
+      bus: busId,
+      driver: driverId,
       stops: Number(stops) || 0,
       students: Number(students) || 0,
-      startTime: startTime?.trim() || "",
-      endTime: endTime?.trim() || "",
+      startTime: startTime || "",
+      endTime: endTime || "",
       stopsList: Array.isArray(stopsList) ? stopsList : [],
+    });
+
+    await route.save({ session });
+
+    // 🔥 CLEAR OLD RELATIONS
+    if (busId) {
+      await TransportRoute.updateMany(
+        { bus: busId, _id: { $ne: route._id } },
+        { $set: { bus: null } },
+        { session },
+      );
+    }
+
+    if (driverId) {
+      await TransportRoute.updateMany(
+        { driver: driverId, _id: { $ne: route._id } },
+        { $set: { driver: null } },
+        { session },
+      );
+    }
+
+    // 🔥 ASSIGN RELATIONS
+    if (busId) {
+      await Bus.findByIdAndUpdate(busId, { route: route._id }, { session });
+    }
+
+    if (driverId) {
+      await Driver.findByIdAndUpdate(
+        driverId,
+        {
+          route: route._id,
+          bus: busId,
+        },
+        { session },
+      );
+    }
+
+    await session.commitTransaction();
+
+    await Activity.create({
+      schoolId: toId(school_id),
+      bus: busId || undefined,
+      route: route._id,
+      driver: driverId || undefined,
+      status: "Route Created",
+      time: new Date().toLocaleTimeString(),
     });
 
     res.status(201).json({
       success: true,
-      message: "Route added successfully",
+      message: "Route created successfully",
       data: route,
     });
   } catch (err) {
+    await session.abortTransaction();
     serverError(res, err);
+  } finally {
+    session.endSession();
   }
 };
 
 // PUT /transport/routes/:id
 // body: { school_id, name, bus, driver, stops, students, startTime, endTime, stopsList, status }
 export const updateRoute = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { id } = req.params;
     const {
@@ -555,24 +840,61 @@ export const updateRoute = async (req, res) => {
 
     if (!school_id) return missingSchoolId(res);
 
+    const busId = resolveId(bus);
+    const driverId = resolveId(driver);
+
     const route = await TransportRoute.findOne({
       _id: id,
       schoolId: toId(school_id),
-    });
+    }).session(session);
+
     if (!route) return notFound(res, "Route");
 
+    // UPDATE FIELDS
     if (name !== undefined) route.name = name.trim();
-    if (bus !== undefined) route.bus = resolveId(bus);
-    if (driver !== undefined) route.driver = resolveId(driver);
     if (stops !== undefined) route.stops = Number(stops);
     if (students !== undefined) route.students = Number(students);
-    if (startTime !== undefined) route.startTime = startTime.trim();
-    if (endTime !== undefined) route.endTime = endTime.trim();
+    if (startTime !== undefined) route.startTime = startTime;
+    if (endTime !== undefined) route.endTime = endTime;
     if (stopsList !== undefined)
       route.stopsList = Array.isArray(stopsList) ? stopsList : [];
     if (status !== undefined) route.status = status;
 
-    await route.save();
+    route.bus = busId;
+    route.driver = driverId;
+
+    // 🔥 CLEAR OLD RELATIONS
+    await Bus.updateMany({ route: id }, { $set: { route: null } }, { session });
+
+    await Driver.updateMany(
+      { route: id },
+      { $set: { route: null, bus: null } },
+      { session },
+    );
+
+    // 🔥 ASSIGN NEW RELATIONS
+    if (route.status === "Active") {
+      if (busId) {
+        await Bus.findByIdAndUpdate(busId, { route: id }, { session });
+      }
+
+      if (driverId) {
+        await Driver.findByIdAndUpdate(
+          driverId,
+          {
+            route: id,
+            bus: busId,
+          },
+          { session },
+        );
+      }
+    } else {
+      route.bus = null;
+      route.driver = null;
+    }
+
+    await route.save({ session });
+    await session.commitTransaction();
 
     res.json({
       success: true,
@@ -580,7 +902,10 @@ export const updateRoute = async (req, res) => {
       data: route,
     });
   } catch (err) {
+    await session.abortTransaction();
     serverError(res, err);
+  } finally {
+    session.endSession();
   }
 };
 
@@ -621,6 +946,9 @@ export const deleteRoute = async (req, res) => {
     const { school_id } = req.query;
 
     if (!school_id) return missingSchoolId(res);
+
+    await Bus.updateMany({ route: id }, { $set: { route: null } });
+    await Driver.updateMany({ route: id }, { $set: { route: null } });
 
     const route = await TransportRoute.findOneAndDelete({
       _id: id,

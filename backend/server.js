@@ -36,10 +36,11 @@ import classRoute from "./routes/classRoute.js";
 import subjectRoute from "./routes/subjectRoute.js";
 import timetableRoute from "./routes/timetableRoute.js";
 import feeRoute from "./routes/feeRoute.js";
-import eventRoute from "./routes/eventRoute.js"
-import noticeRoute from "./routes/noticeRoute.js"
-import transportRoute from "./routes/transportRoute.js"
+import eventRoute from "./routes/eventRoute.js";
+import noticeRoute from "./routes/noticeRoute.js";
+import transportRoute from "./routes/transportRoute.js";
 import examRoute from "./routes/examRoute.js";
+import libraryRoute from "./routes/libraryRoute.js";
 
 app.use("/api/auth", authRoutes);
 
@@ -56,12 +57,13 @@ app.use("/api/subjects", subjectRoute);
 app.use("/api/timetable", timetableRoute);
 app.use("/api/fee-structure", feeRoute);
 app.use("/api/fee-collect", feeRoute);
-app.use("/api/fee-history",feeRoute)
-app.use("/api/fees",feeRoute)
-app.use("/api/events", eventRoute)
-app.use("/api/notices", noticeRoute)
-app.use("/transport", transportRoute);
-app.use("/api/exam",examRoute)
+app.use("/api/fee-history", feeRoute);
+app.use("/api/fees", feeRoute);
+app.use("/api/events", eventRoute);
+app.use("/api/notices", noticeRoute);
+app.use("/api/transport", transportRoute);
+app.use("/api/exam", examRoute);
+app.use("/api/library", libraryRoute);
 
 // Error middleware
 app.use(errorHandler);

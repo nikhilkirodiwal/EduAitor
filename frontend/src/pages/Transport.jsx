@@ -35,7 +35,15 @@ const Transport = () => {
           params: { school_id: schoolId },
         }),
       ]);
-      setSummary(sumRes.data);
+      setSummary({
+        buses: sumRes.data.buses,
+        routes: sumRes.data.routes,
+        drivers: sumRes.data.drivers,
+        students: sumRes.data.students,
+        maintenance: sumRes.data.maintenance,
+        suspended: sumRes.data.suspended,
+        on_leave: sumRes.data.on_leave,
+      });
       setActivity(actRes.data.data || []);
     } catch {
       toast.error("Failed to load transport dashboard");
@@ -50,14 +58,16 @@ const Transport = () => {
 
   /* ── FILTER ───────────────────────────────────────────────────────────── */
 
-  const filtered = activity.filter((r) => {
-    const s = search.toLowerCase();
-    return (
-      r.bus?.toLowerCase().includes(s) ||
-      r.route?.toLowerCase().includes(s) ||
-      r.driver?.toLowerCase().includes(s)
-    );
-  });
+  const filtered = search
+    ? activity.filter((r) => {
+        const s = search.toLowerCase();
+        return (
+          (r.bus || "").toLowerCase().includes(s) ||
+          (r.route || "").toLowerCase().includes(s) ||
+          (r.driver || "").toLowerCase().includes(s)
+        );
+      })
+    : activity;
 
   /* ── LOADING ──────────────────────────────────────────────────────────── */
 
@@ -159,7 +169,7 @@ const Transport = () => {
                   Driver
                 </th>
                 <th className="p-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                  Time
+                  Created At
                 </th>
                 <th className="p-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">
                   Status
@@ -169,9 +179,9 @@ const Transport = () => {
 
             <tbody>
               {filtered.map((row, i) => (
-                <tr key={i} className="border-t hover:bg-gray-50">
-                  <td className="p-4 font-bold text-blue-700">{row.bus}</td>
-                  <td className="p-4 text-gray-700">{row.route}</td>
+                <tr key={row._id} className="border-t hover:bg-gray-50">
+                  <td className="p-4 font-bold text-blue-700">{row.bus || "-"}</td>
+                  <td className="p-4 text-gray-700">{row.route || "-"}</td>
                   <td className="p-4 text-gray-700">{row.driver}</td>
                   <td className="p-4 text-gray-600">{row.time}</td>
                   <td className="p-4">
@@ -240,7 +250,7 @@ const StatCard = ({ title, value, sub, icon, color = "blue" }) => {
       className={`bg-white rounded-xl shadow p-5 border-l-4 ${c.border} flex items-center gap-4`}
     >
       <div
-        className={`w-12 h-12 rounded-full ${c.bg} ${c.text} flex items-center justify-center text-lg flex-shrink-0`}
+        className={`w-12 h-12 rounded-full ${c.bg} ${c.text} flex items-center justify-center text-lg shrink-0`}
       >
         {icon}
       </div>

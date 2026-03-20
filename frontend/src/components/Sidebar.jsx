@@ -14,15 +14,12 @@ import {
   FaBusAlt,
 } from "react-icons/fa";
 
+import { FaBookJournalWhills } from "react-icons/fa6";
 import {
   FiUsers,
-  FiBookOpen,
-  FiBarChart2,
-  FiBook,
-  FiDollarSign,
 } from "react-icons/fi";
 
-import { GiTeacher } from "react-icons/gi";
+import { GiOpenBook, GiTeacher } from "react-icons/gi";
 import { HiAcademicCap } from "react-icons/hi2";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -101,7 +98,7 @@ const Sidebar = ({ closeSidebar }) => {
     { name: "Attendance", icon: <FiUsers />, path: "/school/attendance" },
     {
       name: "Exam Management",
-      icon: <FiBookOpen />,
+      icon: <GiOpenBook />,
       children: [{ name: "Exam Structure", path: "/school/exam-structure" }],
     },
     { name: "Timetable", icon: <FaClock />, path: "/school/timetable" },
@@ -130,7 +127,7 @@ const Sidebar = ({ closeSidebar }) => {
         { name: "Driver Manage", path: "/school/transport-driver" },
       ],
     },
-    { name: "Library", icon: <FiBook />, path: "/school/library" },
+    { name: "Library", icon: <FaBookJournalWhills />, path: "/school/library" },
   ];
 
   const menu = role === "super_admin" ? superAdminMenu : schoolAdminMenu;

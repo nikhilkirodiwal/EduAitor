@@ -248,7 +248,7 @@ const executeFinalAction = async (overrideType) => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-          <div className="relative bg-white w-full max-w-xl md:rounded-[2rem] rounded-t-[2rem] shadow-2xl flex flex-col max-h-[90vh]">
+          <div className="relative bg-white w-full max-w-xl md:rounded-4xl rounded-t-4xl shadow-2xl flex flex-col max-h-[90vh]">
             <div className="bg-indigo-600 p-6 text-white shrink-0">
               <h2 className="text-xl font-bold">{editingId ? 'Edit Exam' : 'Schedule Exam'}</h2>
               <p className="text-indigo-100 text-xs opacity-80">Enter exam details below</p>
@@ -316,7 +316,7 @@ const executeFinalAction = async (overrideType) => {
 
               <div className="flex gap-3 pt-4 pb-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-3 font-bold text-slate-400 hover:text-slate-600 transition">Cancel</button>
-                <button type="submit" className="flex-[2] py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-xl hover:bg-indigo-700">
+                <button type="submit" className="flex-2 py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-xl hover:bg-indigo-700">
                   {editingId ? 'Update Exam' : 'Save Exam'}
                 </button>
               </div>
@@ -325,7 +325,7 @@ const executeFinalAction = async (overrideType) => {
         </div>
       )}
       {confirmModal.isOpen && (
-  <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-4">
+  <div className="fixed inset-0 z-100 flex items-end md:items-center justify-center p-4">
     {/* Backdrop */}
     <div 
       className="absolute inset-0 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300"

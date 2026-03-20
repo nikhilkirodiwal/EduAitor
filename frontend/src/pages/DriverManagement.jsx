@@ -8,6 +8,7 @@ const userData = JSON.parse(localStorage.getItem("userData"));
 const schoolId = userData?.school_id;
 
 const EMPTY_FORM = {
+  _id: null,
   name: "",
   phone: "",
   license: "",
@@ -15,6 +16,7 @@ const EMPTY_FORM = {
   bus: "",
   route: "",
   experience: "",
+  status: "Active",
 };
 
 const DriverManagement = () => {
@@ -35,9 +37,6 @@ const DriverManagement = () => {
 
   const [viewModal, setViewModal] = useState(false);
   const [viewDriver, setViewDriver] = useState(null);
-
-  const [leaveModal, setLeaveModal] = useState(false);
-  const [leaveTarget, setLeaveTarget] = useState(null);
 
   const [buses, setBuses] = useState([]);
   const [routes, setRoutes] = useState([]);
@@ -96,6 +95,7 @@ const DriverManagement = () => {
     setIsEdit(true);
     setEditId(driver._id);
     setForm({
+      _id: driver._id,
       name: driver.name || "",
       phone: driver.phone || "",
       license: driver.license || "",
@@ -103,6 +103,7 @@ const DriverManagement = () => {
       bus: driver.bus?._id || "",
       route: driver.route?._id || "",
       experience: driver.experience || "",
+      status: driver.status || "Active",
     });
     setFormModal(true);
   };
@@ -114,7 +115,13 @@ const DriverManagement = () => {
     if (!/^\d{10}$/.test(form.phone)) {
       return toast.error("Enter valid 10-digit phone number");
     }
-    if (form.licenseExpiry && new Date(form.licenseExpiry) < new Date()) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const expiry = new Date(form.licenseExpiry);
+    expiry.setHours(0, 0, 0, 0);
+
+    if (form.licenseExpiry && expiry < today) {
       return toast.error("License expiry cannot be in the past");
     }
     try {
@@ -127,6 +134,7 @@ const DriverManagement = () => {
         experience: form.experience.trim() || "",
         bus: form.bus || null,
         route: form.route || null,
+        status: form.status,
         school_id: schoolId,
       };
       if (isEdit) {
@@ -138,6 +146,7 @@ const DriverManagement = () => {
       }
       setFormModal(false);
       fetchDrivers();
+      fetchMeta();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to save driver");
     } finally {
@@ -166,39 +175,18 @@ const DriverManagement = () => {
     }
   };
 
-  /* ── LEAVE TOGGLE ─────────────────────────────────────────────────────── */
-
-  const handleLeaveClick = (driver) => {
-    setLeaveTarget(driver);
-    setLeaveModal(true);
-  };
-
-  const confirmLeaveToggle = async () => {
-    const nextStatus =
-      leaveTarget.status === "On Leave" ? "Active" : "On Leave";
-    try {
-      await axios.patch(`${API}/transport/drivers/${leaveTarget._id}/status`, {
-        school_id: schoolId,
-        status: nextStatus,
-      });
-      toast.success(
-        nextStatus === "On Leave"
-          ? `${leaveTarget.name} marked on leave`
-          : `${leaveTarget.name} returned to active`,
-      );
-      setLeaveModal(false);
-      setLeaveTarget(null);
-      fetchDrivers();
-    } catch {
-      toast.error("Status update failed");
-    }
-  };
-
   /* ── HELPERS ──────────────────────────────────────────────────────────── */
 
   const isExpiringSoon = (expiry) => {
     if (!expiry) return false;
-    return (new Date(expiry) - new Date()) / (1000 * 60 * 60 * 24) < 90;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const exp = new Date(expiry);
+    exp.setHours(0, 0, 0, 0);
+
+    return (exp - today) / (1000 * 60 * 60 * 24) < 90;
   };
 
   const initials = (name = "") =>
@@ -349,10 +337,10 @@ const DriverManagement = () => {
                 {/* BUS / ROUTE */}
                 <td className="p-4">
                   <p className="font-medium text-blue-700">
-                    {driver.bus?.busId || "—"}
+                    {driver.bus?.busId || "Unassigned"}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {driver.route?.name || "—"}
+                    {driver.route?.name || "No route"}
                   </p>
                 </td>
 
@@ -416,16 +404,6 @@ const DriverManagement = () => {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleLeaveClick(driver)}
-                      className={`px-3 py-1 rounded transition text-xs font-medium ${
-                        driver.status === "On Leave"
-                          ? "bg-green-100 text-green-600 hover:bg-green-200"
-                          : "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
-                      }`}
-                    >
-                      {driver.status === "On Leave" ? "Return" : "Leave"}
-                    </button>
-                    <button
                       onClick={() => handleDeleteClick(driver._id)}
                       className="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition text-xs font-medium flex items-center gap-1"
                     >
@@ -487,17 +465,6 @@ const DriverManagement = () => {
           initials={initials}
         />
       )}
-
-      {leaveModal && leaveTarget && (
-        <LeaveModal
-          driver={leaveTarget}
-          onCancel={() => {
-            setLeaveModal(false);
-            setLeaveTarget(null);
-          }}
-          onConfirm={confirmLeaveToggle}
-        />
-      )}
     </div>
   );
 };
@@ -546,6 +513,18 @@ const DriverFormModal = ({
     { label: "License Expiry", key: "licenseExpiry", type: "date" },
     { label: "Experience", key: "experience", placeholder: "e.g. 5 years" },
   ];
+
+  const availableBuses = buses.filter((b) => {
+    const assignedDriver =
+      typeof b.driver === "object" ? b.driver?._id : b.driver;
+    return !assignedDriver || assignedDriver === form._id;
+  });
+
+  const availableRoutes = routes.filter((r) => {
+    const assignedDriver =
+      typeof r.driver === "object" ? r.driver?._id : r.driver;
+    return !assignedDriver || assignedDriver === form._id;
+  });
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -598,14 +577,16 @@ const DriverFormModal = ({
             </label>
             <select
               value={form.bus}
-              onChange={(e) => setForm((p) => ({ ...p, bus: e.target.value }))}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, bus: e.target.value, route: "" }))
+              }
               className="w-full border rounded-lg px-3 py-2 text-sm"
             >
               <option value="">Select Bus</option>
               {buses.length === 0 ? (
                 <option disabled>No buses available</option>
               ) : (
-                buses.map((b) => (
+                availableBuses.map((b) => (
                   <option key={b._id} value={b._id}>
                     {b.busId}
                   </option>
@@ -630,12 +611,29 @@ const DriverFormModal = ({
               {routes.length === 0 ? (
                 <option disabled>No routes available</option>
               ) : (
-                routes.map((r) => (
+                availableRoutes.map((r) => (
                   <option key={r._id} value={r._id}>
                     {r.name}
                   </option>
                 ))
               )}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-gray-500 mb-1 block">
+              Status
+            </label>
+            <select
+              value={form.status}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, status: e.target.value }))
+              }
+              className="w-full border rounded-lg px-3 py-2 text-sm"
+            >
+              <option value="Active">Active</option>
+              <option value="On Leave">On Leave</option>
+              <option value="Inactive">Inactive</option>
             </select>
           </div>
         </div>
@@ -726,56 +724,6 @@ const ViewModal = ({ driver, onClose, isExpiringSoon, initials }) => {
             className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
           >
             Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/* ── LEAVE MODAL ──────────────────────────────────────────────────────────── */
-
-const LeaveModal = ({ driver, onCancel, onConfirm }) => {
-  const isOnLeave = driver.status === "On Leave";
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-96 max-w-full mx-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div
-            className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${
-              isOnLeave ? "bg-green-100" : "bg-yellow-100"
-            }`}
-          >
-            {isOnLeave ? "✅" : "🏖️"}
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold">
-              {isOnLeave ? "Return from Leave?" : "Mark on Leave?"}
-            </h3>
-            <p className="text-sm text-gray-500">{driver.name}</p>
-          </div>
-        </div>
-        <p className="text-gray-600 mb-6 text-sm">
-          {isOnLeave
-            ? `${driver.name} will be returned to active duty.`
-            : `${driver.name} will be marked on leave. Their route will need reassignment.`}
-        </p>
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={onConfirm}
-            className={`px-4 py-2 text-white rounded-lg transition text-sm ${
-              isOnLeave
-                ? "bg-green-600 hover:bg-green-700"
-                : "bg-yellow-500 hover:bg-yellow-600"
-            }`}
-          >
-            {isOnLeave ? "Return to Active" : "Mark on Leave"}
           </button>
         </div>
       </div>
