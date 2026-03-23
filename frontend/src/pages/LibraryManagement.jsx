@@ -1,1025 +1,1077 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import { toast } from "react-toastify";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
+const initialBookForm = {
+  title: "",
+  author: "",
+  category: "",
+  isbn: "",
+  totalCopies: 1,
+};
+
+const initialIssueForm = {
+  studentId: "",
+  dueDate: "",
+};
+
+const bookCategories = [
+  "Fiction",
+  "Non-Fiction",
+  "Science",
+  "Mathematics",
+  "History",
+  "Language",
+  "Reference",
+  "Technology",
+];
 
 const LibraryManagement = () => {
+  const API = import.meta.env.VITE_API_URL;
+  const getSchoolId = () =>
+    JSON.parse(localStorage.getItem("userData"))?.school_id;
+
+  const [activeTab, setActiveTab] = useState("inventory");
+  const [searchTerm, setSearchTerm] = useState("");
   const [books, setBooks] = useState([]);
   const [students, setStudents] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [stats, setStats] = useState({
+  const [issueRecords, setIssueRecords] = useState([]);
+  const [inventoryStats, setInventoryStats] = useState({
     totalTitles: 0,
-    totalAvailable: 0,
+    totalCopies: 0,
+    availableCopies: 0,
     lowStock: 0,
-    totalcategory: 0,
+  });
+  const [issueStats, setIssueStats] = useState({
+    totalIssued: 0,
+    overdue: 0,
+    returned: 0,
+    pendingFine: 0,
   });
 
-  const [loading, setLoading] = useState(false);
-
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showBookModal, setShowBookModal] = useState(false);
   const [showIssueModal, setShowIssueModal] = useState(false);
-
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedBook, setSelectedBook] = useState(null);
-
-  const [addBookForm, setAddBookForm] = useState({
-    title: '',
-    author: '',
-    category: '',
-    isbn: '',
-    totalCopies: 1,
-  });
-
-  const [issueForm, setIssueForm] = useState({
-    studentId: '',
-    dueDate: '',
-  });
-  const API = import.meta.env.VITE_API_URL;
-
-  const getSchoolId = () => JSON.parse(localStorage.getItem("userData"))?.school_id;
-
+  const [selectedIssue, setSelectedIssue] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [bookForm, setBookForm] = useState(initialBookForm);
+  const [issueForm, setIssueForm] = useState(initialIssueForm);
 
   useEffect(() => {
-    fetchBooks();
     fetchStudents();
   }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchBooks();
-    }, 400);
+      if (activeTab === "inventory") {
+        fetchBooks(searchTerm);
+      } else {
+        fetchIssueRecords(
+          searchTerm,
+          activeTab === "circulation" ? "active" : "returned",
+        );
+      }
+    }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  const fetchBooks = async () => {
-      const schoolId = getSchoolId();
-    try {
-      setLoading(true);
-      const res = await axios.get(
-        `${API}/library/books?schoolId=${schoolId}&search=${encodeURIComponent(searchTerm)}`
-      );
-      const data = res.data || [];
-      setBooks(data);
-      calculateStats(data, students);
-    } catch (error) {
-      console.error('Error fetching books:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [activeTab, searchTerm]);
 
   const fetchStudents = async () => {
-      const schoolId = getSchoolId();
-
     try {
-     const res = await axios.get(`${API}/students`, {
-        params: { schoolId },
+      const res = await axios.get(`${API}/students`, {
+        params: { schoolId: getSchoolId() },
       });
-      setStudents(res.data.data);
-      console.log(res.data.data)
-      calculateStats(books);
+      setStudents(res.data.data || []);
     } catch (error) {
-      console.error('Error fetching students:', error);
+      toast.error("Could not load students");
     }
   };
 
-  const calculateStats = (bookData) => {
-    const totalTitles = bookData.length;
-    const totalAvailable = bookData.reduce(
-      (acc, book) => acc + (book.availableCopies || 0),
-      0
-    );
-    const lowStock = bookData.filter((book) => (book.availableCopies || 0) < 2)
-      .length;
-
-    setStats({
-      totalTitles,
-      totalAvailable,
-      lowStock,
-      totalcategory: 4 || 0,
-    });
-  };
-
-  const handleAddBookChange = (e) => {
-  const { name, value } = e.target;
-  setAddBookForm((prev) => ({
-    ...prev,
-    [name]: name === 'totalCopies' ? Number(value) : value,
-  }));
-};
-
-  const handleIssueChange = (e) => {
-    const { name, value } = e.target;
-    setIssueForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
- const handleAddBook = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  const schoolId = getSchoolId(); // Ensure this pulls your Object ID
-    const loadingToast = toast.loading("Processing payment...");
-
-  try {
-    await axios.post(`${API}/library/add/books`, {
-      ...addBookForm,
-      schoolId,
-      availableCopies: Number(addBookForm.totalCopies), // Sync on creation
-    });
-     toast.dismiss(loadingToast);
-    // Reset and Close
-    setAddBookForm({ title: '', author: '', category: '', isbn: '', totalCopies: 1 });
-    setShowAddModal(false);
-    fetchBooks(); // Refresh the list
-  } catch (error) {
-     toast.dismiss(loadingToast);
-      toast.error(error.response?.data?.message || "Something went wrong");
-  } finally {
-    setLoading(false);
-        toast.success(`📚book added succesfully`);
-
-  }
-};
-
-  const openIssueModal = (book) => {
-    setSelectedBook(book);
-    setIssueForm({
-      studentId: '',
-      dueDate: '',
-    });
-    setShowIssueModal(true);
-  };
-
-  const handleIssueBook = async (e) => {
-    e.preventDefault();
-
-    if (!selectedBook) return;
-          const schoolId = getSchoolId();
+  const fetchBooks = async (search = "") => {
     try {
-      await axios.post(`${API}/library/book/issues`, {
-        schoolId,
+      const res = await axios.get(`${API}/library/books`, {
+        params: {
+          schoolId: getSchoolId(),
+          search,
+        },
+      });
+      const data = res.data.data || [];
+      setBooks(data);
+      setInventoryStats({
+        totalTitles: data.length,
+        totalCopies: data.reduce(
+          (sum, book) => sum + (book.totalCopies || 0),
+          0,
+        ),
+        availableCopies: data.reduce(
+          (sum, book) => sum + (book.availableCopies || 0),
+          0,
+        ),
+        lowStock: data.filter((book) => (book.availableCopies || 0) < 2).length,
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Could not load books");
+    }
+  };
+
+  const fetchIssueRecords = async (search = "", status = "active") => {
+    try {
+      const res = await axios.get(`${API}/library/issues`, {
+        params: {
+          schoolId: getSchoolId(),
+          search,
+          status,
+        },
+      });
+      setIssueRecords(res.data.allissuebook || []);
+      setIssueStats(
+        res.data.summary || {
+          totalIssued: 0,
+          overdue: 0,
+          returned: 0,
+          pendingFine: 0,
+        },
+      );
+    } catch (error) {
+      toast.error(
+        error.response?.data?.error || "Could not load issue records",
+      );
+    }
+  };
+
+  const refreshCurrentTab = () => {
+    if (activeTab === "inventory") {
+      fetchBooks(searchTerm);
+      return;
+    }
+
+    fetchIssueRecords(
+      searchTerm,
+      activeTab === "circulation" ? "active" : "returned",
+    );
+    fetchBooks("");
+  };
+
+  const closeAllModals = () => {
+    setShowBookModal(false);
+    setShowIssueModal(false);
+    setShowDetailsModal(false);
+    setShowDeleteConfirm(false);
+    setSelectedBook(null);
+    setSelectedIssue(null);
+    setIsEditing(false);
+    setBookForm(initialBookForm);
+    setIssueForm(initialIssueForm);
+  };
+
+  const openAddBookModal = () => {
+    setIsEditing(false);
+    setSelectedBook(null);
+    setBookForm(initialBookForm);
+    setShowBookModal(true);
+  };
+
+  const openEditBookModal = () => {
+    if (!selectedBook) return;
+
+    setBookForm({
+      title: selectedBook.title || "",
+      author: selectedBook.author || "",
+      category: selectedBook.category || "",
+      isbn: selectedBook.isbn || "",
+      totalCopies: selectedBook.totalCopies || 1,
+    });
+    setIsEditing(true);
+    setShowDetailsModal(false);
+    setShowBookModal(true);
+  };
+
+  const handleSaveBook = async (event) => {
+    event.preventDefault();
+    const payload = {
+      ...bookForm,
+      totalCopies: Number(bookForm.totalCopies),
+      schoolId: getSchoolId(),
+    };
+
+    const loader = toast.loading(
+      isEditing ? "Updating book..." : "Adding book...",
+    );
+
+    try {
+      if (isEditing && selectedBook) {
+        await axios.put(`${API}/library/books/${selectedBook._id}`, payload);
+      } else {
+        await axios.post(`${API}/library/books`, payload);
+      }
+
+      toast.update(loader, {
+        render: isEditing
+          ? "Book updated successfully"
+          : "Book added successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+      });
+      closeAllModals();
+      fetchBooks(searchTerm);
+    } catch (error) {
+      toast.update(loader, {
+        render: error.response?.data?.error || "Could not save book",
+        type: "error",
+        isLoading: false,
+        autoClose: 2500,
+      });
+    }
+  };
+
+  const handleDeleteBook = async () => {
+    if (!selectedBook) return;
+
+    const loader = toast.loading("Deleting book...");
+
+    try {
+      await axios.delete(`${API}/library/books/${selectedBook._id}`, {
+        params: { schoolId: getSchoolId() },
+      });
+      toast.update(loader, {
+        render: "Book deleted successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+      });
+      closeAllModals();
+      fetchBooks(searchTerm);
+    } catch (error) {
+      toast.update(loader, {
+        render: error.response?.data?.error || "Could not delete book",
+        type: "error",
+        isLoading: false,
+        autoClose: 2500,
+      });
+    }
+  };
+
+  const handleIssueBook = async (event) => {
+    event.preventDefault();
+    if (!selectedBook) return;
+
+    const loader = toast.loading("Issuing book...");
+
+    try {
+      await axios.post(`${API}/library/issues`, {
+        schoolId: getSchoolId(),
         bookId: selectedBook._id,
         studentId: issueForm.studentId,
         dueDate: issueForm.dueDate,
       });
 
-      setShowIssueModal(false);
-      setSelectedBook(null);
-      setIssueForm({
-        studentId: '',
-        dueDate: '',
+      toast.update(loader, {
+        render: "Book issued successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
       });
-
-      fetchBooks();
+      closeAllModals();
+      fetchBooks(searchTerm);
+      fetchIssueRecords("", "active");
     } catch (error) {
-      console.error('Error issuing book:', error);
-      alert(error?.response?.data?.error || 'Failed to issue book');
+      toast.update(loader, {
+        render: error.response?.data?.error || "Could not issue book",
+        type: "error",
+        isLoading: false,
+        autoClose: 2500,
+      });
     }
   };
 
-  const handleReturnBook = async (book) => {
-    const issueId = prompt(`Enter issue record ID for "${book.title}" return`);
-    if (!issueId) return;
+  const handleReturnBook = async () => {
+    if (!selectedIssue) return;
+
+    const loader = toast.loading("Processing return...");
 
     try {
-      const res = await axios.post('/api/books/return', { issueId });
-      alert(
-        `Book returned successfully${
-          res.data?.lateFee ? `. Late fee: ₹${res.data.lateFee}` : ''
-        }`
-      );
-      fetchBooks();
+      await axios.post(`${API}/library/issues/${selectedIssue._id}/return`, {
+        schoolId: getSchoolId(),
+        finePaid: selectedIssue.fineAmount || 0,
+      });
+
+      toast.update(loader, {
+        render: "Book returned successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 2000,
+      });
+      closeAllModals();
+      refreshCurrentTab();
     } catch (error) {
-      console.error('Error returning book:', error);
-      alert(error?.response?.data?.error || 'Failed to return book');
+      toast.update(loader, {
+        render: error.response?.data?.error || "Could not return book",
+        type: "error",
+        isLoading: false,
+        autoClose: 2500,
+      });
     }
   };
 
+  const statCards =
+    activeTab === "inventory"
+      ? [
+          { title: "Titles", value: inventoryStats.totalTitles, tone: "blue" },
+          {
+            title: "Total Copies",
+            value: inventoryStats.totalCopies,
+            tone: "slate",
+          },
+          {
+            title: "Available",
+            value: inventoryStats.availableCopies,
+            tone: "green",
+          },
+          { title: "Low Stock", value: inventoryStats.lowStock, tone: "amber" },
+        ]
+      : [
+          {
+            title: "Active Issues",
+            value: issueStats.totalIssued,
+            tone: "blue",
+          },
+          { title: "Overdue", value: issueStats.overdue, tone: "red" },
+          { title: "Returned", value: issueStats.returned, tone: "green" },
+          {
+            title: "Pending Fine",
+            value: `Rs ${issueStats.pendingFine || 0}`,
+            tone: "amber",
+          },
+        ];
+
+  const minDueDate = new Date().toISOString().split("T")[0];
+
   return (
-    <div className="min-h-screen bg-slate-50 px-3 py-4 sm:px-4 md:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-5 flex flex-col gap-3 sm:mb-6">
+    <div className="min-h-screen bg-slate-50 pb-12">
+      <ToastContainer />
+
+      <div className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6">
           <div>
-            <h1 className="text-xl font-bold text-slate-900 sm:text-2xl">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900">
               Library Management
             </h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Manage books, issue records, and returns .
+            <p className="text-sm text-slate-500">
+              Manage inventory, issue books to students, and process returns
+              with school-ready workflows.
             </p>
           </div>
+          <button
+            onClick={openAddBookModal}
+            className="hidden rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-100 sm:block"
+          >
+            Add Book
+          </button>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 py-6">
+        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {statCards.map((card) => (
+            <StatCard key={card.title} {...card} />
+          ))}
         </div>
 
-        <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard title="Total Books" value={stats.totalTitles} color="blue" />
-          <StatCard
-            title="Available Copies"
-            value={stats.totalAvailable}
-            color="green"
-          />
-          <StatCard title="Low Stock" value={stats.lowStock} color="red" />
-          <StatCard
-            title="Category"
-            value={stats.totalcategory}
-            color="purple"
-          />
-        </div>
-
-        <div className="mb-5 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-200 sm:p-4">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="w-full lg:max-w-md">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by title, author, or ISBN"
-                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <div className="flex rounded-xl bg-slate-100 p-1">
+              <TabButton
+                active={activeTab === "inventory"}
+                label="Inventory"
+                onClick={() => setActiveTab("inventory")}
+              />
+              <TabButton
+                active={activeTab === "circulation"}
+                label="Active Issued"
+                onClick={() => setActiveTab("circulation")}
+              />
+              <TabButton
+                active={activeTab === "history"}
+                label="Return History"
+                onClick={() => setActiveTab("history")}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
-              >
-                + Add Book
-              </button>
-              <button
-                onClick={() => fetchBooks()}
-                className="rounded-xl bg-slate-800 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-900"
-              >
-                Refresh
-              </button>
-            </div>
+            <input
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              className="flex-1 rounded-xl bg-slate-50 px-4 py-3 text-sm outline-none ring-0"
+              placeholder={
+                activeTab === "inventory"
+                  ? "Search by title, author, ISBN or category"
+                  : "Search by student, admission number, book title or ISBN"
+              }
+            />
+
+            <button
+              onClick={openAddBookModal}
+              className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white sm:hidden"
+            >
+              Add Book
+            </button>
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-          <div className="hidden md:block">
-            <table className="w-full">
-              <thead className="bg-slate-100">
-                <tr className="text-left text-sm text-slate-700">
-                  <th className="px-5 py-4 font-semibold">Book</th>
-                  <th className="px-5 py-4 font-semibold">ISBN</th>
-                  <th className="px-5 py-4 font-semibold">Stock</th>
-                  <th className="px-5 py-4 font-semibold">Status</th>
-                  <th className="px-5 py-4 font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {books.length > 0 ? (
-                  books.map((book) => (
-                    <tr key={book._id} className="border-t border-slate-100">
-                      <td className="px-5 py-4">
-                        <p className="font-semibold text-slate-900">
-                          {book.title}
-                        </p>
-                        <p className="text-sm text-slate-500">{book.author}</p>
-                      </td>
-                      <td className="px-5 py-4 text-sm text-slate-600">
-                        {book.isbn}
-                      </td>
-                      <td className="px-5 py-4 text-sm text-slate-600">
-                        {book.availableCopies} / {book.totalCopies}
-                      </td>
-                      <td className="px-5 py-4">
-                        <StatusBadge availableCopies={book.availableCopies} />
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            onClick={() => openIssueModal(book)}
-                            disabled={book.availableCopies < 1}
-                            className={`rounded-lg px-3 py-2 text-sm font-medium ${
-                              book.availableCopies < 1
-                                ? 'cursor-not-allowed bg-slate-200 text-slate-400'
-                                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
-                            }`}
-                          >
-                            Issue
-                          </button>
-                          <button
-                            onClick={() => handleReturnBook(book)}
-                            className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100"
-                          >
-                            Return
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      colSpan="5"
-                      className="px-5 py-10 text-center text-sm text-slate-500"
-                    >
-                      {loading ? 'Loading books...' : 'No books found'}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="divide-y divide-slate-100 md:hidden">
-            {books.length > 0 ? (
-              books.map((book) => (
-                <div key={book._id} className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="truncate text-base font-semibold text-slate-900">
-                        {book.title}
-                      </h3>
-                      <p className="mt-1 text-sm text-slate-500">{book.author}</p>
-                    </div>
-                    <StatusBadge availableCopies={book.availableCopies} />
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-xs font-medium text-slate-500">ISBN</p>
-                      <p className="mt-1 break-words font-medium text-slate-800">
-                        {book.isbn}
-                      </p>
-                    </div>
-                    <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-xs font-medium text-slate-500">Stock</p>
-                      <p className="mt-1 font-medium text-slate-800">
-                        {book.availableCopies} / {book.totalCopies}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => openIssueModal(book)}
-                      disabled={book.availableCopies < 1}
-                      className={`rounded-xl px-3 py-2.5 text-sm font-semibold ${
-                        book.availableCopies < 1
-                          ? 'cursor-not-allowed bg-slate-200 text-slate-400'
-                          : 'bg-blue-600 text-white hover:bg-blue-700'
-                      }`}
-                    >
-                      Issue
-                    </button>
-                    <button
-                      onClick={() => handleReturnBook(book)}
-                      className="rounded-xl bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
-                    >
-                      Return
-                    </button>
-                  </div>
-                </div>
-              ))
+        {activeTab === "inventory" ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {books.length === 0 ? (
+              <EmptyState
+                title="No books found"
+                description="Start by adding the first title to your school library."
+              />
             ) : (
-              <div className="p-8 text-center text-sm text-slate-500">
-                {loading ? 'Loading books...' : 'No books found'}
-              </div>
+              books.map((book) => (
+                <BookCard
+                  key={book._id}
+                  book={book}
+                  onIssue={() => {
+                    setSelectedBook(book);
+                    setIssueForm(initialIssueForm);
+                    setShowIssueModal(true);
+                  }}
+                  onDetails={() => {
+                    setSelectedBook(book);
+                    setShowDetailsModal(true);
+                  }}
+                />
+              ))
             )}
           </div>
-        </div>
-      </div>
-
-     {showAddModal && (
-  <ModalWrapper onClose={() => setShowAddModal(false)}>
-    <div className="rounded-2xl bg-white p-4 sm:p-8 max-w-2xl w-full mx-auto">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-900">Add New Book</h2>
-        <p className="text-sm text-slate-500">Inventory update for school library</p>
-      </div>
-
-      <form onSubmit={handleAddBook} className="space-y-4">
-        {/* Title Field */}
-        <div>
-          <label className="mb-1.5 block text-sm font-semibold text-slate-700">Book Title</label>
-          <input
-            type="text"
-            name="title"
-            value={addBookForm.title}
-            onChange={handleAddBookChange}
-            required
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-            placeholder="e.g. The Great Gatsby"
+        ) : (
+          <IssueTable
+            records={issueRecords}
+            mode={activeTab}
+            onReturn={(record) => setSelectedIssue(record)}
           />
-        </div>
+        )}
+      </div>
 
-        {/* Row 1: Author & Category */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700">Author</label>
-            <input
-              type="text"
-              name="author"
-              value={addBookForm.author}
-              onChange={handleAddBookChange}
-              required
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
-              placeholder="Author name"
+      {showBookModal && (
+        <ModalWrapper
+          onClose={closeAllModals}
+          title={isEditing ? "Edit Book" : "Add New Book"}
+        >
+          <form onSubmit={handleSaveBook} className="space-y-4 p-5">
+            <Input
+              label="Book Title"
+              value={bookForm.title}
+              onChange={(value) =>
+                setBookForm((prev) => ({ ...prev, title: value }))
+              }
             />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700">Category</label>
-            <select
-              name="category"
-              value={addBookForm.category}
-              onChange={handleAddBookChange}
-              required
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none bg-white"
-            >
-              <option value="">Select Category</option>
-              <option value="Fiction">Fiction</option>
-              <option value="Science">Science</option>
-              <option value="Mathematics">Mathematics</option>
-              <option value="History">History</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Row 2: ISBN & Total Copies */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700">ISBN</label>
-            <input
-              type="text"
-              name="isbn"
-              value={addBookForm.isbn}
-              onChange={handleAddBookChange}
-              required
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
-              placeholder="ISBN Number"
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-semibold text-slate-700">Total Copies</label>
-            <input
-              type="number"
-              name="totalCopies"
-              min="1"
-              value={addBookForm.totalCopies}
-              onChange={handleAddBookChange}
-              required
-              className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={() => setShowAddModal(false)}
-            className="w-full sm:w-auto rounded-xl border border-slate-200 px-6 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full sm:w-auto rounded-xl bg-blue-600 px-8 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-          >
-            {loading ? 'Adding...' : 'Save to Library'}
-          </button>
-        </div>
-      </form>
-    </div>
-  </ModalWrapper>
-)}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Input
+                label="Author"
+                value={bookForm.author}
+                onChange={(value) =>
+                  setBookForm((prev) => ({ ...prev, author: value }))
+                }
+              />
+              <Select
+                label="Category"
+                value={bookForm.category}
+                options={bookCategories}
+                onChange={(value) =>
+                  setBookForm((prev) => ({ ...prev, category: value }))
+                }
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Input
+                label="ISBN"
+                value={bookForm.isbn}
+                onChange={(value) =>
+                  setBookForm((prev) => ({ ...prev, isbn: value }))
+                }
+              />
+              <Input
+                label="Total Copies"
+                type="number"
+                min="1"
+                value={bookForm.totalCopies}
+                onChange={(value) =>
+                  setBookForm((prev) => ({ ...prev, totalCopies: value }))
+                }
+              />
+            </div>
+            <button className="w-full rounded-2xl bg-blue-600 py-3 text-sm font-black text-white">
+              {isEditing ? "Update Book" : "Save Book"}
+            </button>
+          </form>
+        </ModalWrapper>
+      )}
 
       {showIssueModal && selectedBook && (
-        <ModalWrapper
-          onClose={() => {
-            setShowIssueModal(false);
-            setSelectedBook(null);
-          }}
-        >
-          <div className="rounded-2xl bg-white p-4 sm:p-6">
-            <div className="mb-5">
-              <h2 className="text-lg font-bold text-slate-900">Issue Book</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Assign this book to a student.
+        <ModalWrapper onClose={closeAllModals} title="Issue Book">
+          <div className="space-y-4 p-5">
+            <div className="rounded-2xl bg-blue-50 p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-blue-600">
+                {selectedBook.category}
               </p>
-            </div>
-
-            <div className="mb-4 rounded-xl bg-slate-50 p-4">
-              <p className="text-base font-semibold text-slate-900">
+              <h3 className="mt-1 text-lg font-black text-slate-900">
                 {selectedBook.title}
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                {selectedBook.author}
-              </p>
-              <p className="mt-2 text-xs text-slate-500">
-                Available Copies: {selectedBook.availableCopies}
+              </h3>
+              <p className="text-sm text-slate-600">
+                {selectedBook.author} | Available {selectedBook.availableCopies}
+                /{selectedBook.totalCopies}
               </p>
             </div>
 
             <form onSubmit={handleIssueBook} className="space-y-4">
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Select Student
+                <label className="mb-1 ml-1 block text-[10px] font-black uppercase text-slate-400">
+                  Student
                 </label>
                 <select
-                  name="studentId"
                   value={issueForm.studentId}
-                  onChange={handleIssueChange}
+                  onChange={(event) =>
+                    setIssueForm((prev) => ({
+                      ...prev,
+                      studentId: event.target.value,
+                    }))
+                  }
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm outline-none"
                   required
-                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 >
-                  <option value="">Choose student</option>
+                  <option value="">Select student</option>
                   {students.map((student) => (
                     <option key={student._id} value={student._id}>
-                      {student.firstName} {student.class ? `- ${student.class}` : ''}
+                      {student.firstName} {student.lastName}
+                      {student.studentId ? ` | ${student.studentId}` : ""}
+                      {student.classId?.name
+                        ? ` | ${student.classId.name}`
+                        : ""}
+                      {student.sectionId?.name
+                        ? `-${student.sectionId.name}`
+                        : ""}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-700">
-                  Due Date
-                </label>
-                <input
-                  type="date"
-                  name="dueDate"
-                  value={issueForm.dueDate}
-                  onChange={handleIssueChange}
-                  required
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
+              <Input
+                label="Due Date"
+                type="date"
+                min={minDueDate}
+                value={issueForm.dueDate}
+                onChange={(value) =>
+                  setIssueForm((prev) => ({ ...prev, dueDate: value }))
+                }
+              />
 
-              <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowIssueModal(false);
-                    setSelectedBook(null);
-                  }}
-                  className="rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700"
-                >
-                  Confirm Issue
-                </button>
-              </div>
+              <button className="w-full rounded-2xl bg-slate-900 py-3 text-sm font-black text-white">
+                Confirm Issue
+              </button>
             </form>
           </div>
         </ModalWrapper>
+      )}
+
+      {showDetailsModal && selectedBook && (
+        <ModalWrapper onClose={closeAllModals} title="Book Details">
+          <div className="space-y-5 p-5">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-blue-600">
+                {selectedBook.category}
+              </p>
+              <h3 className="mt-1 text-xl font-black text-slate-900">
+                {selectedBook.title}
+              </h3>
+              <p className="text-sm italic text-slate-500">
+                by {selectedBook.author}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <DetailBox label="ISBN" value={selectedBook.isbn} />
+              <DetailBox
+                label="Copies"
+                value={`${selectedBook.availableCopies}/${selectedBook.totalCopies} available`}
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={openEditBookModal}
+                className="flex-1 rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </ModalWrapper>
+      )}
+
+      {showDeleteConfirm && selectedBook && (
+        <ConfirmDialog
+          title="Delete this book?"
+          description="This removes the book record. Deletion is blocked while any copy is still issued."
+          onCancel={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDeleteBook}
+          confirmLabel="Delete Book"
+        />
+      )}
+
+      {selectedIssue && (
+        <ConfirmDialog
+          title="Process return?"
+          description={`Return "${selectedIssue.bookId?.title}" from ${getStudentName(selectedIssue.studentId)}. Fine due: Rs ${selectedIssue.fineAmount || 0}.`}
+          onCancel={() => setSelectedIssue(null)}
+          onConfirm={handleReturnBook}
+          confirmLabel="Confirm Return"
+        />
       )}
     </div>
   );
 };
 
-const StatCard = ({ title, value, color }) => {
-  const colorMap = {
-    blue: 'bg-blue-600',
-    green: 'bg-emerald-600',
-    red: 'bg-rose-600',
-    purple: 'bg-violet-600',
+const TabButton = ({ active, label, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
+      active ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
+    }`}
+  >
+    {label}
+  </button>
+);
+
+const StatCard = ({ title, value, tone }) => {
+  const tones = {
+    blue: "bg-blue-50 text-blue-700",
+    green: "bg-emerald-50 text-emerald-700",
+    amber: "bg-amber-50 text-amber-700",
+    red: "bg-red-50 text-red-700",
+    slate: "bg-slate-100 text-slate-700",
   };
 
   return (
-    <div className={`${colorMap[color]} rounded-2xl p-4 text-white shadow-sm`}>
-      <p className="text-xs font-semibold uppercase tracking-wide text-white/80">
-        {title}
-      </p>
-      <p className="mt-2 text-2xl font-bold sm:text-3xl">{value}</p>
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-xs font-black uppercase tracking-widest text-slate-400">
+          {title}
+        </span>
+        <span
+          className={`rounded-full px-2 py-1 text-[10px] font-black uppercase ${tones[tone]}`}
+        >
+          {title}
+        </span>
+      </div>
+      <p className="text-2xl font-black text-slate-900">{value}</p>
     </div>
   );
 };
 
-const StatusBadge = ({ availableCopies }) => {
-  if (availableCopies < 1) {
+const BookCard = ({ book, onIssue, onDetails }) => (
+  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="mb-4 flex items-start justify-between gap-3">
+      <div>
+        <p className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+          {book.category}
+        </p>
+        <h3 className="mt-3 text-lg font-black text-slate-900">{book.title}</h3>
+        <p className="text-sm italic text-slate-500">by {book.author}</p>
+      </div>
+      <StatusPill availableCopies={book.availableCopies} />
+    </div>
+
+    <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
+      <p>ISBN: {book.isbn}</p>
+      <p>
+        Copies:{" "}
+        <span className="font-bold text-slate-900">{book.availableCopies}</span>{" "}
+        available out of{" "}
+        <span className="font-bold text-slate-900">{book.totalCopies}</span>
+      </p>
+    </div>
+
+    <div className="mt-4 flex gap-2">
+      <button
+        onClick={onIssue}
+        disabled={book.availableCopies < 1}
+        className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+      >
+        Issue
+      </button>
+      <button
+        onClick={onDetails}
+        className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700"
+      >
+        Details
+      </button>
+    </div>
+  </div>
+);
+
+const IssueTable = ({ records, mode, onReturn }) => {
+  const isLoanDesk = mode === "circulation";
+
+  if (records.length === 0) {
     return (
-      <span className="inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700">
-        Out of Stock
-      </span>
-    );
-  }
-
-  if (availableCopies < 2) {
-    return (
-      <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-        Low Stock
-      </span>
-    );
-  }
-
-  return (
-    <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
-      In Stock
-    </span>
-  );
-};
-
-const ModalWrapper = ({ children, onClose }) => {
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
-      <div
-        className="absolute inset-0"
-        onClick={onClose}
+      <EmptyState
+        title={isLoanDesk ? "No active loans" : "No return history"}
+        description={
+          isLoanDesk
+            ? "Issued books will appear here until they are returned."
+            : "Completed returns will appear here once books start coming back."
+        }
       />
-      <div className="relative z-10 max-h-[90vh] w-full overflow-y-auto rounded-t-3xl sm:max-w-lg sm:rounded-2xl">
-        {children}
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 lg:hidden">
+        {records.map((record) => (
+          <div
+            key={record._id}
+            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+          >
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-blue-600">
+                  {record.bookId?.category || "Library Book"}
+                </p>
+                <p className="mt-1 text-lg font-black text-slate-900">
+                  {record.bookId?.title}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {record.bookId?.author} | {record.bookId?.isbn}
+                </p>
+              </div>
+              <StatusBadge status={record.status} />
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-slate-50 p-3">
+              <MiniDetail
+                label="Student"
+                value={getStudentName(record.studentId)}
+              />
+              <MiniDetail
+                label="Admission"
+                value={record.studentId?.studentId || "N/A"}
+              />
+              <MiniDetail
+                label="Issued On"
+                value={formatDate(record.issueDate)}
+              />
+              <MiniDetail
+                label={isLoanDesk ? "Due Back" : "Returned On"}
+                value={
+                  isLoanDesk
+                    ? formatDate(record.dueDate)
+                    : formatDate(record.returnDate)
+                }
+              />
+            </div>
+
+            <div className="mt-3 flex items-center justify-between">
+              <p className="text-xs font-semibold text-slate-500">
+                {record.studentId?.classId?.name || "Class N/A"}
+                {record.studentId?.sectionId?.name
+                  ? ` - ${record.studentId.sectionId.name}`
+                  : ""}
+              </p>
+              {record.fineAmount > 0 && (
+                <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-600">
+                  Fine Rs {record.fineAmount}
+                </span>
+              )}
+            </div>
+
+            <div className="mt-4">
+              {isLoanDesk ? (
+                <button
+                  onClick={() => onReturn(record)}
+                  className="w-full rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700"
+                >
+                  Return
+                </button>
+              ) : (
+                <div className="rounded-xl bg-slate-100 px-4 py-2.5 text-center text-sm font-bold text-slate-500">
+                  Completed
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="hidden lg:block rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          {/* HEADER */}
+          <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
+            <tr>
+              <th className="text-left px-6 py-4 font-bold">Borrower Name</th>
+              <th className="text-left px-6 py-4 font-bold">Book</th>
+              <th className="text-left px-6 py-4 font-bold">Issued</th>
+              <th className="text-left px-6 py-4 font-bold">
+                {mode === "circulation" ? "Due" : "Returned"}
+              </th>
+              <th className="text-right px-6 py-4 font-bold">Status</th>
+            </tr>
+          </thead>
+
+          {/* BODY */}
+          <tbody className="divide-y">
+            {records.map((record, index) => {
+              const isOverdue = record.status === "Overdue";
+
+              return (
+                <tr
+                  key={record._id}
+                  className={`hover:bg-slate-50 transition ${
+                    index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
+                  }`}
+                >
+                  {/* BORROWER */}
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
+                        {getStudentName(record.studentId)
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .slice(0, 2)}
+                      </div>
+
+                      <div>
+                        <p className="font-semibold text-slate-900">
+                          {getStudentName(record.studentId)}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          class- {record.studentId?.classId?.name || ""}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* BOOK */}
+                  <td className="px-6 py-4">
+                    <p className="font-semibold text-slate-900">
+                      {record.bookId?.title}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {record.bookId?.author}
+                    </p>
+                  </td>
+
+                  {/* ISSUED */}
+                  <td className="px-6 py-4 font-medium text-slate-700">
+                    {formatDate(record.issueDate)}
+                  </td>
+
+                  {/* DUE / RETURN */}
+                  <td
+                    className={`px-6 py-4 font-medium ${
+                      isOverdue ? "text-red-600" : "text-slate-700"
+                    }`}
+                  >
+                    {mode === "circulation"
+                      ? formatDate(record.dueDate)
+                      : formatDate(record.returnDate)}
+                  </td>
+
+                  {/* STATUS */}
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end items-center gap-3">
+                      {record.fineAmount > 0 && (
+                        <span className="text-xs font-bold text-red-600">
+                          ₹{record.fineAmount}
+                        </span>
+                      )}
+
+                      {mode === "circulation" ? (
+                        <button
+                          onClick={() => onReturn(record)}
+                          className="rounded-lg bg-emerald-500 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-600"
+                        >
+                          Return
+                        </button>
+                      ) : (
+                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                          Completed
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 };
 
+const ModalWrapper = ({ children, onClose, title }) => (
+  <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+    <div className="w-full max-w-xl rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
+      <div className="flex items-center justify-between border-b border-slate-200 p-4">
+        <h2 className="text-lg font-black text-slate-900">{title}</h2>
+        <button
+          onClick={onClose}
+          className="text-xl text-slate-300 transition hover:text-slate-600"
+        >
+          x
+        </button>
+      </div>
+      {children}
+    </div>
+  </div>
+);
+
+const ConfirmDialog = ({
+  title,
+  description,
+  onCancel,
+  onConfirm,
+  confirmLabel,
+}) => (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
+      <h3 className="text-lg font-black text-slate-900">{title}</h3>
+      <p className="mt-2 text-sm text-slate-500">{description}</p>
+      <div className="mt-6 flex gap-3">
+        <button
+          onClick={onCancel}
+          className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-600"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={onConfirm}
+          className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white"
+        >
+          {confirmLabel}
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const Input = ({ label, type = "text", min, value, onChange }) => (
+  <div>
+    <label className="mb-1 ml-1 block text-[10px] font-black uppercase text-slate-400">
+      {label}
+    </label>
+    <input
+      type={type}
+      min={min}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm outline-none focus:border-blue-400 focus:bg-white"
+      required
+    />
+  </div>
+);
+
+const Select = ({ label, value, options, onChange }) => (
+  <div>
+    <label className="mb-1 ml-1 block text-[10px] font-black uppercase text-slate-400">
+      {label}
+    </label>
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm outline-none focus:border-blue-400"
+      required
+    >
+      <option value="">Select category</option>
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
+const DetailBox = ({ label, value }) => (
+  <div className="rounded-xl bg-slate-50 p-3">
+    <p className="text-[10px] font-black uppercase text-slate-400">{label}</p>
+    <p className="mt-1 font-bold text-slate-800">{value}</p>
+  </div>
+);
+
+const MiniDetail = ({ label, value }) => (
+  <div>
+    <p className="text-[10px] font-black uppercase text-slate-400">{label}</p>
+    <p className="mt-1 text-sm font-bold text-slate-800">{value}</p>
+  </div>
+);
+
+const EmptyState = ({ title, description }) => (
+  <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+    <h3 className="text-lg font-black text-slate-900">{title}</h3>
+    <p className="mt-2 text-sm text-slate-500">{description}</p>
+  </div>
+);
+
+const StatusPill = ({ availableCopies }) => {
+  if (availableCopies < 1) {
+    return (
+      <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-600">
+        Out
+      </span>
+    );
+  }
+
+  if (availableCopies < 3) {
+    return (
+      <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
+        Low
+      </span>
+    );
+  }
+
+  return (
+    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
+      Good
+    </span>
+  );
+};
+
+const StatusBadge = ({ status }) => {
+  const styles = {
+    Issued: "bg-blue-50 text-blue-700",
+    Overdue: "bg-red-50 text-red-700",
+    Returned: "bg-emerald-50 text-emerald-700",
+  };
+
+  return (
+    <span
+      className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold ${styles[status] || "bg-slate-100 text-slate-700"}`}
+    >
+      {status}
+    </span>
+  );
+};
+
+const getStudentName = (student) => {
+  if (!student) return "Unknown student";
+  return [student.firstName, student.lastName].filter(Boolean).join(" ");
+};
+
+const formatDate = (value) => {
+  if (!value) return "-";
+  return new Date(value).toLocaleDateString();
+};
+
 export default LibraryManagement;
-
-// /* ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-// ==================================================================================================================
-//   */
-
-// import React, { useEffect, useState } from 'react';
-// import axios from 'axios';
-// import { toast, ToastContainer } from 'react-toastify';
-// import 'react-toastify/dist/ReactToastify.css';
-
-// const LibraryManagement = () => {
-//   const [books, setBooks] = useState([]);
-//   const [students, setStudents] = useState([]);
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [activeTab, setActiveTab] = useState('inventory'); // 'inventory' or 'returns'
-//   const [issuedBooks, setIssuedBooks] = useState([]);
-  
-//   // Stats
-//   const [stats, setStats] = useState({ totalTitles: 0, totalAvailable: 0, lowStock: 0, categories: 0 });
-
-//   // Modals
-//   const [showFormModal, setShowFormModal] = useState(false);
-//   const [showIssueModal, setShowIssueModal] = useState(false);
-//   const [showDetailsModal, setShowDetailsModal] = useState(false);
-//   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-//   const [selectedBook, setSelectedBook] = useState(null);
-//   const [isEditing, setIsEditing] = useState(false);
-
-//   // Forms
-//   const [bookForm, setBookForm] = useState({ title: '', author: '', category: '', isbn: '', totalCopies: 1 });
-//   const [issueForm, setIssueForm] = useState({ studentId: '', dueDate: '' });
-
-//   const API = import.meta.env.VITE_API_URL;
-//   const getSchoolId = () => JSON.parse(localStorage.getItem("userData"))?.school_id;
-
-//   useEffect(() => {
-//     fetchBooks();
-//     fetchStudents();
-//     if (activeTab === 'returns') fetchIssuedRecords();
-//   }, [activeTab]);
-
-//   useEffect(() => {
-//     const timer = setTimeout(fetchBooks, 400);
-//     return () => clearTimeout(timer);
-//   }, [searchTerm]);
-
-//   const fetchBooks = async () => {
-//     const schoolId = getSchoolId();
-//     try {
-//       const res = await axios.get(`${API}/library/books?schoolId=${schoolId}&search=${encodeURIComponent(searchTerm)}`);
-//       setBooks(res.data || []);
-//       calculateStats(res.data || []);
-//     } catch (error) { toast.error("Error fetching library"); }
-//   };
-
-//   const fetchIssuedRecords = async () => {
-//     try {
-//       const res = await axios.get(`${API}/library/book/issues?schoolId=${getSchoolId()}`);
-//       setIssuedBooks(res.data || []);
-//     } catch (error) { toast.error("Could not load issued records"); }
-//   };
-
-//   const fetchStudents = async () => {
-//     try {
-//       const res = await axios.get(`${API}/students`, { params: { schoolId: getSchoolId() } });
-//       setStudents(res.data.data);
-//     } catch (error) { console.error(error); }
-//   };
-
-//   const calculateStats = (data) => {
-//     setStats({
-//       totalTitles: data.length,
-//       totalAvailable: data.reduce((acc, b) => acc + (b.availableCopies || 0), 0),
-//       lowStock: data.filter(b => b.availableCopies < 2).length,
-//       categories: new Set(data.map(b => b.category)).size
-//     });
-//   };
-
-//   const handleSaveBook = async (e) => {
-//     e.preventDefault();
-//     const loadId = toast.loading(isEditing ? "Updating..." : "Adding Book...");
-//     try {
-//       const url = isEditing ? `${API}/library/books/${selectedBook._id}` : `${API}/library/add/books`;
-//       const method = isEditing ? 'put' : 'post';
-      
-//       await axios[method](url, { 
-//         ...bookForm, 
-//         schoolId: getSchoolId(),
-//         availableCopies: isEditing ? selectedBook.availableCopies : bookForm.totalCopies 
-//       });
-
-//       toast.update(loadId, { render: "Success!", type: "success", isLoading: false, autoClose: 2000 });
-//       closeModals();
-//       fetchBooks();
-//     } catch (error) {
-//       toast.update(loadId, { render: error.response?.data?.error || "Action failed", type: "error", isLoading: false, autoClose: 2000 });
-//     }
-//   };
-
-//   const handleDeleteBook = async () => {
-//     try {
-//       await axios.delete(`${API}/library/books/${selectedBook._id}?schoolId=${getSchoolId()}`);
-//       toast.success("Book removed");
-//       closeModals();
-//       fetchBooks();
-//     } catch (error) { toast.error("Delete failed"); }
-//   };
-
-//   const handleIssueBook = async (e) => {
-//     e.preventDefault();
-//     try {
-//       await axios.post(`${API}/library/book/issues`, {
-//         schoolId: getSchoolId(),
-//         bookId: selectedBook._id,
-//         ...issueForm
-//       });
-//       toast.success("Book issued successfully");
-//       closeModals();
-//       fetchBooks();
-//     } catch (error) { toast.error(error.response?.data?.error || "Issue failed"); }
-//   };
-
-//   const handleReturn = async (issueId) => {
-//     try {
-//       await axios.post(`${API}/library/book/return`, { issueId });
-//       toast.success("Returned successfully");
-//       fetchIssuedRecords();
-//       fetchBooks();
-//     } catch (error) { toast.error("Return failed"); }
-//   };
-
-//   const closeModals = () => {
-//     setShowFormModal(false);
-//     setShowIssueModal(false);
-//     setShowDetailsModal(false);
-//     setShowDeleteConfirm(false);
-//     setIsEditing(false);
-//     setSelectedBook(null);
-//     setBookForm({ title: '', author: '', category: '', isbn: '', totalCopies: 1 });
-//   };
-
-//   const openEdit = () => {
-//     setBookForm({ ...selectedBook });
-//     setIsEditing(true);
-//     setShowDetailsModal(false);
-//     setShowFormModal(true);
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-slate-50 pb-20">
-//       <ToastContainer />
-      
-//       {/* Header */}
-//       <div className="bg-white border-b border-slate-200 px-4 py-6 mb-6">
-//         <div className="max-w-7xl mx-auto flex justify-between items-center">
-//           <div>
-//             <h1 className="text-2xl font-black text-slate-900 tracking-tight">SCHOOL LIBRARY</h1>
-//             <p className="text-slate-500 text-sm">Inventory & Circulation Management</p>
-//           </div>
-//           <button onClick={() => setShowFormModal(true)} className="hidden sm:block bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-100">+ Add Book</button>
-//         </div>
-//       </div>
-
-//       <div className="max-w-7xl mx-auto px-4">
-//         {/* Stats Grid */}
-//         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-//           <StatCard title="Total Titles" value={stats.totalTitles} icon="📚" color="blue" />
-//           <StatCard title="Available" value={stats.totalAvailable} icon="✅" color="green" />
-//           <StatCard title="Low Stock" value={stats.lowStock} icon="⚠️" color="red" />
-//           <StatCard title="Categories" value={stats.categories} icon="📂" color="purple" />
-//         </div>
-
-//         {/* Search & Tabs */}
-//         <div className="bg-white rounded-2xl p-2 mb-6 shadow-sm border border-slate-200 flex flex-col md:flex-row gap-2">
-//             <div className="flex bg-slate-100 p-1 rounded-xl">
-//                 <button onClick={() => setActiveTab('inventory')} className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'inventory' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}>Inventory</button>
-//                 <button onClick={() => setActiveTab('returns')} className={`flex-1 px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'returns' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}>Returns</button>
-//             </div>
-//             <input 
-//                 className="flex-1 px-4 py-2 rounded-xl border-none bg-slate-50 text-sm focus:ring-2 focus:ring-blue-500" 
-//                 placeholder={activeTab === 'inventory' ? "Search books..." : "Search student or book..."}
-//                 onChange={(e) => setSearchTerm(e.target.value)}
-//             />
-//             <button onClick={() => setShowFormModal(true)} className="sm:hidden bg-blue-600 text-white py-3 rounded-xl font-bold">+ Add Book</button>
-//         </div>
-
-//         {/* Content Area */}
-//         {activeTab === 'inventory' ? (
-//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-//             {books.map(book => (
-//               <BookCard 
-//                 key={book._id} 
-//                 book={book} 
-//                 onIssue={() => { setSelectedBook(book); setShowIssueModal(true); }}
-//                 onDetails={() => { setSelectedBook(book); setShowDetailsModal(true); }}
-//               />
-//             ))}
-//           </div>
-//         ) : (
-//           <ReturnsList records={issuedBooks} onReturn={handleReturn} />
-//         )}
-//       </div>
-
-//       {/* --- MODALS --- */}
-//       {showFormModal && (
-//         <ModalWrapper onClose={closeModals} title={isEditing ? "Update Book" : "New Library Entry"}>
-//             <form onSubmit={handleSaveBook} className="space-y-4 p-4">
-//                 <Input label="Book Name" value={bookForm.title} onChange={v => setBookForm({...bookForm, title: v})} />
-//                 <div className="grid grid-cols-2 gap-3">
-//                     <Input label="Author" value={bookForm.author} onChange={v => setBookForm({...bookForm, author: v})} />
-//                     <Select label="Category" value={bookForm.category} options={['Fiction', 'Science', 'Math', 'History']} onChange={v => setBookForm({...bookForm, category: v})} />
-//                 </div>
-//                 <div className="grid grid-cols-2 gap-3">
-//                     <Input label="ISBN" value={bookForm.isbn} onChange={v => setBookForm({...bookForm, isbn: v})} />
-//                     <Input label="Total Stock" type="number" value={bookForm.totalCopies} onChange={v => setBookForm({...bookForm, totalCopies: v})} />
-//                 </div>
-//                 <button className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black mt-4">SAVE DATA</button>
-//             </form>
-//         </ModalWrapper>
-//       )}
-
-//       {showIssueModal && (
-//         <ModalWrapper onClose={closeModals} title="Issue Book">
-//             <div className="p-4">
-//                 <div className="bg-blue-50 p-4 rounded-xl mb-4 text-blue-800 font-bold">{selectedBook?.title}</div>
-//                 <form onSubmit={handleIssueBook} className="space-y-4">
-//                     <select className="w-full p-4 rounded-xl border bg-slate-50" required onChange={e => setIssueForm({...issueForm, studentId: e.target.value})}>
-//                         <option value="">Select Student</option>
-//                         {students.map(s => <option key={s._id} value={s._id}>{s.firstName} - {s.class}</option>)}
-//                     </select>
-//                     <Input label="Return Due Date" type="date" onChange={v => setIssueForm({...issueForm, dueDate: v})} />
-//                     <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">CONFIRM ISSUE</button>
-//                 </form>
-//             </div>
-//         </ModalWrapper>
-//       )}
-
-//       {showDetailsModal && (
-//         <ModalWrapper onClose={closeModals} title="Book Control Center">
-//             <div className="p-6">
-//                 <div className="border-b pb-4 mb-4">
-//                     <p className="text-xs font-bold text-blue-600 uppercase mb-1">{selectedBook?.category}</p>
-//                     <h3 className="text-xl font-black text-slate-800">{selectedBook?.title}</h3>
-//                     <p className="text-slate-500 font-medium italic">by {selectedBook?.author}</p>
-//                 </div>
-//                 <div className="grid grid-cols-2 gap-4 mb-8">
-//                     <DetailBox label="ISBN" value={selectedBook?.isbn} />
-//                     <DetailBox label="Availability" value={`${selectedBook?.availableCopies} / ${selectedBook?.totalCopies}`} />
-//                 </div>
-//                 <div className="flex gap-2">
-//                     <button onClick={openEdit} className="flex-1 bg-slate-100 text-slate-700 py-3 rounded-xl font-bold">Edit Details</button>
-//                     <button onClick={() => setShowDeleteConfirm(true)} className="px-4 bg-red-50 text-red-600 rounded-xl">🗑️</button>
-//                 </div>
-//             </div>
-//         </ModalWrapper>
-//       )}
-
-//       {showDeleteConfirm && (
-//         <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
-//             <div className="bg-white rounded-3xl p-6 w-full max-w-xs text-center">
-//                 <div className="text-3xl mb-2">⚠️</div>
-//                 <h3 className="font-bold text-lg mb-1 text-slate-900">Confirm Delete?</h3>
-//                 <p className="text-slate-500 text-sm mb-6">This will remove this book and all its history permanently.</p>
-//                 <div className="flex gap-2">
-//                     <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2 text-slate-400 font-bold">Cancel</button>
-//                     <button onClick={handleDeleteBook} className="flex-1 py-2 bg-red-600 text-white rounded-xl font-bold">Delete</button>
-//                 </div>
-//             </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// /* --- UI HELPERS --- */
-
-// const BookCard = ({ book, onIssue, onDetails }) => (
-//   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-//     <div className="flex justify-between items-start mb-4">
-//       <div className="bg-slate-50 text-slate-500 text-[10px] font-bold px-2 py-1 rounded-md uppercase">{book.category}</div>
-//       <StatusBadge val={book.availableCopies} />
-//     </div>
-//     <h3 className="font-bold text-slate-800 text-lg truncate mb-1">{book.title}</h3>
-//     <p className="text-slate-500 text-sm italic mb-4">by {book.author}</p>
-//     <div className="flex justify-between items-center border-t pt-4">
-//       <div className="text-xs text-slate-400">Stock: <span className="text-slate-800 font-bold">{book.availableCopies}/{book.totalCopies}</span></div>
-//       <div className="flex gap-1">
-//         <button onClick={onIssue} disabled={book.availableCopies < 1} className="text-blue-600 font-bold text-sm px-3 py-1.5 hover:bg-blue-50 rounded-lg disabled:opacity-30">Issue</button>
-//         <button onClick={onDetails} className="bg-slate-100 text-slate-700 font-bold text-sm px-3 py-1.5 rounded-lg">Details</button>
-//       </div>
-//     </div>
-//   </div>
-// );
-
-// const ReturnsList = ({ records, onReturn }) => (
-//     <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-//         {records.length === 0 ? <div className="p-10 text-center text-slate-400">No active issues found</div> : (
-//             <div className="divide-y divide-slate-100">
-//                 {records.map(rec => (
-//                     <div key={rec._id} className="p-4 flex justify-between items-center hover:bg-slate-50">
-//                         <div>
-//                             <p className="font-bold text-slate-800 text-sm">{rec.bookId?.title}</p>
-//                             <p className="text-xs text-slate-500">Issued to: <span className="font-bold">{rec.studentId?.firstName}</span></p>
-//                         </div>
-//                         <div className="flex items-center gap-4">
-//                             <p className="text-[10px] font-bold text-red-500">Due: {new Date(rec.dueDate).toLocaleDateString()}</p>
-//                             <button onClick={() => onReturn(rec._id)} className="bg-emerald-50 text-emerald-600 text-xs px-3 py-2 rounded-lg font-bold">RETURN</button>
-//                         </div>
-//                     </div>
-//                 ))}
-//             </div>
-//         )}
-//     </div>
-// );
-
-// const ModalWrapper = ({ children, onClose, title }) => (
-//     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-sm p-0 sm:p-4">
-//         <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300">
-//             <div className="flex justify-between items-center p-4 border-b">
-//                 <h2 className="font-black text-slate-800">{title}</h2>
-//                 <button onClick={onClose} className="text-slate-300 hover:text-slate-600">✕</button>
-//             </div>
-//             {children}
-//         </div>
-//     </div>
-// );
-
-// const StatCard = ({ title, value, color, icon }) => {
-//   const colors = { blue: 'text-blue-600 bg-blue-50', green: 'text-emerald-600 bg-emerald-50', red: 'text-red-600 bg-red-50', purple: 'text-purple-600 bg-purple-50' };
-//   return (
-//     <div className={`p-4 rounded-2xl border border-slate-100 shadow-sm bg-white`}>
-//       <div className="flex justify-between items-center mb-2">
-//         <span className="text-xl">{icon}</span>
-//         <span className={`text-xs font-black uppercase tracking-widest opacity-60`}>{title}</span>
-//       </div>
-//       <p className="text-2xl font-black text-slate-800">{value}</p>
-//     </div>
-//   );
-// };
-
-// const Input = ({ label, type = "text", value, onChange }) => (
-//     <div>
-//         <label className="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1">{label}</label>
-//         <input type={type} value={value} onChange={e => onChange(e.target.value)} className="w-full p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none" required />
-//     </div>
-// );
-
-// const Select = ({ label, value, options, onChange }) => (
-//     <div>
-//         <label className="block text-[10px] font-black text-slate-400 uppercase mb-1 ml-1">{label}</label>
-//         <select value={value} onChange={e => onChange(e.target.value)} className="w-full p-3.5 rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none" required>
-//             <option value="">Select</option>
-//             {options.map(o => <option key={o} value={o}>{o}</option>)}
-//         </select>
-//     </div>
-// );
-
-// const StatusBadge = ({ val }) => {
-//   const color = val === 0 ? 'bg-red-50 text-red-600' : val < 3 ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600';
-//   const text = val === 0 ? 'Out' : val < 3 ? 'Low' : 'Good';
-//   return <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase ${color}`}>{text}</span>;
-// }
-
-// const DetailBox = ({ label, value }) => (
-//     <div className="bg-slate-50 p-3 rounded-xl">
-//         <p className="text-[10px] font-bold text-slate-400 uppercase">{label}</p>
-//         <p className="font-bold text-slate-800">{value}</p>
-//     </div>
-// );
-
-// export default LibraryManagement;

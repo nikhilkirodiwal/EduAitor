@@ -6,12 +6,12 @@ const BookSchema = new mongoose.Schema({
     required: true,
     index: true // Speeds up queries when a Principal loads their library
   },
-  title: { type: String, required: true },
-  category:{type:String,required:true},
-  author: { type: String, required: true },
-  isbn: { type: String, required: true },
-  totalCopies: { type: Number, default: 1 },
-  availableCopies: { type: Number, default: 1 },
+  title: { type: String, required: true, trim: true },
+  category:{type:String,required:true, trim: true},
+  author: { type: String, required: true, trim: true },
+  isbn: { type: String, required: true, trim: true },
+  totalCopies: { type: Number, default: 1, min: 1 },
+  availableCopies: { type: Number, default: 1, min: 0 },
   addedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' } 
 }, { timestamps: true });
 

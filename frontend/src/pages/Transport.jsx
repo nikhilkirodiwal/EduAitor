@@ -1,52 +1,83 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { FaBus, FaRoute, FaUserTie, FaUserGraduate } from "react-icons/fa";
+import {
+  FaArrowRotateRight,
+  FaBus,
+  FaClock,
+  FaRoute,
+  FaScrewdriverWrench,
+  FaUserGraduate,
+  FaUserTie,
+} from "react-icons/fa6";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
 const userData = JSON.parse(localStorage.getItem("userData"));
 const schoolId = userData?.school_id;
 
+const emptySummary = {
+  buses: 0,
+  routes: 0,
+  drivers: 0,
+  students: 0,
+  maintenance: 0,
+  suspended: 0,
+  on_leave: 0,
+};
+
 const Transport = () => {
-  const [summary, setSummary] = useState({
-    buses: 0,
-    routes: 0,
-    drivers: 0,
-    students: 0,
-    maintenance: 0,
-    suspended: 0,
-    on_leave: 0,
-  });
+  const [summary, setSummary] = useState(emptySummary);
   const [activity, setActivity] = useState([]);
+  const [buses, setBuses] = useState([]);
+  const [routes, setRoutes] = useState([]);
+  const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  /* ── FETCH ────────────────────────────────────────────────────────────── */
-
   const fetchDashboard = async () => {
-    if (!schoolId) return toast.error("School ID not found");
+    if (!schoolId) {
+      toast.error("School ID not found");
+      return;
+    }
+
     try {
       setLoading(true);
-      const [sumRes, actRes] = await Promise.all([
+
+      const [sumRes, actRes, busRes, routeRes, driverRes] = await Promise.all([
         axios.get(`${API}/transport/summary`, {
           params: { school_id: schoolId },
         }),
         axios.get(`${API}/transport/activity`, {
           params: { school_id: schoolId },
         }),
+        axios.get(`${API}/transport/buses`, {
+          params: { school_id: schoolId },
+        }),
+        axios.get(`${API}/transport/routes`, {
+          params: { school_id: schoolId },
+        }),
+        axios.get(`${API}/transport/drivers`, {
+          params: { school_id: schoolId },
+        }),
       ]);
+
       setSummary({
-        buses: sumRes.data.buses,
-        routes: sumRes.data.routes,
-        drivers: sumRes.data.drivers,
-        students: sumRes.data.students,
-        maintenance: sumRes.data.maintenance,
-        suspended: sumRes.data.suspended,
-        on_leave: sumRes.data.on_leave,
+        buses: sumRes.data.buses || 0,
+        routes: sumRes.data.routes || 0,
+        drivers: sumRes.data.drivers || 0,
+        students: sumRes.data.students || 0,
+        maintenance: sumRes.data.maintenance || 0,
+        suspended: sumRes.data.suspended || 0,
+        on_leave: sumRes.data.on_leave || 0,
       });
       setActivity(actRes.data.data || []);
-    } catch {
-      toast.error("Failed to load transport dashboard");
+      setBuses(busRes.data.data || []);
+      setRoutes(routeRes.data.data || []);
+      setDrivers(driverRes.data.data || []);
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to load transport dashboard",
+      );
     } finally {
       setLoading(false);
     }
@@ -56,209 +87,541 @@ const Transport = () => {
     fetchDashboard();
   }, []);
 
-  /* ── FILTER ───────────────────────────────────────────────────────────── */
+  const fleetHealth = useMemo(() => {
+    const activeBuses = buses.filter((bus) => bus.status === "Active").length;
+    const activeRoutes = routes.filter(
+      (route) => route.status === "Active",
+    ).length;
+    const activeDrivers = drivers.filter(
+      (driver) => driver.status === "Active",
+    ).length;
+    const assignedBuses = buses.filter((bus) => bus.driver || bus.route).length;
 
-  const filtered = search
-    ? activity.filter((r) => {
-        const s = search.toLowerCase();
-        return (
-          (r.bus || "").toLowerCase().includes(s) ||
-          (r.route || "").toLowerCase().includes(s) ||
-          (r.driver || "").toLowerCase().includes(s)
-        );
-      })
-    : activity;
+    return {
+      activeBuses,
+      activeRoutes,
+      activeDrivers,
+      assignedBuses,
+    };
+  }, [buses, routes, drivers]);
 
-  /* ── LOADING ──────────────────────────────────────────────────────────── */
+  const normalizedSearch = search.trim().toLowerCase();
+
+  const filteredBuses = useMemo(() => {
+    if (!normalizedSearch) return buses;
+
+    return buses.filter((bus) =>
+      [bus.busId, bus.regNo, bus.model, bus.driver?.name, bus.route?.name]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(normalizedSearch)),
+    );
+  }, [buses, normalizedSearch]);
+
+  const filteredRoutes = useMemo(() => {
+    if (!normalizedSearch) return routes;
+
+    return routes.filter((route) =>
+      [
+        route.routeId,
+        route.name,
+        route.driver?.name,
+        route.bus?.busId,
+        ...(route.stopsList || []),
+      ]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(normalizedSearch)),
+    );
+  }, [routes, normalizedSearch]);
+
+  const filteredDrivers = useMemo(() => {
+    if (!normalizedSearch) return drivers;
+
+    return drivers.filter((driver) =>
+      [
+        driver.driverId,
+        driver.name,
+        driver.phone,
+        driver.license,
+        driver.bus?.busId,
+        driver.route?.name,
+      ]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(normalizedSearch)),
+    );
+  }, [drivers, normalizedSearch]);
+
+  const filteredActivity = useMemo(() => {
+    if (!normalizedSearch) return activity;
+
+    return activity.filter((item) =>
+      [item.bus, item.route, item.driver, item.status]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(normalizedSearch)),
+    );
+  }, [activity, normalizedSearch]);
+
+  const priorityAlerts = [
+    {
+      label: "Maintenance Due",
+      value: summary.maintenance,
+      helper: "Buses that need service attention",
+      tone: "amber",
+    },
+    {
+      label: "Routes Suspended",
+      value: summary.suspended,
+      helper: "Routes currently not running",
+      tone: "red",
+    },
+    {
+      label: "Drivers On Leave",
+      value: summary.on_leave,
+      helper: "Staff temporarily unavailable",
+      tone: "blue",
+    },
+    {
+      label: "Fleet Assigned",
+      value: `${fleetHealth.assignedBuses}/${summary.buses}`,
+      helper: "Buses linked to a route or driver",
+      tone: "emerald",
+    },
+  ];
 
   if (loading) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-screen">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 p-8">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading transport dashboard...</p>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-cyan-600" />
+          <p className="text-sm font-semibold text-slate-600">
+            Loading transport dashboard...
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
-      {/* HEADER */}
-      <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
-            Transport Management (WORKING)
-          </h1>
-          <p className="text-gray-500 text-sm sm:text-base">
-            Real-time overview of school fleet operations
-          </p>
-        </div>
-        <button
-          onClick={fetchDashboard}
-          className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm hover:bg-gray-50 transition text-sm font-medium w-fit"
-        >
-          ↻ Refresh
-        </button>
-      </div>
+    <div className="min-h-screen bg-slate-50 pb-10">
+      <div className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">
+                Fleet Control
+              </p>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">
+                Transport Management
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm text-slate-500">
+                Track buses, routes, drivers, and today&apos;s activity from one
+                place.
+              </p>
+            </div>
 
-      {/* STATS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard
-          title="TOTAL BUSES"
-          value={summary.buses}
-          sub={`${summary.maintenance} under maintenance`}
-          icon={<FaBus />}
-          color="yellow"
-        />
-        <StatCard
-          title="ACTIVE ROUTES"
-          value={summary.routes}
-          sub={`${summary.suspended} suspended`}
-          icon={<FaRoute />}
-          color="blue"
-        />
-        <StatCard
-          title="DRIVERS"
-          value={summary.drivers}
-          sub={`${summary.on_leave} on leave`}
-          icon={<FaUserTie />}
-          color="green"
-        />
-        <StatCard
-          title="STUDENTS COVERED"
-          value={summary.students?.toLocaleString() ?? 0}
-          sub="across all routes"
-          icon={<FaUserGraduate />}
-          color="purple"
-        />
-      </div>
-
-      {/* TODAY'S ACTIVITY */}
-      <div className="bg-white rounded-xl shadow">
-        {/* Card Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 p-4 sm:p-5 border-b">
-          <div className="flex items-center gap-2">
-            {/* live dot */}
-            <span className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_0_3px_rgba(16,185,129,0.2)] inline-block" />
-            <h2 className="text-base font-semibold text-gray-800">
-              Today's Fleet Activity
-            </h2>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                type="text"
+                placeholder="Search bus, route, driver, phone..."
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-cyan-400 focus:bg-white sm:w-80"
+              />
+              <button
+                onClick={fetchDashboard}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+              >
+                <FaArrowRotateRight className="text-xs" />
+                Refresh
+              </button>
+            </div>
           </div>
-          <input
-            type="text"
-            placeholder="Search bus, route, driver..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border rounded-lg px-3 py-2 w-full sm:w-56 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            title="Total Buses"
+            value={summary.buses}
+            note={`${fleetHealth.activeBuses} active on the road`}
+            icon={<FaBus />}
+            tone="amber"
           />
-        </div>
+          <StatCard
+            title="Routes"
+            value={summary.routes}
+            note={`${fleetHealth.activeRoutes} routes running`}
+            icon={<FaRoute />}
+            tone="cyan"
+          />
+          <StatCard
+            title="Drivers"
+            value={summary.drivers}
+            note={`${fleetHealth.activeDrivers} available now`}
+            icon={<FaUserTie />}
+            tone="emerald"
+          />
+          <StatCard
+            title="Students Covered"
+            value={summary.students.toLocaleString()}
+            note="Total students assigned across routes"
+            icon={<FaUserGraduate />}
+            tone="violet"
+          />
+        </section>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="p-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                  Bus
-                </th>
-                <th className="p-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                  Route
-                </th>
-                <th className="p-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                  Driver
-                </th>
-                <th className="p-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                  Created At
-                </th>
-                <th className="p-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">
-                  Status
-                </th>
-              </tr>
-            </thead>
+        <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+          <div className="overflow-hidden rounded-3xl bg-linear-to-br from-slate-200 via-slate-100 to-slate-200 p-6 text-slate-800 shadow-lg border border-slate-200">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-600">
+                  Operations Snapshot
+                </p>
+                <h2 className="mt-3 text-2xl font-black text-slate-900">
+                  Keep the fleet balanced and ready
+                </h2>
+                <p className="mt-2 max-w-xl text-sm text-slate-500">
+                  This panel highlights how much of the fleet is actively
+                  assigned so gaps stand out quickly.
+                </p>
+              </div>
 
-            <tbody>
-              {filtered.map((row, i) => (
-                <tr key={row._id} className="border-t hover:bg-gray-50">
-                  <td className="p-4 font-bold text-blue-700">{row.bus || "-"}</td>
-                  <td className="p-4 text-gray-700">{row.route || "-"}</td>
-                  <td className="p-4 text-gray-700">{row.driver}</td>
-                  <td className="p-4 text-gray-600">{row.time}</td>
-                  <td className="p-4">
-                    <span
-                      className={`px-3 py-1 text-xs font-medium rounded-full ${
-                        row.status === "On Time"
-                          ? "bg-green-100 text-green-600"
-                          : row.status === "Delayed"
-                            ? "bg-red-100 text-red-600"
-                            : "bg-gray-100 text-gray-500"
-                      }`}
-                    >
-                      {row.status}
-                    </span>
-                  </td>
-                </tr>
+              <div className="hidden rounded-2xl bg-cyan-50 p-4 text-2xl text-cyan-600 sm:block">
+                <FaClock />
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <HighlightCard
+                label="Assigned Buses"
+                value={`${fleetHealth.assignedBuses}/${summary.buses}`}
+              />
+              <HighlightCard label="Maintenance" value={summary.maintenance} />
+              <HighlightCard label="On Leave" value={summary.on_leave} />
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="rounded-2xl bg-amber-50 p-3 text-amber-600">
+                <FaScrewdriverWrench />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-slate-900">
+                  Priority Alerts
+                </h2>
+                <p className="text-sm text-slate-500">
+                  Quick operational issues to review first.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {priorityAlerts.map((item) => (
+                <AlertRow key={item.label} {...item} />
               ))}
+            </div>
+          </div>
+        </section>
 
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="text-center py-10 text-gray-400">
-                    No activity records found for today.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <section className="flex flex-col gap-6 w-full">
+          {/* BUS PANEL */}
+          <Panel
+            title="Bus Registry"
+            subtitle="Registration, assignment, capacity and service visibility"
+            count={filteredBuses.length}
+          >
+            {filteredBuses.length === 0 ? (
+              <EmptyState message="No buses matched your search." />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredBuses.map((bus) => (
+                  <InfoCard
+                    key={bus._id}
+                    title={bus.busId || "Bus"}
+                    subtitle={bus.regNo || "No registration number"}
+                    status={bus.status}
+                    tone={getToneByStatus(bus.status)}
+                    details={[
+                      `Model: ${bus.model || "Not added"}`,
+                      `Capacity: ${bus.capacity || 0} students`,
+                      `Driver: ${bus.driver?.name || "Unassigned"}`,
+                      `Route: ${bus.route?.name || "Unassigned"}`,
+                      `Next service: ${formatDate(bus.nextService)}`,
+                    ]}
+                  />
+                ))}
+              </div>
+            )}
+          </Panel>
+
+          {/* ROUTE PANEL */}
+          <Panel
+            title="Route Coverage"
+            subtitle="Useful route details and current assignments"
+            count={filteredRoutes.length}
+          >
+            {filteredRoutes.length === 0 ? (
+              <EmptyState message="No routes matched your search." />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredRoutes.map((route) => (
+                  <InfoCard
+                    key={route._id}
+                    title={route.name}
+                    subtitle={route.routeId || "Route ID pending"}
+                    status={route.status}
+                    tone={getToneByStatus(route.status)}
+                    details={[
+                      `Bus: ${route.bus?.busId || "Unassigned"}`,
+                      `Driver: ${route.driver?.name || "Unassigned"}`,
+                      `Stops: ${route.stops || route.stopsList?.length || 0}`,
+                      `Students: ${route.students || 0}`,
+                      `Timing: ${formatTimeRange(route.startTime, route.endTime)}`,
+                      `Stop list: ${formatStops(route.stopsList)}`,
+                    ]}
+                  />
+                ))}
+              </div>
+            )}
+          </Panel>
+
+          {/* DRIVER PANEL */}
+          <Panel
+            title="Driver Desk"
+            subtitle="Key contact and assignment details"
+            count={filteredDrivers.length}
+          >
+            {filteredDrivers.length === 0 ? (
+              <EmptyState message="No drivers matched your search." />
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredDrivers.map((driver) => (
+                  <InfoCard
+                    key={driver._id}
+                    title={driver.name}
+                    subtitle={driver.driverId || "Driver ID pending"}
+                    status={driver.status}
+                    tone={getToneByStatus(driver.status)}
+                    details={[
+                      `Phone: ${driver.phone || "Not added"}`,
+                      `License: ${driver.license || "Not added"}`,
+                      `License expiry: ${formatDate(driver.licenseExpiry)}`,
+                      `Bus: ${driver.bus?.busId || "Unassigned"}`,
+                      `Route: ${driver.route?.name || "Unassigned"}`,
+                      `Experience: ${driver.experience || "Not added"}`,
+                    ]}
+                  />
+                ))}
+              </div>
+            )}
+          </Panel>
+        </section>
+
+        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-lg font-black text-slate-900">
+                Today&apos;s Activity
+              </h2>
+              <p className="text-sm text-slate-500">
+                Latest transport events recorded for this school.
+              </p>
+            </div>
+            <span className="w-fit rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-700">
+              {filteredActivity.length} records
+            </span>
+          </div>
+
+          {filteredActivity.length === 0 ? (
+            <div className="p-8">
+              <EmptyState message="No transport activity found for today." />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-5 py-4 text-left font-bold">Event</th>
+                    <th className="px-5 py-4 text-left font-bold">Bus</th>
+                    <th className="px-5 py-4 text-left font-bold">Route</th>
+                    <th className="px-5 py-4 text-left font-bold">Driver</th>
+                    <th className="px-5 py-4 text-left font-bold">Time</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredActivity.map((row) => (
+                    <tr key={row._id} className="hover:bg-slate-50">
+                      <td className="px-5 py-4">
+                        <span
+                          className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${badgeClasses(
+                            row.status,
+                          )}`}
+                        >
+                          {row.status || "Activity Logged"}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 font-semibold text-slate-900">
+                        {row.bus || "-"}
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {row.route || "-"}
+                      </td>
+                      <td className="px-5 py-4 text-slate-600">
+                        {row.driver || "-"}
+                      </td>
+                      <td className="px-5 py-4 text-slate-500">
+                        {row.time || "-"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );
+};
+
+const StatCard = ({ title, value, note, icon, tone }) => {
+  const tones = {
+    amber: "bg-amber-50 text-amber-600",
+    cyan: "bg-cyan-50 text-cyan-600",
+    emerald: "bg-emerald-50 text-emerald-600",
+    violet: "bg-violet-50 text-violet-600",
+  };
+
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+            {title}
+          </p>
+          <p className="mt-3 text-3xl font-black text-slate-900">{value}</p>
+          <p className="mt-2 text-sm text-slate-500">{note}</p>
+        </div>
+        <div className={`rounded-2xl p-3 text-xl ${tones[tone]}`}>{icon}</div>
+      </div>
+    </div>
+  );
+};
+
+const HighlightCard = ({ label, value }) => (
+  <div className="rounded-2xl bg-white p-4 border border-slate-200 shadow-sm">
+    <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
+      {label}
+    </p>
+    <p className="mt-2 text-2xl font-black text-slate-900">{value}</p>
+  </div>
+);
+
+const Panel = ({ title, subtitle, count, children }) => (
+  <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="mb-4 flex items-start justify-between gap-3">
+      <div>
+        <h2 className="text-lg font-black text-slate-900">{title}</h2>
+        <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+      </div>
+      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+        {count}
+      </span>
+    </div>
+    {children}
+  </div>
+);
+
+const InfoCard = ({ title, subtitle, status, tone, details }) => (
+  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <h3 className="text-base font-black text-slate-900">{title}</h3>
+        <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+      </div>
+      <span className={`rounded-full px-3 py-1 text-xs font-bold ${tone}`}>
+        {status || "Unknown"}
+      </span>
+    </div>
+
+    <div className="mt-4 space-y-2">
+      {details.map((detail) => (
+        <p key={detail} className="text-sm text-slate-600">
+          {detail}
+        </p>
+      ))}
+    </div>
+  </div>
+);
+
+const AlertRow = ({ label, value, helper, tone }) => {
+  const tones = {
+    amber: "bg-amber-50 text-amber-700",
+    red: "bg-red-50 text-red-700",
+    blue: "bg-blue-50 text-blue-700",
+    emerald: "bg-emerald-50 text-emerald-700",
+  };
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3">
+      <div>
+        <p className="text-sm font-bold text-slate-900">{label}</p>
+        <p className="text-xs text-slate-500">{helper}</p>
+      </div>
+      <span
+        className={`rounded-full px-3 py-1 text-xs font-bold ${tones[tone]}`}
+      >
+        {value}
+      </span>
+    </div>
+  );
+};
+
+const EmptyState = ({ message }) => (
+  <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm font-medium text-slate-500">
+    {message}
+  </div>
+);
+
+const getToneByStatus = (status) => {
+  const map = {
+    Active: "bg-emerald-50 text-emerald-700",
+    Maintenance: "bg-amber-50 text-amber-700",
+    Inactive: "bg-slate-100 text-slate-600",
+    Suspended: "bg-red-50 text-red-700",
+    "On Leave": "bg-blue-50 text-blue-700",
+  };
+
+  return map[status] || "bg-slate-100 text-slate-600";
+};
+
+const badgeClasses = (status) => {
+  const map = {
+    "Driver Assigned": "bg-blue-50 text-blue-700",
+    "Route Created": "bg-emerald-50 text-emerald-700",
+    "On Time": "bg-emerald-50 text-emerald-700",
+    Delayed: "bg-red-50 text-red-700",
+  };
+
+  return map[status] || "bg-slate-100 text-slate-700";
+};
+
+const formatDate = (value) => {
+  if (!value) return "Not scheduled";
+  return new Date(value).toLocaleDateString();
+};
+
+const formatTimeRange = (startTime, endTime) => {
+  if (!startTime && !endTime) return "Not scheduled";
+  if (!startTime) return `Until ${endTime}`;
+  if (!endTime) return `Starts ${startTime}`;
+  return `${startTime} - ${endTime}`;
+};
+
+const formatStops = (stopsList) => {
+  if (!Array.isArray(stopsList) || stopsList.length === 0) return "Not added";
+  return stopsList.slice(0, 3).join(", ");
 };
 
 export default Transport;
-
-/* ── STAT CARD ────────────────────────────────────────────────────────────── */
-
-const StatCard = ({ title, value, sub, icon, color = "blue" }) => {
-  const colors = {
-    blue: {
-      border: "border-l-blue-500",
-      bg: "bg-blue-100",
-      text: "text-blue-600",
-    },
-    green: {
-      border: "border-l-green-500",
-      bg: "bg-green-100",
-      text: "text-green-600",
-    },
-    yellow: {
-      border: "border-l-yellow-500",
-      bg: "bg-yellow-100",
-      text: "text-yellow-600",
-    },
-    purple: {
-      border: "border-l-purple-500",
-      bg: "bg-purple-100",
-      text: "text-purple-600",
-    },
-  };
-
-  const c = colors[color];
-
-  return (
-    <div
-      className={`bg-white rounded-xl shadow p-5 border-l-4 ${c.border} flex items-center gap-4`}
-    >
-      <div
-        className={`w-12 h-12 rounded-full ${c.bg} ${c.text} flex items-center justify-center text-lg shrink-0`}
-      >
-        {icon}
-      </div>
-      <div>
-        <p className="text-xs text-gray-500 font-medium">{title}</p>
-        <p className="text-2xl font-bold text-gray-800 mt-0.5">{value}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
-      </div>
-    </div>
-  );
-};
