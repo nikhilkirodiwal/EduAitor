@@ -36,6 +36,7 @@ import BusManagement from "./pages/BusManagement";
 import RouteManagement from "./pages/RouteManagement";
 import ExamCreate from "./pages/ExamCreate";
 import LibraryManagement from "./pages/LibraryManagement";
+import SchoolDetail from "./pages/SchoolDetail";
 
 const App = () => {
   return (
@@ -60,6 +61,7 @@ const App = () => {
         <Route path="roles" element={<RoleManagement />} />
         <Route path="schools" element={<Schools />} />
         <Route path="school-manage" element={<SchoolManagement />} />
+        <Route path="school-detail" element={<SchoolDetail />} />
         <Route path="subscription-plan" element={<SchoolSubscription />} />
         <Route path="school-view/:id" element={<SchoolView />} />
 

@@ -489,32 +489,35 @@ const StudentManagement = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <Input
                   label="First Name *"
+                  placeholder="Enter first name"
                   name="firstName"
                   value={form.firstName}
                   onChange={handleChange}
                 />
                 <Input
                   label="Last Name *"
+                  placeholder="Enter last name"
                   name="lastName"
                   value={form.lastName}
                   onChange={handleChange}
                 />
                 <Input
                   type="date"
-                  label="Date of Birth"
+                  label="Date of Birth *"
                   name="dob"
                   value={form.dob}
                   onChange={handleChange}
                 />
                 <Select
-                  label="Gender"
+                  label="Gender *"
                   name="gender"
                   value={form.gender}
                   options={["Male", "Female"]}
                   onChange={handleChange}
                 />
                 <Input
-                  label="Blood Group"
+                  label="Blood Group *"
+                  placeholder="Enter blood group (eg. O+, A-...)"
                   name="bloodGroup"
                   value={form.bloodGroup}
                   onChange={handleChange}
@@ -533,38 +536,44 @@ const StudentManagement = () => {
             {step === 2 && (
               <div className="space-y-6">
                 <Input
-                  label="Father Name"
+                  label="Father Name *"
+                  placeholder="Enter full name"
                   name="fatherName"
                   value={form.fatherName}
                   onChange={handleChange}
                 />
                 <Input
-                  label="Father Mobile"
+                  label="Father Mobile *"
+                  placeholder="Enter mobile number"
                   name="fatherMobile"
                   value={form.fatherMobile}
                   onChange={handleChange}
                 />
                 <Input
-                  label="Father Email"
+                  label="Father Email *"
+                  placeholder="Enter email"
                   name="fatherEmail"
                   value={form.fatherEmail}
                   onChange={handleChange}
                 />
 
                 <Input
-                  label="Mother Name"
+                  label="Mother Name *"
+                  placeholder="Enter full name"
                   name="motherName"
                   value={form.motherName}
                   onChange={handleChange}
                 />
                 <Input
-                  label="Mother Mobile"
+                  label="Mother Mobile *"
+                  placeholder="Enter mobile number"
                   name="motherMobile"
                   value={form.motherMobile}
                   onChange={handleChange}
                 />
                 <Input
-                  label="Mother Email"
+                  label="Mother Email *"
+                  placeholder="Enter email"
                   name="motherEmail"
                   value={form.motherEmail}
                   onChange={handleChange}
@@ -572,25 +581,29 @@ const StudentManagement = () => {
 
                 <Input
                   label="Guardian Name"
+                  placeholder="Enter full name"
                   name="guardianName"
                   value={form.guardianName}
                   onChange={handleChange}
                 />
                 <Input
                   label="Guardian Mobile"
+                  placeholder="Enter mobile number"
                   name="guardianMobile"
                   value={form.guardianMobile}
                   onChange={handleChange}
                 />
                 <Input
                   label="Relation"
+                  placeholder="Enter relation with child"
                   name="guardianRelation"
                   value={form.guardianRelation}
                   onChange={handleChange}
                 />
 
                 <Input
-                  label="Address"
+                  label="Address *"
+                  placeholder="Enter full address"
                   name="address"
                   value={form.address}
                   onChange={handleChange}
@@ -788,9 +801,11 @@ const StudentManagement = () => {
 
                 <Input
                   label="Discount Value"
+                  placeholder="Enter here"
                   name="discountValue"
                   value={form.discountValue}
                   onChange={handleChange}
+                  disabled={!form.discountType} 
                 />
 
                 <Input

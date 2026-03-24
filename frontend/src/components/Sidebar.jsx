@@ -14,7 +14,7 @@ import {
   FaBusAlt,
 } from "react-icons/fa";
 
-import { FaBookJournalWhills } from "react-icons/fa6";
+import { FaBookJournalWhills, FaSchoolFlag } from "react-icons/fa6";
 import {
   FiUsers,
 } from "react-icons/fi";
@@ -60,6 +60,7 @@ const Sidebar = ({ closeSidebar }) => {
         { name: "School Subscription Plan", path: "/admin/subscription-plan" },
       ],
     },
+    { name: "School Detail", icon: <FaSchoolFlag />, path: "/admin/school-detail" },
   ];
 
   /* ---------------- SCHOOL ADMIN MENU ---------------- */
