@@ -41,6 +41,9 @@ import noticeRoute from "./routes/noticeRoute.js";
 import transportRoute from "./routes/transportRoute.js";
 import examRoute from "./routes/examRoute.js";
 import libraryRoute from "./routes/libraryRoute.js";
+import syllabusRoute from "./routes/syllabusRoute.js";
+import teacherAcademicRoute from "./routes/teacherAcademicRoute.js";
+import assignmentRoute from "./routes/assignmentRoute.js";
 
 app.use("/api/auth", authRoutes);
 
@@ -64,6 +67,9 @@ app.use("/api/notices", noticeRoute);
 app.use("/api/transport", transportRoute);
 app.use("/api/exam", examRoute);
 app.use("/api/library", libraryRoute);
+app.use("/api/syllabus", syllabusRoute);
+app.use("/api/teacher-academic", teacherAcademicRoute);
+app.use("/api/assignment", assignmentRoute);
 
 // Error middleware
 app.use(errorHandler);

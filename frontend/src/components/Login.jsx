@@ -5,7 +5,6 @@ import axios from "axios";
 const API = import.meta.env.VITE_API_URL;
 
 export default function Login() {
-
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -22,10 +21,10 @@ export default function Login() {
 
     if (role === "super_admin") {
       window.location.href = "/admin/dashboard";
-    }
-
-    if (role === "school_admin") {
+    } else if (role === "school_admin") {
       window.location.href = "/school/dashboard";
+    } else if (role === "teacher_admin") {
+      window.location.href = "/teacher/dashboard";
     }
   }, []);
 
@@ -50,10 +49,17 @@ export default function Login() {
 
       // smooth delay for UX
       setTimeout(() => {
-        window.location.href =
-          user.role === "super_admin"
-            ? "/admin/dashboard"
-            : "/school/dashboard";
+        let redirectPath = "/";
+
+        if (user.role === "super_admin") {
+          redirectPath = "/admin/dashboard";
+        } else if (user.role === "school_admin") {
+          redirectPath = "/school/dashboard";
+        } else if (user.role === "teacher_admin") {
+          redirectPath = "/teacher/dashboard";
+        }
+
+        window.location.href = redirectPath;
       }, 800);
     } catch {
       setError("Invalid credentials");
@@ -156,6 +162,7 @@ export default function Login() {
             <div className="text-center text-xs text-gray-500 space-y-1 mt-2">
               <p>Super Admin: super@admin.com / admin</p>
               <p>School Admin: school@admin.com / admin</p>
+              <p>Teacher Admin: teacher@admin.com / admin</p>
             </div>
           </form>
         </div>

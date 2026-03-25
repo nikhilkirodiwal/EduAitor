@@ -37,6 +37,9 @@ import RouteManagement from "./pages/RouteManagement";
 import ExamCreate from "./pages/ExamCreate";
 import LibraryManagement from "./pages/LibraryManagement";
 import SchoolDetail from "./pages/SchoolDetail";
+import TeacherDashboard from "./pages/TeacherDashboard";
+import Syllabus from "./pages/Syllabus";
+import Assignment from "./pages/Assignment";
 
 const App = () => {
   return (
@@ -89,6 +92,7 @@ const App = () => {
         <Route path="class" element={<Class />} />
         <Route path="class-view/:id" element={<ClassView />} />
         <Route path="subject" element={<Subject />} />
+        <Route path="syllabus" element={<Syllabus />} />
         <Route path="timetable" element={<TimeTable />} />
         <Route path="fee-structure" element={<FeeStructure />} />
         <Route path="fee-collection" element={<FeeCollection />} />
@@ -104,7 +108,21 @@ const App = () => {
         <Route path="exam-structure" element={<ExamCreate />} />
         <Route path="library" element={<LibraryManagement />} />
 
-        <Route path="*" element={<Navigate to="/admin/dashboard" />} />
+        <Route path="*" element={<Navigate to="/school/dashboard" />} />
+      </Route>
+
+      <Route
+        path="/teacher"
+        element={
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<TeacherDashboard />} />
+        <Route path="assignment" element={<Assignment />} />
+
+        <Route path="*" element={<Navigate to="/teacher/dashboard" />} />
       </Route>
     </Routes>
   );

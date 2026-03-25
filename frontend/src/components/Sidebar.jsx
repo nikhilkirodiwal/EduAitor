@@ -12,14 +12,13 @@ import {
   FaCalendarAlt,
   FaBell,
   FaBusAlt,
+  FaBookDead,
 } from "react-icons/fa";
 
 import { FaBookJournalWhills, FaSchoolFlag } from "react-icons/fa6";
-import {
-  FiUsers,
-} from "react-icons/fi";
+import { FiUsers } from "react-icons/fi";
 
-import { GiOpenBook, GiTeacher } from "react-icons/gi";
+import { GiOpenBook, GiSchoolBag, GiTeacher } from "react-icons/gi";
 import { HiAcademicCap } from "react-icons/hi2";
 
 import { useNavigate, useLocation } from "react-router-dom";
@@ -30,7 +29,7 @@ const Sidebar = ({ closeSidebar }) => {
   const location = useLocation();
   const [openMenu, setOpenMenu] = useState(null);
 
-  const role = localStorage.getItem("userRole"); // super_admin / school_admin
+  const role = localStorage.getItem("userRole"); // super_admin / school_admin / teacher_admin
 
   const logout = () => {
     localStorage.clear();
@@ -60,7 +59,11 @@ const Sidebar = ({ closeSidebar }) => {
         { name: "School Subscription Plan", path: "/admin/subscription-plan" },
       ],
     },
-    { name: "School Detail", icon: <FaSchoolFlag />, path: "/admin/school-detail" },
+    {
+      name: "School Detail",
+      icon: <FaSchoolFlag />,
+      path: "/admin/school-detail",
+    },
   ];
 
   /* ---------------- SCHOOL ADMIN MENU ---------------- */
@@ -102,8 +105,8 @@ const Sidebar = ({ closeSidebar }) => {
       icon: <GiOpenBook />,
       children: [{ name: "Exam Structure", path: "/school/exam-structure" }],
     },
+    { name: "Syllabus", icon: <FaBookDead />, path: "/school/syllabus" },
     { name: "Timetable", icon: <FaClock />, path: "/school/timetable" },
-
     {
       name: "Fee Management",
       icon: <FaWallet />,
@@ -131,7 +134,61 @@ const Sidebar = ({ closeSidebar }) => {
     { name: "Library", icon: <FaBookJournalWhills />, path: "/school/library" },
   ];
 
-  const menu = role === "super_admin" ? superAdminMenu : schoolAdminMenu;
+  /* ---------------- TEACHER ADMIN MENU ---------------- */
+
+  const teacherAdminMenu = [
+    {
+      name: "Dashboard",
+      icon: <FaTachometerAlt />,
+      path: "/teacher/dashboard",
+    },
+
+    {
+      name: "Students",
+      icon: <FaUserGraduate />,
+      path: "/teacher/students",
+    },
+
+    {
+      name: "Attendance",
+      icon: <FiUsers />,
+      path: "/teacher/attendance",
+    },
+
+    {
+      name: "My Classes",
+      icon: <HiAcademicCap />,
+      path: "/teacher/classes",
+    },
+    
+    {
+      name: "Assignment",
+      icon: <GiSchoolBag />,
+      path: "/teacher/assignment",
+    },
+
+    {
+      name: "Exams",
+      icon: <GiOpenBook />,
+      children: [{ name: "Marks Entry", path: "/teacher/marks-entry" }],
+    },
+
+    { name: "Timetable", icon: <FaClock />, path: "/teacher/timetable" },
+
+    { name: "Notices", icon: <FaBell />, path: "/teacher/notice" },
+
+    { name: "Events", icon: <FaCalendarAlt />, path: "/teacher/event" },
+  ];
+
+  let menu = [];
+
+  if (role === "super_admin") {
+    menu = superAdminMenu;
+  } else if (role === "school_admin") {
+    menu = schoolAdminMenu;
+  } else if (role === "teacher_admin") {
+    menu = teacherAdminMenu;
+  }
 
   const toggleMenu = (name) => {
     setOpenMenu(openMenu === name ? null : name);
@@ -240,10 +297,10 @@ const Sidebar = ({ closeSidebar }) => {
 
       {/* LOGOUT */}
 
-      <div className="p-3 border-t border-gray-100">
+      <div className="p-3 border-t border-gray-200">
         <button
           onClick={logout}
-          className="flex items-center gap-3 w-full px-4 py-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition text-sm"
+          className="flex items-center gap-3 w-full px-4 py-2 rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-500 transition text-sm"
         >
           <FaSignOutAlt />
           <span className="font-medium">Logout</span>

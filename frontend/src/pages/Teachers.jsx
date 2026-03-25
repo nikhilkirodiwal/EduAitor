@@ -150,18 +150,13 @@ const Teachers = () => {
 
       {/* STATS */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <Stat title="TOTAL TEACHERS" value={totalTeachers} color="blue" />
         <Stat title="PRESENT TODAY" value={present} color="green" />
         <Stat
           title="AVG EXPERIENCE"
           value={`${avgExperience.toFixed(1)} yrs`}
           color="purple"
-        />
-        <Stat
-          title="AVG RATING"
-          value={`${avgRating.toFixed(1)} ★`}
-          color="yellow"
         />
       </div>
 
@@ -196,7 +191,6 @@ const Teachers = () => {
                 <th className="p-4 text-left">Subject</th>
                 <th className="p-4 text-left">Classes</th>
                 <th className="p-4 text-left">Experience</th>
-                <th className="p-4 text-left">Rating</th>
                 <th className="p-4 text-left">Status</th>
                 <th className="p-4 text-center">Actions</th>
               </tr>
@@ -268,12 +262,6 @@ const Teachers = () => {
                   <td className="p-4">
                     <span className="text-gray-700">
                       {teacher.experience ? `${teacher.experience} yrs` : "-"}
-                    </span>
-                  </td>
-
-                  <td className="p-4">
-                    <span className="text-yellow-600 font-medium">
-                      ⭐ {teacher.rating || "N/A"}
                     </span>
                   </td>
 

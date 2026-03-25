@@ -36,7 +36,11 @@ const teacherSchema = new mongoose.Schema(
         ref: "Class",
       },
     ],
-    role: String,
+
+    role: {
+      type: String,
+      default: "teacher_admin",
+    },
     username: String,
     password: String,
 
