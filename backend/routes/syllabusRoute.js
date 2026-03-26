@@ -15,6 +15,7 @@ import {
   reorderTopics,
   // Bulk fetch
   getSyllabusStructure,
+  getCompleteSyllabus,
 } from "../controllers/syllabusController.js";
 
 const router = express.Router();
@@ -35,5 +36,6 @@ router.post("/topics/reorder", reorderTopics);
 
 // ==================== BULK ROUTES ====================
 router.get("/structure", getSyllabusStructure);
+router.get("/complete/:schoolId",getCompleteSyllabus);
 
 export default router;

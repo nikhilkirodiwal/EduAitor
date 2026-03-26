@@ -19,6 +19,9 @@ export const getTeacherClasses = async (req, res) => {
       return res.status(404).json({ message: "Teacher not found" });
     }
 
+    // NOTE: Class schema uses "Active" (capital A) — make sure classes are
+    // created with status: "Active". If you see empty results, remove the
+    // status filter below temporarily to verify data exists.
     const classes = await Class.find({
       _id: { $in: teacher.assignedClasses },
       schoolId: teacher.schoolId,
@@ -42,6 +45,7 @@ export const getSubjectsByClass = async (req, res) => {
       return res.status(400).json({ message: "classId is required" });
     }
 
+    // Populate subjects inside each detail entry
     const cls = await Class.findById(classId).populate(
       "details.subjects",
       "name status",
@@ -51,12 +55,14 @@ export const getSubjectsByClass = async (req, res) => {
       return res.status(404).json({ message: "Class not found" });
     }
 
-    // ✅ Extract unique subjects
+    // Extract unique active subjects across all sections/details
     const subjectMap = new Map();
 
     cls.details.forEach((d) => {
-      d.subjects.forEach((s) => {
-        subjectMap.set(s._id.toString(), s);
+      (d.subjects || []).forEach((s) => {
+        if (s && s._id) {
+          subjectMap.set(s._id.toString(), s);
+        }
       });
     });
 

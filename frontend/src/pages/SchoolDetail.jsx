@@ -24,6 +24,7 @@ import {
   FiAlertCircle,
 } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { FaStudiovinari } from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -61,6 +62,7 @@ const TABS = [
   { id: "finance", label: "Finance", icon: FiBarChart2 },
   { id: "transport", label: "Transport", icon: FaBus },
   { id: "library", label: "Library", icon: FaBookOpen },
+  { id: "syllabus", label: "Syllabus", icon: FaStudiovinari },
 ];
 
 export default function SchoolDetail() {
@@ -102,6 +104,7 @@ export default function SchoolDetail() {
         transportSummary,
         books,
         issues,
+        syllabus,
       ] = await Promise.all([
         p(`${API}/schools/${id}`),
         p(`${API}/students`, { schoolId: id }),
@@ -119,6 +122,7 @@ export default function SchoolDetail() {
         p(`${API}/transport/summary`, { school_id: id }),
         p(`${API}/library/books`, { schoolId: id }),
         p(`${API}/library/issues`, { schoolId: id, status: "all" }),
+        p(`${API}/syllabus/complete/${id}`),
       ]);
 
       const schoolData = school?.data?.data;
@@ -145,6 +149,7 @@ export default function SchoolDetail() {
         books: books?.data?.data || [],
         issues: issues?.data?.allissuebook || [],
         issueSummary: issues?.data?.summary || {},
+        syllabusClasses: syllabus?.data?.data?.classes || [],
       });
       setTab("overview");
     } catch (e) {
@@ -1095,7 +1100,9 @@ export default function SchoolDetail() {
                                 {e.registrationRequired && (
                                   <p className="text-xs text-amber-600">
                                     Reg. required
-                                    {e.capacity ? ` · Cap: ${e.capacity}` : ""}{" "}
+                                    {e.capacity
+                                      ? ` · Cap: ${e.capacity}`
+                                      : ""}{" "}
                                     · Attendees: {e.attendees || 0}
                                   </p>
                                 )}
@@ -1547,6 +1554,92 @@ export default function SchoolDetail() {
                     </div>
                   </Panel>
                 </div>
+              </div>
+            )}
+
+            {/*=== syllabus ==== */}
+            {tab === "syllabus" && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <h2 className="text-lg font-bold text-slate-900">
+                    Course Syllabus
+                  </h2>
+                  <span className="text-xs font-medium px-2 py-1 bg-indigo-50 text-indigo-600 rounded-full">
+                    {ws.syllabusClasses?.length || 0} Classes
+                  </span>
+                </div>
+
+                {!ws.syllabusClasses || ws.syllabusClasses.length === 0 ? (
+                  <div className="text-center py-12 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+                    <p className="text-sm text-slate-400">
+                      No syllabus data available yet.
+                    </p>
+                  </div>
+                ) : (
+                  ws.syllabusClasses.map((classItem) => (
+                    <div key={classItem._id} className="group">
+                      {/* Class Label */}
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="h-6 w-1 bg-indigo-500 rounded-full"></div>
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-400">
+                          Class
+                        </span>
+                        <h3 className="text-base font-bold text-slate-800">
+                          {classItem.name}
+                        </h3>
+                      </div>
+
+                      {/* Subjects Grid - Side by Side on Desktop */}
+                      {classItem.subjects?.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {classItem.subjects.map((subject) => (
+                            <div
+                              key={subject._id}
+                              className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow"
+                            >
+                              <div className="flex flex-col gap-3">
+                                <div>
+                                  <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-tight">
+                                    Subject
+                                  </span>
+                                  <p className="text-sm font-semibold text-slate-800 leading-none mt-1">
+                                    {subject.name}
+                                  </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+                                    Chapters
+                                  </span>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {subject.chapters?.length > 0 ? (
+                                      subject.chapters.map((chapter) => (
+                                        <span
+                                          key={chapter._id}
+                                          className="text-[11px] bg-slate-50 text-slate-600 border border-slate-100 rounded-md px-2 py-1 hover:bg-white hover:border-indigo-200 transition-colors"
+                                        >
+                                          {chapter.name}
+                                        </span>
+                                      ))
+                                    ) : (
+                                      <span className="text-xs italic text-slate-300">
+                                        No chapters listed
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="bg-slate-50 rounded-lg p-4 text-xs text-slate-400 italic">
+                          No subjects assigned to this class.
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
               </div>
             )}
           </>

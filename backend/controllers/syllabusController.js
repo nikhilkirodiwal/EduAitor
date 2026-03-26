@@ -1,6 +1,8 @@
 // controllers/syllabusController.js
 import Topic from "../models/topic.js";
 import Chapter from "../models/chapter.js";
+import Class from "../models/class.js";
+import Subject from "../models/subject.js";
 
 // ==================== CHAPTER CONTROLLERS ====================
 
@@ -352,5 +354,78 @@ export const getSyllabusStructure = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ==================== SUPER ADMIN FETCH ====================
+export const getCompleteSyllabus = async (req, res) => {
+  try {
+    const { schoolId } = req.params;
+
+    // ✅ Fix 1: field is schoolId not school
+    const classes = await Class.find({ schoolId }).lean();
+
+    const classesWithData = await Promise.all(
+      classes.map(async (classItem) => {
+
+        // ✅ Fix 2: subjects are inside details[].subjects as ObjectId array
+        // Collect ALL subject IDs from all sections of this class
+        const subjectIds = classItem.details
+          .flatMap((section) => section.subjects)
+          .filter(Boolean);
+
+        // Remove duplicates (same subject in multiple sections)
+        const uniqueSubjectIds = [...new Map(
+          subjectIds.map((id) => [id.toString(), id])
+        ).values()];
+
+        // Fetch subjects by those IDs
+        const subjects = await Subject.find({
+          _id: { $in: uniqueSubjectIds },
+        }).lean();
+
+        const subjectsWithData = await Promise.all(
+          subjects.map(async (subject) => {
+            const chapters = await Chapter.find({ subjectId: subject._id }).lean();
+
+            const chaptersWithData = await Promise.all(
+              chapters.map(async (chapter) => {
+                const topics = await Topic.find({ chapterId: chapter._id }).lean();
+                return {
+                  ...chapter,
+                  topics,
+                  topicCount: topics.length,
+                };
+              })
+            );
+
+            return {
+              ...subject,
+              chapters: chaptersWithData,
+              chapterCount: chapters.length,
+            };
+          })
+        );
+
+        return {
+          ...classItem,
+          subjects: subjectsWithData,
+          subjectCount: subjects.length,
+        };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      data: { classes: classesWithData },
+    });
+
+  } catch (error) {
+    console.error("Syllabus fetch error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch syllabus",
+      error: error.message,
+    });
   }
 };

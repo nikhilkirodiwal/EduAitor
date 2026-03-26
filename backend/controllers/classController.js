@@ -1,4 +1,6 @@
+import mongoose from "mongoose";
 import Class from "../models/class.js";
+import Teacher from "../models/teacher.js";
 
 /* ── CREATE CLASS ── */
 export const createClass = async (req, res) => {
@@ -58,6 +60,25 @@ export const createClass = async (req, res) => {
       details: sanitized,
       status,
     });
+
+    // ✅ SYNC TEACHERS (MULTI CLASS SUPPORT)
+    const teacherIds = [
+      ...new Map(
+        sanitized
+          .filter((d) => d.teacherId)
+          .map((d) => {
+            const id = new mongoose.Types.ObjectId(d.teacherId);
+            return [id.toString(), id];
+          }),
+      ).values(),
+    ];
+
+    if (teacherIds.length > 0) {
+      await Teacher.updateMany(
+        { _id: { $in: teacherIds } },
+        { $addToSet: { assignedClasses: newClass._id } },
+      );
+    }
 
     const populated = await Class.findById(newClass._id)
       .populate("details.sectionId", "name status")
@@ -211,6 +232,11 @@ export const updateClass = async (req, res) => {
         });
     }
 
+    // 🔥 OLD TEACHERS
+    const oldTeacherIds = cls.details
+      .filter((d) => d.teacherId)
+      .map((d) => d.teacherId.toString());
+
     const sanitized = details?.map((d) => ({
       ...d,
       sectionId: d.sectionId || null,
@@ -219,6 +245,33 @@ export const updateClass = async (req, res) => {
       capacity: d.capacity || 40,
     }));
 
+    // 🔥 NEW TEACHERS
+    const newTeacherIds =
+      sanitized
+        ?.filter((d) => d.teacherId)
+        .map((d) => d.teacherId.toString()) || [];
+
+    // 🔥 FIND DIFF
+    const removedTeachers = oldTeacherIds.filter(
+      (id) => !newTeacherIds.includes(id),
+    );
+    const addedTeachers = newTeacherIds.filter(
+      (id) => !oldTeacherIds.includes(id),
+    );
+
+    // 🔥 REMOVE CLASS FROM OLD TEACHERS
+    await Teacher.updateMany(
+      { _id: { $in: removedTeachers } },
+      { $pull: { assignedClasses: cls._id } },
+    );
+
+    // 🔥 ADD CLASS TO NEW TEACHERS
+    await Teacher.updateMany(
+      { _id: { $in: addedTeachers } },
+      { $addToSet: { assignedClasses: cls._id } },
+    );
+
+    // 🔥 UPDATE CLASS
     cls.name = name || cls.name;
     cls.details = sanitized || cls.details;
     cls.status = status || cls.status;

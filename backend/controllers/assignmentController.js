@@ -10,6 +10,7 @@ export const createAssignment = async (req, res) => {
       schoolId,
       title,
       description,
+      type,
       classId,
       subjectId,
       chapterId,
@@ -22,50 +23,63 @@ export const createAssignment = async (req, res) => {
 
     if (!teacherId || !schoolId || !classId || !subjectId || !chapterId) {
       return res.status(400).json({
-        message: "Required fields missing",
+        success: false,
+        message:
+          "Required fields missing: teacherId, schoolId, classId, subjectId, chapterId",
+      });
+    }
+
+    if (!dueDate) {
+      return res.status(400).json({
+        success: false,
+        message: "dueDate is required",
       });
     }
 
     const teacher = await Teacher.findById(teacherId);
 
     if (!teacher) {
-      return res.status(404).json({ message: "Teacher not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Teacher not found" });
     }
 
-    // ✅ CLASS VALIDATION
+    // CLASS VALIDATION — teacher must be assigned to this class
     const isAllowed = teacher.assignedClasses.some(
       (c) => c.toString() === classId,
     );
 
     if (!isAllowed) {
       return res.status(403).json({
-        message: "Unauthorized class",
+        success: false,
+        message: "You are not authorized to create assignments for this class",
       });
     }
 
-    // ✅ CALCULATE MARKS
+    // CALCULATE MARKS
     const totalMarks = (questions || []).reduce(
-      (sum, q) => sum + (q.marks || 0),
+      (sum, q) => sum + (Number(q.marks) || 0),
       0,
     );
 
     const assignment = await Assignment.create({
       title,
       description,
+      type: type || "homework",
       classId,
       subjectId,
       chapterId,
-      topicId,
-      questions,
+      topicId: topicId || undefined,
+      questions: questions || [],
       totalMarks,
       dueDate,
-      duration,
-      maxAttempts,
+      duration: duration ? Number(duration) : undefined,
+      maxAttempts: maxAttempts ? Number(maxAttempts) : 1,
       teacherId,
       schoolId,
     });
 
-    res.json({
+    res.status(201).json({
       success: true,
       message: "Assignment created",
       data: assignment,
@@ -84,6 +98,7 @@ export const getTeacherAssignments = async (req, res) => {
 
     if (!teacherId) {
       return res.status(400).json({
+        success: false,
         message: "teacherId is required",
       });
     }
@@ -113,13 +128,15 @@ export const getAssignmentById = async (req, res) => {
       .populate("topicId", "name");
 
     if (!assignment) {
-      return res.status(404).json({ message: "Assignment not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Assignment not found" });
     }
 
     res.json({ success: true, data: assignment });
   } catch (err) {
     console.error("getAssignmentById:", err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -127,20 +144,39 @@ export const getAssignmentById = async (req, res) => {
 
 export const updateAssignment = async (req, res) => {
   try {
-    const { questions } = req.body;
+    const allowedFields = [
+      "title",
+      "description",
+      "type",
+      "dueDate",
+      "duration",
+      "maxAttempts",
+      "questions",
+    ];
 
-    if (questions) {
-      req.body.totalMarks = questions.reduce(
-        (sum, q) => sum + (q.marks || 0),
+    const updateData = {};
+    allowedFields.forEach((f) => {
+      if (req.body[f] !== undefined) updateData[f] = req.body[f];
+    });
+
+    if (updateData.questions) {
+      updateData.totalMarks = updateData.questions.reduce(
+        (sum, q) => sum + (Number(q.marks) || 0),
         0,
       );
     }
 
     const updated = await Assignment.findByIdAndUpdate(
       req.params.id,
-      req.body,
-      { new: true },
+      updateData,
+      { new: true, runValidators: true },
     );
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Assignment not found" });
+    }
 
     res.json({
       success: true,
@@ -149,7 +185,7 @@ export const updateAssignment = async (req, res) => {
     });
   } catch (err) {
     console.error("updateAssignment:", err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -160,7 +196,7 @@ export const deleteAssignment = async (req, res) => {
     const assignment = await Assignment.findById(req.params.id);
 
     if (!assignment) {
-      return res.status(404).json({ message: "Not found" });
+      return res.status(404).json({ success: false, message: "Not found" });
     }
 
     await assignment.deleteOne();
@@ -171,7 +207,7 @@ export const deleteAssignment = async (req, res) => {
     });
   } catch (err) {
     console.error("deleteAssignment:", err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
@@ -182,24 +218,23 @@ export const togglePublishAssignment = async (req, res) => {
     const assignment = await Assignment.findById(req.params.id);
 
     if (!assignment) {
-      return res.status(404).json({ message: "Not found" });
+      return res.status(404).json({ success: false, message: "Not found" });
     }
 
     assignment.isPublished = !assignment.isPublished;
 
-    if (assignment.isPublished) {
-      assignment.status = "active";
-    }
+    // FIX: properly sync status in both directions
+    assignment.status = assignment.isPublished ? "active" : "draft";
 
     await assignment.save();
 
     res.json({
       success: true,
-      message: "Publish status updated",
+      message: `Assignment ${assignment.isPublished ? "published" : "unpublished"}`,
       data: assignment,
     });
   } catch (err) {
     console.error("togglePublish:", err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: err.message });
   }
 };

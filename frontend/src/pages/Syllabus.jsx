@@ -22,6 +22,12 @@ function Syllabus() {
   const [activeModal, setActiveModal] = useState(null);
   const [formData, setFormData] = useState({});
 
+  const [confirmState, setConfirmState] = useState({
+    open: false,
+    type: "", // "chapter" | "topic"
+    id: null,
+  });
+
   // ==================== FETCH DATA ====================
   useEffect(() => {
     const fetchClasses = async () => {
@@ -186,8 +192,6 @@ function Syllabus() {
       console.error("Error saving chapter:", err);
       toast.error("erro:", err.response?.data?.message);
       alert(err.response?.data?.message || "Error saving chapter");
-    } finally {
-      setTimeout(() => toast.dismiss(loadingToast), 500);
     }
   };
 
@@ -219,39 +223,43 @@ function Syllabus() {
 
       await fetchChapters();
       closeModal();
+      toast.dismiss(toastloading);
     } catch (err) {
       console.error("Error saving topic:", err);
       alert(err.response?.data?.message || "Error saving topic");
     } finally {
-      setTimeout(() => toast.dismiss(toastloading), 500);
+      setTimeout(() => toast.dismiss(loadingToast), 500);
     }
   };
 
-  const deleteChapter = async (chapterId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this chapter and all its topics?",
-      )
-    ) {
-      try {
-        await axios.delete(`${API}/syllabus/chapters/${chapterId}`);
-        await fetchChapters();
-      } catch (err) {
-        console.error("Error deleting chapter:", err);
-        alert("Error deleting chapter");
-      }
-    }
+  const deleteChapter = (chapterId) => {
+    setConfirmState({
+      open: true,
+      type: "chapter",
+      id: chapterId,
+    });
   };
 
-  const deleteTopic = async (topicId) => {
-    if (window.confirm("Are you sure you want to delete this topic?")) {
-      try {
-        await axios.delete(`${API}/syllabus/topics/${topicId}`);
-        await fetchChapters();
-      } catch (err) {
-        console.error("Error deleting topic:", err);
-        alert("Error deleting topic");
+  const deleteTopic = (topicId) => {
+    setConfirmState({
+      open: true,
+      type: "topic",
+      id: topicId,
+    });
+  };
+  const handleConfirmDelete = async () => {
+    try {
+      if (confirmState.type === "chapter") {
+        await axios.delete(`${API}/syllabus/chapters/${confirmState.id}`);
+      } else if (confirmState.type === "topic") {
+        await axios.delete(`${API}/syllabus/topics/${confirmState.id}`);
       }
+
+      await fetchChapters();
+    } catch (err) {
+      console.error("Delete error:", err);
+    } finally {
+      setConfirmState({ open: false, type: "", id: null });
     }
   };
 
@@ -270,10 +278,10 @@ function Syllabus() {
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-blue-500 mb-2">
+          <h1 className="text-4xl py-1 font-bold text-transparent bg-clip-text bg-blue-600 mb-2">
             Syllabus Management
           </h1>
-          <p className="text-slate-400">Add chapters and topics.</p>
+          <p className="font-bold mt-2">Add chapters and topics.</p>
         </div>
 
         {/* Filters */}
@@ -287,7 +295,7 @@ function Syllabus() {
               <select
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer"
+                className="w-full px-4 py-3  border border-slate-700 rounded-lg  focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer"
               >
                 <option value="">Choose a class...</option>
                 {classes.map((cls) => (
@@ -310,7 +318,7 @@ function Syllabus() {
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
                 disabled={!selectedClass}
-                className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3  border border-slate-700 rounded-lg  focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="">Choose a subject...</option>
                 {subjects.map((sub) => (
@@ -330,7 +338,7 @@ function Syllabus() {
             {/* Add Chapter Button */}
             <button
               onClick={() => openChapterModal()}
-              className="flex items-center gap-2 px-4 py-3 bg-linear-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition transform hover:scale-105"
+              className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition transform hover:scale-105"
             >
               <FiPlus className="w-5 h-5" />
               Add Chapter
@@ -350,12 +358,12 @@ function Syllabus() {
                 {chapters.map((chapter) => (
                   <div
                     key={chapter._id}
-                    className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden hover:border-slate-600 transition"
+                    className=" border border-slate-700 rounded-lg overflow-hidden transition"
                   >
                     {/* Chapter Header */}
                     <div
                       onClick={() => toggleChapter(chapter._id)}
-                      className="flex items-center gap-3 p-4 cursor-pointer hover:bg-slate-800 transition"
+                      className="flex items-center gap-3 p-4 cursor-pointer  transition"
                     >
                       <FiChevronDown
                         className={`w-5 h-5 text-slate-400 transition-transform ${
@@ -363,7 +371,7 @@ function Syllabus() {
                         }`}
                       />
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-white">
+                        <h3 className="text-lg font-semibold ">
                           Chapter {chapter.order}: {chapter.name}
                         </h3>
                         {chapter.description && (
@@ -378,7 +386,7 @@ function Syllabus() {
                             e.stopPropagation();
                             openChapterModal(chapter);
                           }}
-                          className="p-2 text-slate-400 hover:text-cyan-400 transition"
+                          className="p-2 text-slate-400 hover:text-cyan-400 transition cursor-pointer"
                         >
                           <FiEdit2 className="w-5 h-5" />
                         </button>
@@ -387,7 +395,7 @@ function Syllabus() {
                             e.stopPropagation();
                             deleteChapter(chapter._id);
                           }}
-                          className="p-2 text-slate-400 hover:text-red-400 transition"
+                          className="p-2 text-slate-400 hover:text-red-400 transition cursor-pointer "
                         >
                           <FiTrash2 className="w-5 h-5" />
                         </button>
@@ -396,10 +404,10 @@ function Syllabus() {
 
                     {/* Topics */}
                     {expandedChapters.has(chapter._id) && (
-                      <div className="border-t border-slate-700 bg-slate-900/30 p-4 space-y-3">
+                      <div className="border-t border-slate-700  p-4 space-y-3">
                         <button
                           onClick={() => openTopicModal(chapter._id)}
-                          className="flex items-center gap-2 px-3 py-2 text-sm text-cyan-400 hover:bg-slate-800 rounded transition"
+                          className="flex items-center gap-2 px-3 py-2 text-sm text-cyan-400 hover:bg-slate-800 rounded cursor-pointer transition"
                         >
                           <FiPlus className="w-4 h-4" />
                           Add Topic
@@ -410,14 +418,14 @@ function Syllabus() {
                             {topics[chapter._id].map((topic) => (
                               <div
                                 key={topic._id}
-                                className="flex items-start gap-3 p-3 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-slate-600 transition"
+                                className="flex items-start gap-3 p-3  rounded-lg border border-slate-700 hover:border-slate-600 transition"
                               >
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-xs px-2 py-1 bg-slate-700 text-slate-300 rounded">
+                                    <span className="text-xs px-2 py-1  rounded">
                                       {topic.difficultyLevel}
                                     </span>
-                                    <h4 className="text-white font-medium">
+                                    <h4 className=" font-medium">
                                       Topic {topic.order}: {topic.name}
                                     </h4>
                                   </div>
@@ -485,6 +493,40 @@ function Syllabus() {
           </div>
         )}
       </div>
+      {/* delete modal */}
+      {confirmState.open && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-sm p-6">
+            <h2 className="text-lg font-semibold mb-2 text-gray-800">
+              Delete {confirmState.type === "chapter" ? "Chapter" : "Topic"}
+            </h2>
+
+            <p className="text-sm text-gray-600 mb-6">
+              {confirmState.type === "chapter"
+                ? "This will delete the chapter and all its topics."
+                : "This will delete the topic permanently."}
+            </p>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() =>
+                  setConfirmState({ open: false, type: "", id: null })
+                }
+                className="px-4 py-2 text-sm rounded-md border text-gray-600 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 text-sm rounded-md bg-red-500 text-white hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODALS */}
       {activeModal === "chapter" && (
@@ -581,7 +623,7 @@ function ChapterModal({ formData, setFormData, onSubmit, onClose }) {
           </button>
           <button
             onClick={onSubmit}
-            className="flex-1 px-4 py-2 bg-linear-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition"
+            className="flex-1 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition"
           >
             {formData.type === "addChapter" ? "Create" : "Update"}
           </button>
@@ -681,7 +723,7 @@ function TopicModal({ formData, setFormData, onSubmit, onClose }) {
           </button>
           <button
             onClick={onSubmit}
-            className="flex-1 px-4 py-2 bg-linear-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition"
+            className="flex-1 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition"
           >
             {formData.type === "addTopic" ? "Create" : "Update"}
           </button>

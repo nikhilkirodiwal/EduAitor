@@ -183,7 +183,7 @@ const Schools = () => {
                 className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 text-sm font-medium"
               >
                 <FaEye />
-                View Details
+                View Info
               </button>
 
             </div>
