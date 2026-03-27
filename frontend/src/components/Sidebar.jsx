@@ -160,7 +160,7 @@ const Sidebar = ({ closeSidebar }) => {
       icon: <HiAcademicCap />,
       path: "/teacher/classes",
     },
-    
+    { name: "Syllabus", icon: <FaBookDead />, path: "/school/syllabus" },
     {
       name: "Assignment",
       icon: <GiSchoolBag />,

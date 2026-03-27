@@ -338,7 +338,7 @@ function Syllabus() {
             {/* Add Chapter Button */}
             <button
               onClick={() => openChapterModal()}
-              className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition transform hover:scale-105"
+              className="flex items-center gap-2 px-4 py-3 bg-linear-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition transform hover:scale-105"
             >
               <FiPlus className="w-5 h-5" />
               Add Chapter
@@ -623,7 +623,7 @@ function ChapterModal({ formData, setFormData, onSubmit, onClose }) {
           </button>
           <button
             onClick={onSubmit}
-            className="flex-1 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition"
+            className="flex-1 px-4 py-2 bg-linear-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition"
           >
             {formData.type === "addChapter" ? "Create" : "Update"}
           </button>
@@ -723,7 +723,7 @@ function TopicModal({ formData, setFormData, onSubmit, onClose }) {
           </button>
           <button
             onClick={onSubmit}
-            className="flex-1 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition"
+            className="flex-1 px-4 py-2 bg-linear-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition"
           >
             {formData.type === "addTopic" ? "Create" : "Update"}
           </button>
