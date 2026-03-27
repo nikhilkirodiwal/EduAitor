@@ -127,8 +127,8 @@ export const deleteChapter = async (req, res) => {
     }
 
     // Delete chapter and all associated topics
-    await Chapter.findByIdAndUpdate(chapterId, { status: "inactive" });
-    await Topic.updateMany({ chapterId }, { status: "inactive" });
+    await Topic.deleteMany({ chapterId });
+    await Chapter.findByIdAndDelete(chapterId);
 
     res.json({
       success: true,
@@ -295,7 +295,7 @@ export const deleteTopic = async (req, res) => {
       });
     }
 
-    await Topic.findByIdAndUpdate(topicId, { status: "inactive" });
+    await Topic.findByIdAndDelete(topicId);
 
     res.json({
       success: true,
