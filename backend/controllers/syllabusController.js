@@ -8,7 +8,14 @@ import Subject from "../models/subject.js";
 
 export const createChapter = async (req, res) => {
   try {
-    const { schoolId, classId, subjectId, name, description, learningOutcomes } = req.body;
+    const {
+      schoolId,
+      classId,
+      subjectId,
+      name,
+      description,
+      learningOutcomes,
+    } = req.body;
 
     if (!schoolId || !classId || !subjectId || !name) {
       return res.status(400).json({
@@ -20,7 +27,7 @@ export const createChapter = async (req, res) => {
     // Get max order for this subject
     const maxOrder = await Chapter.findOne(
       { schoolId, classId, subjectId },
-      { order: 1 }
+      { order: 1 },
     ).sort({ order: -1 });
 
     const newChapter = new Chapter({
@@ -88,7 +95,7 @@ export const updateChapter = async (req, res) => {
         description,
         learningOutcomes,
       },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!chapter) {
@@ -145,7 +152,7 @@ export const reorderChapters = async (req, res) => {
 
     // Bulk update orders
     const updatePromises = chapters.map((ch) =>
-      Chapter.findByIdAndUpdate(ch.id, { order: ch.order })
+      Chapter.findByIdAndUpdate(ch.id, { order: ch.order }),
     );
 
     await Promise.all(updatePromises);
@@ -163,18 +170,30 @@ export const reorderChapters = async (req, res) => {
 
 export const createTopic = async (req, res) => {
   try {
-    const { schoolId, chapterId, subjectId, classId, name, content, difficultyLevel, keywords } =
-      req.body;
+    const {
+      schoolId,
+      chapterId,
+      subjectId,
+      classId,
+      name,
+      content,
+      difficultyLevel,
+      keywords,
+    } = req.body;
 
     if (!schoolId || !chapterId || !subjectId || !classId || !name) {
       return res.status(400).json({
         success: false,
-        message: "schoolId, chapterId, subjectId, classId, and name are required",
+        message:
+          "schoolId, chapterId, subjectId, classId, and name are required",
       });
     }
 
     // Get max order for this chapter
-    const maxOrder = await Topic.findOne({ schoolId, chapterId }, { order: 1 }).sort({
+    const maxOrder = await Topic.findOne(
+      { schoolId, chapterId },
+      { order: 1 },
+    ).sort({
       order: -1,
     });
 
@@ -245,7 +264,7 @@ export const updateTopic = async (req, res) => {
         difficultyLevel,
         keywords,
       },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!topic) {
@@ -299,7 +318,7 @@ export const reorderTopics = async (req, res) => {
     }
 
     const updatePromises = topics.map((t) =>
-      Topic.findByIdAndUpdate(t.id, { order: t.order })
+      Topic.findByIdAndUpdate(t.id, { order: t.order }),
     );
 
     await Promise.all(updatePromises);
@@ -343,7 +362,9 @@ export const getSyllabusStructure = async (req, res) => {
     // Structure data
     const structure = chapters.map((chapter) => ({
       ...chapter.toObject(),
-      topics: topics.filter((t) => t.chapterId.toString() === chapter._id.toString()),
+      topics: topics.filter(
+        (t) => t.chapterId.toString() === chapter._id.toString(),
+      ),
     }));
 
     res.json({
@@ -359,67 +380,84 @@ export const getSyllabusStructure = async (req, res) => {
 
 // ==================== SUPER ADMIN FETCH ====================
 export const getCompleteSyllabus = async (req, res) => {
+  console.log("api hit");
   try {
     const { schoolId } = req.params;
 
-    // ✅ Fix 1: field is schoolId not school
     const classes = await Class.find({ schoolId }).lean();
 
     const classesWithData = await Promise.all(
       classes.map(async (classItem) => {
+        // Step 1: Get unique subject IDs for this class
+        const subjectIds = [
+          ...new Map(
+            classItem.details
+              .flatMap((section) => section.subjects)
+              .filter(Boolean)
+              .map((id) => [id.toString(), id]),
+          ).values(),
+        ];
 
-        // ✅ Fix 2: subjects are inside details[].subjects as ObjectId array
-        // Collect ALL subject IDs from all sections of this class
-        const subjectIds = classItem.details
-          .flatMap((section) => section.subjects)
-          .filter(Boolean);
+        // Step 2: Fetch subjects + chapters for this class in parallel
+        const [subjects, allChapters] = await Promise.all([
+          Subject.find({ _id: { $in: subjectIds } }).lean(),
+          Chapter.find({
+            classId: classItem._id, // ← scoped to this class
+            subjectId: { $in: subjectIds },
+          }).lean(),
+        ]);
 
-        // Remove duplicates (same subject in multiple sections)
-        const uniqueSubjectIds = [...new Map(
-          subjectIds.map((id) => [id.toString(), id])
-        ).values()];
-
-        // Fetch subjects by those IDs
-        const subjects = await Subject.find({
-          _id: { $in: uniqueSubjectIds },
+        // Step 3: Fetch all topics for those chapters in one query
+        const chapterIds = allChapters.map((c) => c._id);
+        const allTopics = await Topic.find({
+          classId: classItem._id, // ← scoped to this class
+          chapterId: { $in: chapterIds },
         }).lean();
 
-        const subjectsWithData = await Promise.all(
-          subjects.map(async (subject) => {
-            const chapters = await Chapter.find({ subjectId: subject._id }).lean();
+        // Step 4: Group topics by chapterId in memory
+        const topicsByChapter = allTopics.reduce((acc, topic) => {
+          const key = topic.chapterId.toString();
+          if (!acc[key]) acc[key] = [];
+          acc[key].push(topic);
+          return acc;
+        }, {});
 
-            const chaptersWithData = await Promise.all(
-              chapters.map(async (chapter) => {
-                const topics = await Topic.find({ chapterId: chapter._id }).lean();
-                return {
-                  ...chapter,
-                  topics,
-                  topicCount: topics.length,
-                };
-              })
-            );
+        // Step 5: Group chapters by subjectId in memory
+        const chaptersBySubject = allChapters.reduce((acc, chapter) => {
+          const key = chapter.subjectId.toString();
+          const topics = topicsByChapter[chapter._id.toString()] || [];
+          const chapterWithTopics = {
+            ...chapter,
+            topics,
+            topicCount: topics.length,
+          };
+          if (!acc[key]) acc[key] = [];
+          acc[key].push(chapterWithTopics);
+          return acc;
+        }, {});
 
-            return {
-              ...subject,
-              chapters: chaptersWithData,
-              chapterCount: chapters.length,
-            };
-          })
-        );
+        // Step 6: Attach chapters to each subject
+        const subjectsWithData = subjects.map((subject) => {
+          const chapters = chaptersBySubject[subject._id.toString()] || [];
+          return {
+            ...subject,
+            chapters,
+            chapterCount: chapters.length,
+          };
+        });
 
         return {
           ...classItem,
           subjects: subjectsWithData,
           subjectCount: subjects.length,
         };
-      })
+      }),
     );
 
     res.status(200).json({
       success: true,
       data: { classes: classesWithData },
     });
-
   } catch (error) {
     console.error("Syllabus fetch error:", error);
     res.status(500).json({
