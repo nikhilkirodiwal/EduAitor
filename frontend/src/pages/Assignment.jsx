@@ -8,16 +8,20 @@ import {
   FiCheckCircle,
   FiXCircle,
   FiAlertTriangle,
-  FiBookOpen,
   FiClock,
   FiAward,
   FiChevronRight,
   FiArrowLeft,
-  FiPlus,
   FiX,
   FiSave,
+  FiZap,
+  FiCheck,
+  FiSliders,
+  FiThumbsUp,
+  FiThumbsDown,
+  FiRefreshCw,
 } from "react-icons/fi";
-import { HiOutlineClipboardList } from "react-icons/hi";
+import { HiOutlineClipboardList, HiSparkles } from "react-icons/hi";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -28,7 +32,9 @@ const STEP_CLASS = 0,
 const STEP_TOPIC = 3,
   STEP_DETAILS = 4,
   STEP_QUESTIONS = 5;
-const emptyQuestion = { text: "", type: "short", options: [], marks: 1 };
+
+const DIFFICULTY = ["easy", "medium", "hard"];
+const Q_TYPES = ["short", "long", "mcq"];
 
 /* ─────────────────────────────────────────────
    MAIN COMPONENT
@@ -39,10 +45,8 @@ export default function Assignment() {
     user?.teacher_id || user?._id || user?.id || user?.teacherId;
   const schoolId = user?.school_id || user?.schoolId || user?.schoolID;
 
-  // ── wizard / edit mode ──
-  const [editingAssignmentId, setEditingAssignmentId] = useState(null); // null = create mode
+  const [editingAssignmentId, setEditingAssignmentId] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
-
   const [step, setStep] = useState(STEP_CLASS);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -57,7 +61,8 @@ export default function Assignment() {
   const [selectedClass, setSelectedClass] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [selectedChapter, setSelectedChapter] = useState(null);
-  const [selectedTopic, setSelectedTopic] = useState(null);
+  // Multi-topic: array of selected topic objects
+  const [selectedTopics, setSelectedTopics] = useState([]);
 
   const [details, setDetails] = useState({
     title: "",
@@ -67,19 +72,27 @@ export default function Assignment() {
     duration: "",
     maxAttempts: 1,
   });
-  const [questions, setQuestions] = useState([]);
-  const [currentQ, setCurrentQ] = useState(emptyQuestion);
-  const [editingQIndex, setEditingQIndex] = useState(null);
+
+  // Approved questions (final list to submit)
+  const [approvedQuestions, setApprovedQuestions] = useState([]);
+
+  // AI generation state
+  const [aiConfig, setAiConfig] = useState({
+    numberOfQuestions: 5,
+    difficulty: "medium",
+    questionTypes: ["mcq", "short"],
+  });
+  const [generatingAI, setGeneratingAI] = useState(false);
+  // Pending AI questions awaiting approval
+  const [pendingQuestions, setPendingQuestions] = useState([]);
+  const [editingPending, setEditingPending] = useState(null); // index
 
   // confirm modals
-  const [confirmDelete, setConfirmDelete] = useState(null); // assignment id
-  const [confirmSave, setConfirmSave] = useState(false); // create or update
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmSave, setConfirmSave] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
-  // view modal
   const [viewingAssignment, setViewingAssignment] = useState(null);
-
-  // dirty tracking for edit mode
   const [isDirty, setIsDirty] = useState(false);
 
   /* ── LOAD ── */
@@ -101,10 +114,7 @@ export default function Assignment() {
       });
       const data = res.data.data || [];
       setClasses(data);
-      if (data.length === 0)
-        setError(
-          "No classes found. Ensure teacher has assignedClasses with status 'Active'.",
-        );
+      if (!data.length) setError("No classes found.");
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to load classes");
     } finally {
@@ -123,9 +133,8 @@ export default function Assignment() {
     }
   };
 
-  /* ── LOAD ASSIGNMENT INTO FORM FOR EDITING ── */
+  /* ── LOAD FOR EDIT ── */
   const loadAssignmentForEdit = async (a) => {
-    // Subjects for that class
     setLoading(true);
     try {
       const [subRes, chRes, topRes] = await Promise.all([
@@ -147,7 +156,7 @@ export default function Assignment() {
       setChapters(chRes.data.data || []);
       setTopics(topRes.data.data || []);
     } catch {
-      /* non-critical, dropdowns just won't switch */
+      /* non-critical */
     } finally {
       setLoading(false);
     }
@@ -155,8 +164,7 @@ export default function Assignment() {
     setSelectedClass(a.classId);
     setSelectedSubject(a.subjectId);
     setSelectedChapter(a.chapterId);
-    setSelectedTopic(a.topicId || null);
-
+    setSelectedTopics(a.topicId ? [a.topicId] : []);
     setDetails({
       title: a.title || "",
       description: a.description || "",
@@ -165,22 +173,17 @@ export default function Assignment() {
       duration: a.duration || "",
       maxAttempts: a.maxAttempts || 1,
     });
-
-    // Deep copy questions so edits don't mutate original
-    setQuestions(JSON.parse(JSON.stringify(a.questions || [])));
-    setCurrentQ(emptyQuestion);
-    setEditingQIndex(null);
+    setApprovedQuestions(JSON.parse(JSON.stringify(a.questions || [])));
+    setPendingQuestions([]);
     setIsDirty(false);
     setEditingAssignmentId(a._id);
     setIsEditMode(true);
-    setStep(STEP_DETAILS); // jump straight to details
+    setStep(STEP_DETAILS);
   };
 
   const handleEditClick = (a) => {
     if (a.isPublished) {
-      toast.info("This assignment is live. Unpublish it first to make edits.", {
-        icon: "🔒",
-      });
+      toast.info("Unpublish this assignment first to edit.", { icon: "🔒" });
       return;
     }
     loadAssignmentForEdit(a);
@@ -191,7 +194,7 @@ export default function Assignment() {
     setSelectedClass(cls);
     setSelectedSubject(null);
     setSelectedChapter(null);
-    setSelectedTopic(null);
+    setSelectedTopics([]);
     setSubjects([]);
     setChapters([]);
     setTopics([]);
@@ -203,7 +206,7 @@ export default function Assignment() {
       });
       const data = res.data.data || [];
       setSubjects(data);
-      if (data.length === 0) setError("No subjects found for this class.");
+      if (!data.length) setError("No subjects found for this class.");
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to load subjects");
     } finally {
@@ -215,7 +218,7 @@ export default function Assignment() {
   const pickSubject = async (sub) => {
     setSelectedSubject(sub);
     setSelectedChapter(null);
-    setSelectedTopic(null);
+    setSelectedTopics([]);
     setChapters([]);
     setTopics([]);
     setError("");
@@ -226,8 +229,7 @@ export default function Assignment() {
       });
       const data = res.data.data || [];
       setChapters(data);
-      if (data.length === 0)
-        setError("No chapters found. Create chapters first.");
+      if (!data.length) setError("No chapters found.");
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to load chapters");
     } finally {
@@ -238,7 +240,7 @@ export default function Assignment() {
 
   const pickChapter = async (ch) => {
     setSelectedChapter(ch);
-    setSelectedTopic(null);
+    setSelectedTopics([]);
     setTopics([]);
     setError("");
     setLoading(true);
@@ -255,59 +257,109 @@ export default function Assignment() {
     setStep(STEP_TOPIC);
   };
 
-  const pickTopic = (t) => {
-    setSelectedTopic(t);
-    setStep(STEP_DETAILS);
-  };
-  const skipTopic = () => {
-    setSelectedTopic(null);
-    setStep(STEP_DETAILS);
-  };
-
-  /* ── QUESTION BUILDER ── */
-  const addOption = () =>
-    setCurrentQ((q) => ({
-      ...q,
-      options: [...q.options, { text: "", isCorrect: false }],
-    }));
-  const removeOption = (i) =>
-    setCurrentQ((q) => ({
-      ...q,
-      options: q.options.filter((_, idx) => idx !== i),
-    }));
-  const updateOption = (i, field, value) => {
-    const opts = [...currentQ.options];
-    opts[i] = { ...opts[i], [field]: value };
-    setCurrentQ((q) => ({ ...q, options: opts }));
+  const toggleTopic = (t) => {
+    setSelectedTopics((prev) =>
+      prev.some((x) => x._id === t._id)
+        ? prev.filter((x) => x._id !== t._id)
+        : [...prev, t],
+    );
   };
 
-  const saveQuestion = () => {
-    if (!currentQ.text.trim()) return toast.warn("Question text is required");
-    if (currentQ.type === "mcq") {
-      if (currentQ.options.length < 2)
-        return toast.warn("MCQ needs at least 2 options");
-      if (!currentQ.options.some((o) => o.isCorrect))
-        return toast.warn("Mark at least 1 correct option");
+  /* ── AI GENERATE ── */
+  const handleGenerateAI = async () => {
+    if (!selectedChapter) return toast.warn("Chapter not selected");
+    setGeneratingAI(true);
+    setPendingQuestions([]);
+    try {
+      const payload = {
+        className: selectedClass?.name,
+        subjectName: selectedSubject?.name,
+        chapterName: selectedChapter?.name,
+        topicNames:
+          selectedTopics.length > 0 ? selectedTopics.map((t) => t.name) : null,
+        questionTypes: aiConfig.questionTypes,
+        numberOfQuestions: aiConfig.numberOfQuestions,
+        difficulty: aiConfig.difficulty,
+      };
+      const res = await axios.post(
+        `${API}/assignment/generate-questions`,
+        payload,
+      );
+      const qs = res.data.data || [];
+      if (!qs.length)
+        return toast.error("AI returned no questions. Try again.");
+      // Mark all as "pending" (not yet approved)
+      setPendingQuestions(qs.map((q) => ({ ...q, _status: "pending" })));
+      toast.success(
+        `${qs.length} questions generated! Review and approve below.`,
+      );
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "AI generation failed");
+    } finally {
+      setGeneratingAI(false);
     }
-    if (editingQIndex !== null) {
-      const u = [...questions];
-      u[editingQIndex] = currentQ;
-      setQuestions(u);
-      setEditingQIndex(null);
-    } else {
-      setQuestions((qs) => [...qs, currentQ]);
-    }
-    setCurrentQ(emptyQuestion);
+  };
+
+  /* ── APPROVE / REJECT pending ── */
+  const approvePending = (idx) => {
+    const q = { ...pendingQuestions[idx] };
+    delete q._status;
+    setApprovedQuestions((prev) => [...prev, q]);
+    setPendingQuestions((prev) =>
+      prev.map((p, i) => (i === idx ? { ...p, _status: "approved" } : p)),
+    );
     if (isEditMode) setIsDirty(true);
   };
 
-  const totalMarks = questions.reduce((s, q) => s + (Number(q.marks) || 0), 0);
+  const rejectPending = (idx) => {
+    setPendingQuestions((prev) =>
+      prev.map((p, i) => (i === idx ? { ...p, _status: "rejected" } : p)),
+    );
+  };
 
-  /* ── SUBMIT (create or update) ── */
+  const approveAll = () => {
+    const toAdd = pendingQuestions
+      .filter((p) => p._status === "pending")
+      .map((p) => {
+        const q = { ...p };
+        delete q._status;
+        return q;
+      });
+    setApprovedQuestions((prev) => [...prev, ...toAdd]);
+    setPendingQuestions((prev) =>
+      prev.map((p) =>
+        p._status === "pending" ? { ...p, _status: "approved" } : p,
+      ),
+    );
+    if (isEditMode) setIsDirty(true);
+  };
+
+  const savePendingEdit = (idx, updated) => {
+    setPendingQuestions((prev) =>
+      prev.map((p, i) => (i === idx ? { ...updated, _status: "pending" } : p)),
+    );
+    setEditingPending(null);
+  };
+
+  const removeApproved = (idx) => {
+    setApprovedQuestions((prev) => prev.filter((_, i) => i !== idx));
+    if (isEditMode) setIsDirty(true);
+  };
+
+  const totalMarks = approvedQuestions.reduce(
+    (s, q) => s + (Number(q.marks) || 0),
+    0,
+  );
+  const pendingCount = pendingQuestions.filter(
+    (p) => p._status === "pending",
+  ).length;
+
+  /* ── SUBMIT ── */
   const handleSaveClick = () => {
     if (!details.title.trim()) return toast.warn("Title is required");
     if (!details.dueDate) return toast.warn("Due date is required");
-    if (questions.length === 0) return toast.warn("Add at least 1 question");
+    if (!approvedQuestions.length)
+      return toast.warn("Approve at least 1 question");
     setConfirmSave(true);
   };
 
@@ -318,10 +370,10 @@ export default function Assignment() {
       if (isEditMode) {
         await axios.put(`${API}/assignment/${editingAssignmentId}`, {
           ...details,
-          questions,
+          questions: approvedQuestions,
           totalMarks,
         });
-        toast.success("Assignment updated successfully!");
+        toast.success("Assignment updated!");
       } else {
         await axios.post(`${API}/assignment/create`, {
           teacherId,
@@ -329,19 +381,17 @@ export default function Assignment() {
           classId: selectedClass._id,
           subjectId: selectedSubject._id,
           chapterId: selectedChapter._id,
-          topicId: selectedTopic?._id,
-          questions,
+          topicId:
+            selectedTopics.length === 1 ? selectedTopics[0]._id : undefined,
+          questions: approvedQuestions,
           ...details,
         });
-        toast.success("Assignment created successfully! 🎉");
+        toast.success("Assignment created! 🎉");
       }
       await fetchAssignments();
       resetAll();
     } catch (err) {
-      toast.error(
-        err?.response?.data?.message ||
-          `Failed to ${isEditMode ? "update" : "create"} assignment`,
-      );
+      toast.error(err?.response?.data?.message || "Save failed");
     } finally {
       setSubmitting(false);
     }
@@ -355,7 +405,7 @@ export default function Assignment() {
     setSelectedClass(null);
     setSelectedSubject(null);
     setSelectedChapter(null);
-    setSelectedTopic(null);
+    setSelectedTopics([]);
     setSubjects([]);
     setChapters([]);
     setTopics([]);
@@ -367,39 +417,30 @@ export default function Assignment() {
       duration: "",
       maxAttempts: 1,
     });
-    setQuestions([]);
-    setCurrentQ(emptyQuestion);
-    setEditingQIndex(null);
+    setApprovedQuestions([]);
+    setPendingQuestions([]);
+    setEditingPending(null);
     fetchClasses();
   };
 
-  /* ── DISCARD ── */
-  const handleDiscardClick = () => setConfirmDiscard(true);
   const doDiscard = () => {
     resetAll();
     setConfirmDiscard(false);
   };
-
-  /* ── ASSIGNMENT ACTIONS ── */
   const doDelete = async (id) => {
     try {
       await axios.delete(`${API}/assignment/${id}`);
-      toast.success("Assignment deleted");
+      toast.success("Deleted");
       setConfirmDelete(null);
       fetchAssignments();
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to delete");
+      toast.error(err?.response?.data?.message || "Delete failed");
     }
   };
-
   const togglePublish = async (a) => {
     try {
       await axios.patch(`${API}/assignment/publish/${a._id}`);
-      toast.success(
-        a.isPublished
-          ? "Assignment unpublished"
-          : "Assignment published! Students can now see it ✓",
-      );
+      toast.success(a.isPublished ? "Unpublished" : "Published ✓");
       fetchAssignments();
     } catch {
       toast.error("Failed to update publish status");
@@ -410,8 +451,311 @@ export default function Assignment() {
     selectedClass?.name,
     selectedSubject?.name,
     selectedChapter?.name,
-    selectedTopic?.name,
+    selectedTopics.length ? selectedTopics.map((t) => t.name).join(", ") : null,
   ].filter(Boolean);
+
+  /* ── TOPIC STEP ── */
+  const renderTopicStep = () => (
+    <div className="space-y-4">
+      <StepHeader
+        label="Select Topics (optional — multi-select)"
+        onBack={() => setStep(STEP_CHAPTER)}
+      />
+      {topics.length === 0 ? (
+        <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-xl">
+          <p className="text-3xl mb-2">📌</p>
+          <p className="text-sm text-gray-400">
+            No topics found for this chapter.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-2">
+          {topics.map((t) => {
+            const sel = selectedTopics.some((x) => x._id === t._id);
+            return (
+              <button
+                key={t._id}
+                onClick={() => toggleTopic(t)}
+                className={`text-left border rounded-xl p-3.5 transition-all group
+                  ${sel ? "border-indigo-400 bg-indigo-50 shadow-sm" : "border-gray-100 hover:border-indigo-300 hover:bg-indigo-50/50"}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`w-4 h-4 rounded flex items-center justify-center border-2 shrink-0 transition-colors
+                    ${sel ? "border-indigo-500 bg-indigo-500" : "border-gray-300"}`}
+                  >
+                    {sel && <FiCheck className="text-white text-xs" />}
+                  </span>
+                  <span
+                    className={`text-sm font-bold leading-snug ${sel ? "text-indigo-700" : "text-gray-700"}`}
+                  >
+                    {t.name}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+      <div className="flex gap-3 pt-2">
+        {selectedTopics.length > 0 && (
+          <button
+            onClick={() => setSelectedTopics([])}
+            className="text-xs text-gray-400 hover:text-gray-600 font-medium"
+          >
+            Clear selection
+          </button>
+        )}
+        <button
+          onClick={() => setStep(STEP_DETAILS)}
+          className="btn-primary flex items-center gap-2 ml-auto"
+        >
+          {selectedTopics.length > 0
+            ? `Continue with ${selectedTopics.length} topic${selectedTopics.length > 1 ? "s" : ""}`
+            : "Skip — use entire chapter"}{" "}
+          <FiChevronRight />
+        </button>
+      </div>
+    </div>
+  );
+
+  /* ── QUESTIONS STEP ── */
+  const renderQuestionsStep = () => (
+    <div className="space-y-5">
+      <StepHeader
+        label={`Questions • ${approvedQuestions.length} approved • ${totalMarks} marks`}
+        onBack={() => setStep(STEP_DETAILS)}
+      />
+
+      {/* AI Config Panel */}
+      <div className="border border-violet-200 bg-linear-to-br from-violet-50 to-indigo-50 rounded-2xl p-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <HiSparkles className="text-violet-600 text-lg" />
+          <h4 className="font-bold text-violet-800 text-sm">
+            AI Question Generator
+          </h4>
+          <span className="ml-auto text-xs bg-violet-100 text-violet-600 px-2 py-0.5 rounded-full font-semibold">
+            {selectedTopics.length > 0
+              ? `${selectedTopics.length} topic${selectedTopics.length > 1 ? "s" : ""} selected`
+              : "Entire chapter"}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="field-label">Questions</label>
+            <input
+              type="number"
+              className="field-input"
+              min={1}
+              max={20}
+              value={aiConfig.numberOfQuestions}
+              onChange={(e) =>
+                setAiConfig((c) => ({
+                  ...c,
+                  numberOfQuestions: Number(e.target.value),
+                }))
+              }
+            />
+          </div>
+          <div>
+            <label className="field-label">Difficulty</label>
+            <select
+              className="field-input"
+              value={aiConfig.difficulty}
+              onChange={(e) =>
+                setAiConfig((c) => ({ ...c, difficulty: e.target.value }))
+              }
+            >
+              {DIFFICULTY.map((d) => (
+                <option key={d} value={d}>
+                  {d.charAt(0).toUpperCase() + d.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="field-label">Types</label>
+            <div className="flex gap-1 flex-wrap mt-1">
+              {Q_TYPES.map((t) => {
+                const active = aiConfig.questionTypes.includes(t);
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() =>
+                      setAiConfig((c) => ({
+                        ...c,
+                        questionTypes: active
+                          ? c.questionTypes.filter((x) => x !== t)
+                          : [...c.questionTypes, t],
+                      }))
+                    }
+                    className={`text-xs px-2 py-1 rounded-lg border font-semibold transition-colors
+                      ${active ? "border-violet-400 bg-violet-500 text-white" : "border-gray-200 text-gray-500 hover:border-violet-300"}`}
+                  >
+                    {t.toUpperCase()}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={handleGenerateAI}
+          disabled={generatingAI || !aiConfig.questionTypes.length}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm
+            bg-violet-600 hover:bg-violet-700 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed
+            active:scale-[0.98] shadow-sm"
+        >
+          {generatingAI ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{" "}
+              Generating...
+            </>
+          ) : (
+            <>
+              <FiZap /> Generate Questions with AI
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Pending AI Questions — Approval Queue */}
+      {pendingQuestions.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+              <FiSliders className="text-violet-500" />
+              Review Generated Questions
+              {pendingCount > 0 && (
+                <span className="bg-violet-100 text-violet-700 text-xs px-2 py-0.5 rounded-full font-bold">
+                  {pendingCount} pending
+                </span>
+              )}
+            </h4>
+            {pendingCount > 0 && (
+              <button
+                onClick={approveAll}
+                className="text-xs font-bold text-emerald-600 hover:text-emerald-800 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 transition-colors"
+              >
+                <FiCheckCircle /> Approve All Pending
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-2 max-h-95 overflow-y-auto pr-1">
+            {pendingQuestions.map((q, i) => (
+              <PendingQuestionCard
+                key={i}
+                index={i}
+                question={q}
+                isEditing={editingPending === i}
+                onApprove={() => approvePending(i)}
+                onReject={() => rejectPending(i)}
+                onEditStart={() => setEditingPending(i)}
+                onEditSave={(updated) => savePendingEdit(i, updated)}
+                onEditCancel={() =>
+                  setEditingPending(
+                    i === editingPending ? null : editingPending,
+                  )
+                }
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={() => setPendingQuestions([])}
+            className="text-xs text-gray-400 hover:text-gray-600 font-medium flex items-center gap-1"
+          >
+            <FiRefreshCw className="text-xs" /> Clear all & regenerate
+          </button>
+        </div>
+      )}
+
+      {/* Approved Questions List */}
+      <div className="space-y-3">
+        <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+          <FiCheckCircle className="text-emerald-500" />
+          Approved Questions
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full font-bold
+            ${approvedQuestions.length ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-400"}`}
+          >
+            {approvedQuestions.length}
+          </span>
+        </h4>
+
+        {approvedQuestions.length === 0 ? (
+          <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">
+            <HiSparkles className="text-3xl text-gray-200 mx-auto mb-2" />
+            <p className="text-sm text-gray-400">
+              Generate and approve questions above.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {approvedQuestions.map((q, i) => (
+              <div
+                key={i}
+                className="flex items-start gap-3 border border-emerald-100 bg-emerald-50/30 rounded-xl px-4 py-3"
+              >
+                <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  {i + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">
+                    {q.text}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {q.type.toUpperCase()} • {q.marks} mark
+                    {q.marks !== 1 ? "s" : ""}
+                    {q.type === "mcq" && ` • ${q.options.length} options`}
+                  </p>
+                </div>
+                <button
+                  onClick={() => removeApproved(i)}
+                  className="text-xs text-red-400 hover:text-red-600 font-medium shrink-0"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="flex gap-3 pt-1">
+        <button
+          onClick={() => setConfirmDiscard(true)}
+          className="btn-outline flex items-center gap-2"
+        >
+          <FiX /> {isEditMode ? "Cancel Edit" : "Discard"}
+        </button>
+        <button
+          onClick={handleSaveClick}
+          disabled={submitting}
+          className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+        >
+          {submitting ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              {isEditMode ? "Updating..." : "Creating..."}
+            </>
+          ) : (
+            <>
+              <FiSave />{" "}
+              {isEditMode
+                ? "Update Assignment"
+                : `Create Assignment (${approvedQuestions.length} Q • ${totalMarks} marks)`}
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
 
   /* ── STEP CONTENT ── */
   const renderStep = () => {
@@ -422,7 +766,6 @@ export default function Assignment() {
           <p className="text-sm text-gray-400">Loading...</p>
         </div>
       );
-
     if (step === STEP_CLASS)
       return (
         <CardGrid
@@ -430,7 +773,7 @@ export default function Assignment() {
           items={classes}
           onPick={pickClass}
           icon="🏫"
-          emptyText="No classes assigned to you."
+          emptyText="No classes assigned."
         />
       );
     if (step === STEP_SUBJECT)
@@ -440,7 +783,7 @@ export default function Assignment() {
           items={subjects}
           onPick={pickSubject}
           icon="📚"
-          emptyText="No subjects for this class."
+          emptyText="No subjects."
           onBack={() => setStep(STEP_CLASS)}
         />
       );
@@ -451,31 +794,11 @@ export default function Assignment() {
           items={chapters}
           onPick={pickChapter}
           icon="📖"
-          emptyText="No chapters found."
+          emptyText="No chapters."
           onBack={() => setStep(STEP_SUBJECT)}
         />
       );
-
-    if (step === STEP_TOPIC)
-      return (
-        <div>
-          <CardGrid
-            label="Select a Topic (optional)"
-            items={topics}
-            onPick={pickTopic}
-            icon="📌"
-            emptyText="No topics found."
-            onBack={() => setStep(STEP_CHAPTER)}
-          />
-          <button
-            onClick={skipTopic}
-            className="mt-4 text-sm text-indigo-500 hover:text-indigo-700 flex items-center gap-1 font-semibold"
-          >
-            Skip this step <FiChevronRight />
-          </button>
-        </div>
-      );
-
+    if (step === STEP_TOPIC) return renderTopicStep();
     if (step === STEP_DETAILS)
       return (
         <div className="space-y-4">
@@ -579,227 +902,13 @@ export default function Assignment() {
           </button>
         </div>
       );
-
-    if (step === STEP_QUESTIONS)
-      return (
-        <div className="space-y-5">
-          <StepHeader
-            label={`Questions • ${totalMarks} total marks`}
-            onBack={() => setStep(STEP_DETAILS)}
-          />
-
-          {/* Builder */}
-          <div className="border border-indigo-100 bg-linear-to-br from-indigo-50/50 to-white rounded-xl p-4 space-y-3">
-            <h4 className="text-sm font-semibold text-indigo-700 flex items-center gap-2">
-              <FiBookOpen />
-              {editingQIndex !== null
-                ? `Editing Question ${editingQIndex + 1}`
-                : "New Question"}
-            </h4>
-            <textarea
-              className="field-input resize-none"
-              rows={2}
-              placeholder="Question text..."
-              value={currentQ.text}
-              onChange={(e) =>
-                setCurrentQ((q) => ({ ...q, text: e.target.value }))
-              }
-            />
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="field-label">Type</label>
-                <select
-                  className="field-input"
-                  value={currentQ.type}
-                  onChange={(e) =>
-                    setCurrentQ((q) => ({
-                      ...q,
-                      type: e.target.value,
-                      options: [],
-                    }))
-                  }
-                >
-                  <option value="short">Short Answer</option>
-                  <option value="long">Long Answer</option>
-                  <option value="mcq">MCQ</option>
-                </select>
-              </div>
-              <div>
-                <label className="field-label">Marks</label>
-                <input
-                  type="number"
-                  className="field-input"
-                  min={0}
-                  value={currentQ.marks}
-                  onChange={(e) =>
-                    setCurrentQ((q) => ({
-                      ...q,
-                      marks: Number(e.target.value),
-                    }))
-                  }
-                />
-              </div>
-            </div>
-            {currentQ.type === "mcq" && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="field-label mb-0">Options</span>
-                  <button
-                    type="button"
-                    onClick={addOption}
-                    className="text-xs text-indigo-600 hover:underline font-medium flex items-center gap-1"
-                  >
-                    <FiPlus /> Add option
-                  </button>
-                </div>
-                {currentQ.options.map((opt, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={opt.isCorrect}
-                      onChange={(e) =>
-                        updateOption(i, "isCorrect", e.target.checked)
-                      }
-                      className="w-4 h-4 accent-emerald-500 cursor-pointer"
-                      title="Mark as correct"
-                    />
-                    <input
-                      className="field-input flex-1"
-                      placeholder={`Option ${i + 1}`}
-                      value={opt.text}
-                      onChange={(e) => updateOption(i, "text", e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeOption(i)}
-                      className="text-red-400 hover:text-red-600"
-                    >
-                      <FiX />
-                    </button>
-                  </div>
-                ))}
-                {currentQ.options.length === 0 && (
-                  <p className="text-xs text-gray-400">
-                    Add at least 2 options.
-                  </p>
-                )}
-              </div>
-            )}
-            <div className="flex gap-2 pt-1">
-              <button
-                type="button"
-                onClick={saveQuestion}
-                className="btn-primary flex-1 flex items-center justify-center gap-2"
-              >
-                <FiPlus />{" "}
-                {editingQIndex !== null ? "Update Question" : "Add Question"}
-              </button>
-              {editingQIndex !== null && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentQ(emptyQuestion);
-                    setEditingQIndex(null);
-                  }}
-                  className="btn-outline"
-                >
-                  Cancel
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Question list */}
-          {questions.length > 0 ? (
-            <div className="space-y-2">
-              {questions.map((q, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 border border-gray-100 rounded-xl px-4 py-3 bg-white hover:border-indigo-200 transition-colors"
-                >
-                  <span className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-                    {i + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">
-                      {q.text}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {q.type.toUpperCase()} • {q.marks} mark
-                      {q.marks !== 1 ? "s" : ""}
-                      {q.type === "mcq" && ` • ${q.options.length} options`}
-                    </p>
-                  </div>
-                  <div className="flex gap-3 shrink-0">
-                    <button
-                      onClick={() => {
-                        setCurrentQ(q);
-                        setEditingQIndex(i);
-                        if (isEditMode) setIsDirty(true);
-                      }}
-                      className="text-xs text-indigo-500 hover:text-indigo-700 font-medium"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => {
-                        setQuestions((qs) => qs.filter((_, idx) => idx !== i));
-                        if (isEditMode) setIsDirty(true);
-                      }}
-                      className="text-xs text-red-400 hover:text-red-600 font-medium"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">
-              <HiOutlineClipboardList className="text-3xl text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">
-                No questions yet. Add at least one above.
-              </p>
-            </div>
-          )}
-
-          {/* Footer actions */}
-          <div className="flex gap-3 pt-1">
-            <button
-              onClick={handleDiscardClick}
-              className="btn-outline flex items-center gap-2"
-            >
-              <FiX /> {isEditMode ? "Cancel Edit" : "Discard"}
-            </button>
-            <button
-              onClick={handleSaveClick}
-              disabled={submitting}
-              className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {submitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{" "}
-                  {isEditMode ? "Updating..." : "Creating..."}
-                </>
-              ) : (
-                <>
-                  <FiSave />{" "}
-                  {isEditMode
-                    ? `Update Assignment`
-                    : `Create Assignment (${questions.length} Q • ${totalMarks} marks)`}
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      );
+    if (step === STEP_QUESTIONS) return renderQuestionsStep();
   };
 
   /* ── MAIN RENDER ── */
   return (
     <>
       <style>{styles}</style>
-
       <div className="bg-slate-50 p-4 sm:p-6">
         <div className="mx-auto">
           {/* Page header */}
@@ -814,7 +923,7 @@ export default function Assignment() {
               <p className="text-sm text-gray-500">
                 {isEditMode
                   ? "Editing draft — changes won't save until you confirm"
-                  : "Create and manage assignments for your classes"}
+                  : "Create AI-powered assignments for your classes"}
               </p>
             </div>
             {isEditMode && (
@@ -827,7 +936,6 @@ export default function Assignment() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* LEFT: Wizard */}
             <div className="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              {/* Dev warning */}
               {(!teacherId || !schoolId) && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-mono text-red-700">
                   <strong>⚠ Config:</strong> teacherId={String(teacherId)}{" "}
@@ -836,7 +944,6 @@ export default function Assignment() {
                   keys: [{Object.keys(user).join(", ")}]
                 </div>
               )}
-              {/* Error banner */}
               {error && (
                 <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 flex items-start gap-2">
                   <FiAlertTriangle className="text-amber-500 mt-0.5 shrink-0" />
@@ -915,7 +1022,6 @@ export default function Assignment() {
                       className={`border rounded-xl p-3.5 hover:shadow-sm transition-all duration-200
                         ${editingAssignmentId === a._id ? "border-amber-300 bg-amber-50/40" : "border-gray-100 hover:border-indigo-200"}`}
                     >
-                      {/* Title + status */}
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <h3 className="font-bold text-sm text-gray-800 leading-snug line-clamp-2">
                           {a.title}
@@ -927,7 +1033,6 @@ export default function Assignment() {
                           {a.isPublished ? "● Live" : "○ Draft"}
                         </span>
                       </div>
-                      {/* Meta */}
                       <p className="text-xs text-gray-400 mb-2">
                         {a.classId?.name} • {a.subjectId?.name}
                       </p>
@@ -947,12 +1052,10 @@ export default function Assignment() {
                           </span>
                         )}
                       </div>
-                      {/* Actions */}
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => setViewingAssignment(a)}
-                          className="flex-1 flex items-center justify-center gap-1 text-xs py-1.5 rounded-lg
-                            border border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-colors font-semibold"
+                          className="flex-1 flex items-center justify-center gap-1 text-xs py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-colors font-semibold"
                         >
                           <FiEye className="text-xs" /> View
                         </button>
@@ -1012,38 +1115,35 @@ export default function Assignment() {
         assignment={viewingAssignment}
         onClose={() => setViewingAssignment(null)}
       />
-
       <ConfirmModal
         open={!!confirmDelete}
         title="Delete Assignment?"
-        message="This action cannot be undone. The assignment and all its questions will be permanently removed."
+        message="This action cannot be undone."
         confirmLabel="Yes, Delete"
         confirmColor="red"
         onConfirm={() => doDelete(confirmDelete)}
         onCancel={() => setConfirmDelete(null)}
       />
-
       <ConfirmModal
         open={confirmSave}
         title={isEditMode ? "Save Changes?" : "Create Assignment?"}
         message={
           isEditMode
-            ? "Are you sure you want to update this assignment?"
-            : `Create this assignment with ${questions.length} question${questions.length !== 1 ? "s" : ""} worth ${totalMarks} marks?`
+            ? "Update this assignment?"
+            : `Create with ${approvedQuestions.length} question${approvedQuestions.length !== 1 ? "s" : ""} worth ${totalMarks} marks?`
         }
         confirmLabel={isEditMode ? "Yes, Update" : "Yes, Create"}
         confirmColor="indigo"
         onConfirm={doSave}
         onCancel={() => setConfirmSave(false)}
       />
-
       <ConfirmModal
         open={confirmDiscard}
         title={isEditMode ? "Cancel Edit?" : "Discard Assignment?"}
         message={
           isEditMode
-            ? "Your changes will be lost and the assignment will remain unchanged."
-            : "All your progress on this assignment will be lost. Are you sure?"
+            ? "Your changes will be lost."
+            : "All progress will be lost."
         }
         confirmLabel="Yes, Discard"
         confirmColor="red"
@@ -1055,7 +1155,193 @@ export default function Assignment() {
 }
 
 /* ─────────────────────────────────────────────
-   SUB-COMPONENTS
+   PENDING QUESTION CARD
+───────────────────────────────────────────── */
+function PendingQuestionCard({
+  question: q,
+  index,
+  isEditing,
+  onApprove,
+  onReject,
+  onEditStart,
+  onEditSave,
+  onEditCancel,
+}) {
+  const [draft, setDraft] = useState({ ...q });
+
+  useEffect(() => {
+    setDraft({ ...q });
+  }, [q]);
+
+  const statusStyle =
+    {
+      pending: "border-violet-200 bg-white",
+      approved: "border-emerald-200 bg-emerald-50/40 opacity-70",
+      rejected: "border-red-200 bg-red-50/30 opacity-50",
+    }[q._status] || "border-gray-200 bg-white";
+
+  if (isEditing)
+    return (
+      <div className="border border-violet-300 rounded-xl p-4 space-y-3 bg-violet-50/30">
+        <textarea
+          className="field-input resize-none"
+          rows={2}
+          value={draft.text}
+          onChange={(e) => setDraft((d) => ({ ...d, text: e.target.value }))}
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="field-label">Type</label>
+            <select
+              className="field-input"
+              value={draft.type}
+              onChange={(e) =>
+                setDraft((d) => ({ ...d, type: e.target.value, options: [] }))
+              }
+            >
+              <option value="short">Short</option>
+              <option value="long">Long</option>
+              <option value="mcq">MCQ</option>
+            </select>
+          </div>
+          <div>
+            <label className="field-label">Marks</label>
+            <input
+              type="number"
+              className="field-input"
+              min={0}
+              value={draft.marks}
+              onChange={(e) =>
+                setDraft((d) => ({ ...d, marks: Number(e.target.value) }))
+              }
+            />
+          </div>
+        </div>
+        {draft.type === "mcq" && (
+          <div className="space-y-2">
+            {(draft.options || []).map((opt, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={opt.isCorrect}
+                  onChange={(e) => {
+                    const opts = [...draft.options];
+                    opts[i] = { ...opts[i], isCorrect: e.target.checked };
+                    setDraft((d) => ({ ...d, options: opts }));
+                  }}
+                  className="w-4 h-4 accent-emerald-500"
+                />
+                <input
+                  className="field-input flex-1"
+                  value={opt.text}
+                  onChange={(e) => {
+                    const opts = [...draft.options];
+                    opts[i] = { ...opts[i], text: e.target.value };
+                    setDraft((d) => ({ ...d, options: opts }));
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-2">
+          <button
+            onClick={() => onEditSave(draft)}
+            className="btn-primary flex-1 flex items-center justify-center gap-1 text-xs py-2"
+          >
+            <FiSave /> Save Changes
+          </button>
+          <button
+            onClick={onEditCancel}
+            className="btn-outline text-xs px-4 py-2"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+
+  return (
+    <div className={`border rounded-xl p-3.5 transition-all ${statusStyle}`}>
+      <div className="flex items-start gap-3">
+        <span
+          className={`w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center shrink-0 mt-0.5
+          ${
+            q._status === "approved"
+              ? "bg-emerald-100 text-emerald-700"
+              : q._status === "rejected"
+                ? "bg-red-100 text-red-400"
+                : "bg-violet-100 text-violet-700"
+          }`}
+        >
+          {index + 1}
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-800">{q.text}</p>
+          <div className="flex gap-2 mt-1 flex-wrap">
+            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium uppercase">
+              {q.type}
+            </span>
+            <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-medium">
+              {q.marks} mark{q.marks !== 1 ? "s" : ""}
+            </span>
+            {q._status !== "pending" && (
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full font-bold
+                ${q._status === "approved" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-500"}`}
+              >
+                {q._status === "approved" ? "✓ Approved" : "✕ Rejected"}
+              </span>
+            )}
+          </div>
+          {q.type === "mcq" && q.options?.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {q.options.map((o, j) => (
+                <div
+                  key={j}
+                  className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg
+                  ${o.isCorrect ? "bg-emerald-50 text-emerald-700 font-medium" : "bg-gray-50 text-gray-500"}`}
+                >
+                  {o.isCorrect ? (
+                    <FiCheckCircle className="shrink-0" />
+                  ) : (
+                    <FiXCircle className="shrink-0 text-gray-300" />
+                  )}
+                  {o.text}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      {q._status === "pending" && (
+        <div className="flex gap-2 mt-3 ml-9">
+          <button
+            onClick={onApprove}
+            className="flex-1 flex items-center justify-center gap-1 text-xs py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold transition-colors"
+          >
+            <FiThumbsUp /> Approve
+          </button>
+          <button
+            onClick={onEditStart}
+            className="flex items-center justify-center gap-1 text-xs py-1.5 px-3 rounded-lg border border-violet-300 text-violet-600 hover:bg-violet-50 font-semibold transition-colors"
+          >
+            <FiEdit2 /> Edit
+          </button>
+          <button
+            onClick={onReject}
+            className="flex items-center justify-center gap-1 text-xs py-1.5 px-3 rounded-lg border border-red-200 text-red-400 hover:bg-red-50 font-semibold transition-colors"
+          >
+            <FiThumbsDown />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SUB-COMPONENTS (unchanged)
 ───────────────────────────────────────────── */
 function CardGrid({ label, items, onPick, icon, emptyText, onBack }) {
   return (
@@ -1072,8 +1358,7 @@ function CardGrid({ label, items, onPick, icon, emptyText, onBack }) {
             <button
               key={item._id}
               onClick={() => onPick(item)}
-              className="text-left border border-gray-100 rounded-xl p-3.5
-                hover:border-indigo-400 hover:bg-indigo-50/60 hover:shadow-sm transition-all group"
+              className="text-left border border-gray-100 rounded-xl p-3.5 hover:border-indigo-400 hover:bg-indigo-50/60 hover:shadow-sm transition-all group"
             >
               <span className="block text-xl mb-2">{icon}</span>
               <span className="text-sm font-bold text-gray-700 group-hover:text-indigo-700 leading-snug block">
@@ -1093,8 +1378,7 @@ function StepHeader({ label, onBack }) {
       {onBack && (
         <button
           onClick={onBack}
-          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200
-            text-gray-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
         >
           <FiArrowLeft />
         </button>
@@ -1104,9 +1388,6 @@ function StepHeader({ label, onBack }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   CONFIRM MODAL
-───────────────────────────────────────────── */
 function ConfirmModal({
   open,
   title,
@@ -1129,8 +1410,7 @@ function ConfirmModal({
       />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-modal">
         <div
-          className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto
-          ${confirmColor === "red" ? "bg-red-100" : "bg-indigo-100"}`}
+          className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto ${confirmColor === "red" ? "bg-red-100" : "bg-indigo-100"}`}
         >
           <FiAlertTriangle
             className={`text-xl ${confirmColor === "red" ? "text-red-500" : "text-indigo-500"}`}
@@ -1159,9 +1439,6 @@ function ConfirmModal({
   );
 }
 
-/* ─────────────────────────────────────────────
-   VIEW MODAL
-───────────────────────────────────────────── */
 function ViewModal({ assignment, onClose }) {
   if (!assignment) return null;
   return (
@@ -1171,13 +1448,11 @@ function ViewModal({ assignment, onClose }) {
         onClick={onClose}
       />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-modal">
-        {/* Header */}
         <div className="flex items-start justify-between p-6 border-b border-gray-100">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span
-                className={`text-xs px-2 py-0.5 rounded-full font-semibold
-                ${assignment.isPublished ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}
+                className={`text-xs px-2 py-0.5 rounded-full font-semibold ${assignment.isPublished ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}
               >
                 {assignment.isPublished ? "● Live" : "○ Draft"}
               </span>
@@ -1201,7 +1476,6 @@ function ViewModal({ assignment, onClose }) {
             <FiX className="text-xl" />
           </button>
         </div>
-        {/* Stats */}
         <div className="grid grid-cols-3 divide-x divide-gray-100 border-b border-gray-100">
           {[
             {
@@ -1229,7 +1503,6 @@ function ViewModal({ assignment, onClose }) {
             </div>
           ))}
         </div>
-        {/* Body */}
         <div className="overflow-y-auto flex-1 p-6 space-y-4">
           {assignment.description && (
             <div className="bg-gray-50 rounded-xl p-4">
@@ -1267,8 +1540,7 @@ function ViewModal({ assignment, onClose }) {
                           {q.options.map((o, j) => (
                             <div
                               key={j}
-                              className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg
-                              ${o.isCorrect ? "bg-emerald-50 text-emerald-700 font-medium" : "bg-gray-50 text-gray-600"}`}
+                              className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg ${o.isCorrect ? "bg-emerald-50 text-emerald-700 font-medium" : "bg-gray-50 text-gray-600"}`}
                             >
                               {o.isCorrect ? (
                                 <FiCheckCircle className="shrink-0" />
@@ -1292,42 +1564,18 @@ function ViewModal({ assignment, onClose }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   STYLES
-───────────────────────────────────────────── */
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
   body { font-family: 'Plus Jakarta Sans', sans-serif; }
-  .field-label {
-    display: block; font-size: 0.7rem; font-weight: 700;
-    color: #9ca3af; margin-bottom: 5px; letter-spacing: 0.05em; text-transform: uppercase;
-  }
-  .field-input {
-    display: block; width: 100%; border: 1.5px solid #e5e7eb; border-radius: 10px;
-    padding: 9px 12px; font-size: 0.875rem; color: #1f2937; background: white;
-    outline: none; transition: border-color 0.15s, box-shadow 0.15s;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
+  .field-label { display: block; font-size: 0.7rem; font-weight: 700; color: #9ca3af; margin-bottom: 5px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .field-input { display: block; width: 100%; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 9px 12px; font-size: 0.875rem; color: #1f2937; background: white; outline: none; transition: border-color 0.15s, box-shadow 0.15s; font-family: 'Plus Jakarta Sans', sans-serif; }
   .field-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
-  .btn-primary {
-    background: #4f46e5; color: white; border-radius: 10px; padding: 10px 20px;
-    font-size: 0.875rem; font-weight: 700; border: none; cursor: pointer;
-    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
+  .btn-primary { background: #4f46e5; color: white; border-radius: 10px; padding: 10px 20px; font-size: 0.875rem; font-weight: 700; border: none; cursor: pointer; transition: background 0.15s, transform 0.1s, box-shadow 0.15s; font-family: 'Plus Jakarta Sans', sans-serif; }
   .btn-primary:hover:not(:disabled) { background: #4338ca; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,0.25); }
   .btn-primary:active:not(:disabled) { transform: translateY(0); }
-  .btn-outline {
-    border: 1.5px solid #e5e7eb; color: #6b7280; border-radius: 10px; padding: 10px 16px;
-    font-size: 0.875rem; font-weight: 600; background: white; cursor: pointer;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
+  .btn-outline { border: 1.5px solid #e5e7eb; color: #6b7280; border-radius: 10px; padding: 10px 16px; font-size: 0.875rem; font-weight: 600; background: white; cursor: pointer; transition: border-color 0.15s, color 0.15s, background 0.15s; font-family: 'Plus Jakarta Sans', sans-serif; }
   .btn-outline:hover { border-color: #6366f1; color: #4f46e5; background: #eef2ff; }
-  @keyframes modalIn {
-    from { opacity: 0; transform: scale(0.95) translateY(8px); }
-    to   { opacity: 1; transform: scale(1) translateY(0); }
-  }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(8px); } to { opacity: 1; transform: scale(1) translateY(0); } }
   .animate-modal { animation: modalIn 0.2s ease-out; }
   .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 `;

@@ -20,6 +20,12 @@ const chapterSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    termId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Term",
+  required: true,
+  index: true,
+},
     name: {
       type: String,
       required: true,

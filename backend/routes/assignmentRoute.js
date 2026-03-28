@@ -8,6 +8,8 @@ import {
   togglePublishAssignment,
 } from "../controllers/assignmentController.js";
 
+import { generateAIQuestions } from "../controllers/aiController.js";
+
 const router = express.Router();
 
 /* ================= CREATE ================= */
@@ -27,5 +29,8 @@ router.delete("/:id", deleteAssignment);
 
 /* ================= PUBLISH ================= */
 router.patch("/publish/:id", togglePublishAssignment);
+
+/* ================= AI INTEGRATE =================*/
+router.post("/generate-questions", generateAIQuestions);
 
 export default router;

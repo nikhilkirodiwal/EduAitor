@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { FiChevronDown, FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
+import TermManagement from "../components/TermManagement";
 
 function Syllabus() {
   const API = import.meta.env.VITE_API_URL;
@@ -13,6 +14,9 @@ function Syllabus() {
   const [subjects, setSubjects] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedTerm, setSelectedTerm] = useState("");
+  const [terms, setTerms] = useState([]);
+  const [showTerm, setShowTerm] = useState(false);
 
   const [chapters, setChapters] = useState([]);
   const [topics, setTopics] = useState({});
@@ -78,7 +82,19 @@ function Syllabus() {
     if (selectedSubject && selectedClass) {
       fetchChapters();
     }
-  }, [selectedSubject]);
+  }, [selectedSubject, selectedTerm]);
+
+  const fetchTerms = async () => {
+    const res = await axios.get(`${API}/terms`, {
+      params: { schoolId: getSchoolId() },
+    });
+    setTerms(res.data.terms);
+    console.log(res.data.terms);
+  };
+
+  useEffect(() => {
+    fetchTerms();
+  }, []);
 
   const fetchChapters = async () => {
     try {
@@ -89,6 +105,7 @@ function Syllabus() {
           schoolId,
           classId: selectedClass,
           subjectId: selectedSubject,
+          termId: selectedTerm,
         },
       });
       setChapters(res.data.chapters || []);
@@ -162,12 +179,17 @@ function Syllabus() {
 
   // ==================== SUBMIT HANDLERS ====================
   const submitChapter = async () => {
+    if (!formData.termId) {
+      toast.error("Please select term");
+      return;
+    }
     try {
       const schoolId = getSchoolId();
       const payload = {
         schoolId,
         classId: selectedClass,
         subjectId: selectedSubject,
+        termId: formData.termId,
         name: formData.name,
         description: formData.description,
         learningOutcomes: formData.learningOutcomes
@@ -285,7 +307,7 @@ function Syllabus() {
         </div>
 
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           {/* Class Select */}
           <div className="relative">
             <label className="block text-sm font-semibold mb-2">
@@ -330,8 +352,36 @@ function Syllabus() {
               <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
             </div>
           </div>
+          {/* Term Select */}
+          <div className="relative">
+            <label className="block text-sm font-semibold mb-2">
+              Select Term
+            </label>
+            <div className="relative">
+              <select
+                value={selectedTerm}
+                onChange={(e) => setSelectedTerm(e.target.value)}
+                disabled={!selectedSubject}
+                className="w-full px-4 py-3  border border-slate-700 rounded-lg  focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">Select Term</option>
+                {terms?.map((t) => (
+                  <option key={t._id} value={t._id}>
+                    {t.name}{" "}
+                  </option>
+                ))}
+              </select>
+              <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+            </div>
+          </div>
+          <button
+            onClick={() => setShowTerm((p) => !p)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-cyan-500 to-blue-500 text-white font-medium shadow-md hover:scale-105 transition"
+          >
+            {showTerm ? "Hide Terms" : "Manage Terms"}
+          </button>
         </div>
-
+        {showTerm && <TermManagement onDataChange={fetchTerms} />}
         {/* Content Area */}
         {selectedSubject && (
           <div className="space-y-4">
@@ -535,6 +585,7 @@ function Syllabus() {
           setFormData={setFormData}
           onSubmit={submitChapter}
           onClose={closeModal}
+          terms={terms}
         />
       )}
 
@@ -551,7 +602,7 @@ function Syllabus() {
 }
 
 // ==================== CHAPTER MODAL ====================
-function ChapterModal({ formData, setFormData, onSubmit, onClose }) {
+function ChapterModal({ formData, setFormData, onSubmit, onClose, terms }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-slate-800 rounded-lg shadow-xl max-w-md w-full border border-slate-700">
@@ -568,6 +619,29 @@ function ChapterModal({ formData, setFormData, onSubmit, onClose }) {
         </div>
 
         <div className="p-6 space-y-4">
+          <div className="relative">
+            <label className="block text-sm font-semibold mb-2 text-white">
+              Select Term
+            </label>
+            <div className="relative">
+              <select
+                value={formData.termId || ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, termId: e.target.value })
+                }
+                className="w-full px-4 py-3 border border-slate-700 rounded-lg  focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer"
+              >
+                <option value="">All Terms</option>
+                {terms?.map((t) => (
+                  <option key={t._id} value={t._id}>
+                    {t.name}{" "}
+                  </option>
+                ))}
+              </select>
+              <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-semibold text-slate-300 mb-2">
               Chapter Name *
@@ -676,7 +750,7 @@ function TopicModal({ formData, setFormData, onSubmit, onClose }) {
                 setFormData({ ...formData, content: e.target.value })
               }
               placeholder="Topic content/description"
-              rows="3"
+              rows="6"
               className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-cyan-400 outline-none transition resize-none"
             />
           </div>
