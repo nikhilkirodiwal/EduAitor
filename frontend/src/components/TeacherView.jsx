@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
 const userData = JSON.parse(localStorage.getItem("userData"));
@@ -19,7 +20,7 @@ const TeacherView = () => {
   const fetchTeacher = async () => {
     try {
       const res = await axios.get(`${API}/teachers/${id}`, {
-        params: { schoolId },
+        withCredentials: true,
       });
 
       setTeacher(res.data.data);
@@ -41,7 +42,13 @@ const TeacherView = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
       {/* HEADER */}
-
+      <button
+        onClick={() => navigate("/school/teachers")}
+        className="flex items-center gap-2 text-indigo-600 mb-4"
+      >
+        <FaArrowLeft />
+        Back to Teachers
+      </button>
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold">Teacher Profile</h1>
 
@@ -85,7 +92,14 @@ const TeacherView = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
         <Stat title="Teacher ID" value={teacher.teacherId} />
         <Stat title="Experience" value={`${teacher.experience} yrs`} />
-        <Stat title="Subject" value={teacher.subject} />
+        <Stat
+          title="Subject"
+          value={
+            teacher.subjects?.length
+              ? teacher.subjects.map((s) => s.name).join(", ")
+              : "-"
+          }
+        />
         <Stat title="Status" value={teacher.status} />
       </div>
 
@@ -104,7 +118,14 @@ const TeacherView = () => {
         <Card title="Professional Details">
           <Info label="Qualification" value={teacher.qualification} />
           <Info label="Experience" value={`${teacher.experience} years`} />
-          <Info label="Subject" value={teacher.subject} />
+          <Info
+            label="Subject"
+            value={
+              teacher.subjects?.length
+                ? teacher.subjects.map((s) => s.name).join(", ")
+                : "-"
+            }
+          />
           <Info label="Department" value={teacher.department} />
         </Card>
 

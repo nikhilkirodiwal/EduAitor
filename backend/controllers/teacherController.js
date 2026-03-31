@@ -1,7 +1,7 @@
 import Teacher from "../models/teacher.js";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import { deleteFromCloudinary } from "../utils/deleteFromCloudinary.js";
-
+import bcrypt from "bcryptjs";
 /* ================= GENERATE TEACHER ID ================= */
 
 const generateTeacherId = async (schoolId) => {
@@ -16,7 +16,7 @@ const generateTeacherId = async (schoolId) => {
 
 export const createTeacher = async (req, res) => {
   try {
-    const { schoolId } = req.body;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId) {
       return res.status(400).json({
@@ -41,6 +41,16 @@ export const createTeacher = async (req, res) => {
     // Auto-generate teacher ID based on school
     const teacherId = await generateTeacherId(schoolId);
 
+    // Parse subjects if it's a JSON string
+    let subjects = req.body.subjects;
+    if (typeof subjects === "string") {
+      try {
+        subjects = JSON.parse(subjects);
+      } catch (e) {
+        subjects = [];
+      }
+    }
+
     // Parse assignedClasses if it's a JSON string
     let assignedClasses = req.body.assignedClasses;
     if (typeof assignedClasses === "string") {
@@ -51,11 +61,16 @@ export const createTeacher = async (req, res) => {
       }
     }
 
+    req.body.temp_password = req.body.password;
+    let hashedPassword = await bcrypt.hash(req.body.password, 10);
+    req.body.password = hashedPassword;
+
     const teacher = await Teacher.create({
       ...req.body,
       teacherId,
       photo,
       assignedClasses,
+      subjects,
       schoolId,
     });
 
@@ -78,7 +93,7 @@ export const createTeacher = async (req, res) => {
 
 export const getTeachers = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId) {
       return res.status(400).json({
@@ -89,6 +104,7 @@ export const getTeachers = async (req, res) => {
 
     const teachers = await Teacher.find({ schoolId })
       .populate("assignedClasses", "name className section")
+      .populate("subjects", "name")
       .sort({ createdAt: -1 });
 
     res.json({
@@ -109,7 +125,7 @@ export const getTeachers = async (req, res) => {
 
 export const getTeacher = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId) {
       return res.status(400).json({
@@ -118,10 +134,9 @@ export const getTeacher = async (req, res) => {
       });
     }
 
-    const teacher = await Teacher.findOne({
-      _id: req.params.id,
-      schoolId,
-    }).populate("assignedClasses", "name className section");
+    const teacher = await Teacher.findOne({ _id: req.params.id, schoolId })
+      .populate("assignedClasses", "name className section")
+      .populate("subjects", "name");
 
     if (!teacher) {
       return res.status(404).json({
@@ -148,7 +163,7 @@ export const getTeacher = async (req, res) => {
 
 export const updateTeacher = async (req, res) => {
   try {
-    const { schoolId } = req.body;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId) {
       return res.status(400).json({
@@ -188,6 +203,17 @@ export const updateTeacher = async (req, res) => {
       };
     }
 
+    // Parse subjects if it's a JSON string
+    let subjects = req.body.subjects;
+
+    if (typeof subjects === "string") {
+      try {
+        subjects = JSON.parse(subjects);
+      } catch {
+        subjects = [];
+      }
+    }
+
     // Parse assignedClasses if it's a JSON string
     let assignedClasses = req.body.assignedClasses;
     if (typeof assignedClasses === "string") {
@@ -200,18 +226,23 @@ export const updateTeacher = async (req, res) => {
 
     delete req.body.schoolId;
 
+    // Only hash password if a new one was actually provided
+    if (req.body.password && req.body.password.trim() !== "") {
+      req.body.temp_password = req.body.password;
+      req.body.password = await bcrypt.hash(req.body.password, 10);
+    } else {
+      delete req.body.password;
+      delete req.body.temp_password;
+    }
+
     // Prepare update data
     const updateData = {
       ...req.body,
-      schoolId: req.body.schoolId,
+      subjects,
+      schoolId: safeSchoolId,
       photo,
       assignedClasses,
     };
-
-    // Remove password from update if not provided
-    if (!req.body.password || req.body.password === "") {
-      delete updateData.password;
-    }
 
     const updatedTeacher = await Teacher.findByIdAndUpdate(
       req.params.id,
@@ -238,7 +269,7 @@ export const updateTeacher = async (req, res) => {
 
 export const deleteTeacher = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId) {
       return res.status(400).json({

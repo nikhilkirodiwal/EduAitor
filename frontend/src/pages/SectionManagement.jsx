@@ -11,8 +11,6 @@ import {
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 export default function SectionManagement() {
   const [sections, setSections] = useState([]);
@@ -50,7 +48,7 @@ export default function SectionManagement() {
       setLoading(true);
 
       const { data } = await axios.get(`${API}/sections/all`, {
-        params: { schoolId },
+        withCredentials: true,
       });
 
       if (data.success) setSections(data.sections);
@@ -75,17 +73,23 @@ export default function SectionManagement() {
 
     try {
       if (editingSection) {
-        await axios.put(`${API}/sections/update/${editingSection._id}`, {
-          ...sectionForm,
-          schoolId,
-        });
+        await axios.put(
+          `${API}/sections/update/${editingSection._id}`,
+          {
+            ...sectionForm,
+          },
+          { withCredentials: true },
+        );
 
         toast.success("Section updated");
       } else {
-        await axios.post(`${API}/sections/create`, {
-          ...sectionForm,
-          schoolId,
-        });
+        await axios.post(
+          `${API}/sections/create`,
+          {
+            ...sectionForm,
+          },
+          { withCredentials: true },
+        );
 
         toast.success("Section created");
       }
@@ -101,7 +105,7 @@ export default function SectionManagement() {
   const deleteSection = async (id) => {
     try {
       await axios.delete(`${API}/sections/delete/${id}`, {
-        params: { schoolId },
+        withCredentials: true,
       });
 
       toast.success("Section deleted");
@@ -149,16 +153,19 @@ export default function SectionManagement() {
           `${API}/sections/sub/update/${subForm.sectionId}/${editingSub._id}`,
           {
             ...subForm,
-            schoolId,
           },
+          { withCredentials: true },
         );
 
         toast.success("Subsection updated");
       } else {
-        await axios.post(`${API}/sections/sub/create/${subForm.sectionId}`, {
-          ...subForm,
-          schoolId,
-        });
+        await axios.post(
+          `${API}/sections/sub/create/${subForm.sectionId}`,
+          {
+            ...subForm,
+          },
+          { withCredentials: true },
+        );
 
         toast.success("Subsection created");
       }
@@ -174,7 +181,7 @@ export default function SectionManagement() {
   const deleteSub = async (sectionId, subId) => {
     try {
       await axios.delete(`${API}/sections/sub/delete/${sectionId}/${subId}`, {
-        params: { schoolId },
+        withCredentials: true,
       });
 
       toast.success("Subsection deleted");

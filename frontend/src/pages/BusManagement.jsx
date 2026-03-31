@@ -42,12 +42,8 @@ const BusManagement = () => {
   const fetchMeta = async () => {
     try {
       const [d, r] = await Promise.all([
-        axios.get(`${API}/transport/drivers`, {
-          params: { school_id: schoolId },
-        }),
-        axios.get(`${API}/transport/routes`, {
-          params: { school_id: schoolId },
-        }),
+        axios.get(`${API}/transport/drivers`, { withCredentials: true }),
+        axios.get(`${API}/transport/routes`, { withCredentials: true }),
       ]);
 
       setDrivers(d.data.data || []);
@@ -65,7 +61,7 @@ const BusManagement = () => {
     try {
       setLoading(true);
       const res = await axios.get(`${API}/transport/buses`, {
-        params: { school_id: schoolId },
+        withCredentials: true,
       });
       setBuses(res.data.data || []);
     } catch (err) {
@@ -131,15 +127,18 @@ const BusManagement = () => {
         capacity: form.capacity ? Number(form.capacity) : undefined,
         driver: form.driver || null,
         route: form.route || null,
-        school_id: schoolId,
         nextService: form.nextService || null,
         status: form.status,
       };
       if (isEdit) {
-        await axios.put(`${API}/transport/buses/${editId}`, payload);
+        await axios.put(`${API}/transport/buses/${editId}`, payload, {
+          withCredentials: true,
+        });
         toast.success("Bus updated successfully");
       } else {
-        await axios.post(`${API}/transport/buses`, payload);
+        await axios.post(`${API}/transport/buses`, payload, {
+          withCredentials: true,
+        });
         toast.success("Bus registered successfully");
       }
       setFormModal(false);
@@ -162,7 +161,7 @@ const BusManagement = () => {
   const confirmDelete = async () => {
     try {
       await axios.delete(`${API}/transport/buses/${deleteTarget._id}`, {
-        params: { school_id: schoolId },
+        withCredentials: true,
       });
       toast.success("Bus deleted successfully");
       setDeleteModal(false);
@@ -620,7 +619,6 @@ const BusFormModal = ({
     </div>
   );
 };
-
 
 /* ── DELETE MODAL ─────────────────────────────────────────────────────────── */
 

@@ -11,20 +11,15 @@ import {
   updateBook,
   deleteBook,
 } from "../controllers/libraryController.js";
+import { authMiddleware } from "../auth/auth.js";
 
-router.get("/books", getBooks);
-router.post("/books", addBook);
-router.post("/add/books", addBook);
-router.put("/books/:id", updateBook);
-router.delete("/books/:id", deleteBook);
+router.get("/books", authMiddleware, getBooks);
+router.post("/books", authMiddleware, addBook);
+router.put("/books/:id", authMiddleware, updateBook);
+router.delete("/books/:id", authMiddleware, deleteBook);
 
-router.get("/issues", getIssueBooks);
-router.get("/book/getissues", getIssueBooks);
-router.post("/issues", issueBook);
-router.post("/book/issues", issueBook);
-router.post("/issues/:issueId/return", returnBook);
-router.post("/book/return", returnBook);
-router.post("/books/return", returnBook);
-
+router.get("/issues", authMiddleware, getIssueBooks);
+router.post("/issues", authMiddleware, issueBook);
+router.post("/issues/:issueId/return", authMiddleware, returnBook);
 
 export default router;

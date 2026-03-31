@@ -6,15 +6,16 @@ import {
   updateSubject,
   deleteSubject,
 } from "../controllers/subjectController.js";
+import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
-router.post("/create", createSubject);
+router.post("/create", authMiddleware, createSubject);
 
-router.get("/all", getSubjects);
+router.get("/all", authMiddleware, getSubjects);
 
-router.put("/update/:id", updateSubject);
+router.put("/update/:id", authMiddleware, updateSubject);
 
-router.delete("/delete/:id", deleteSubject);
+router.delete("/delete/:id", authMiddleware, deleteSubject);
 
 export default router;

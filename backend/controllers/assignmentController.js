@@ -5,9 +5,9 @@ import Teacher from "../models/teacher.js";
 
 export const createAssignment = async (req, res) => {
   try {
+    const schoolId = req.user?.school_id;
     const {
       teacherId,
-      schoolId,
       title,
       description,
       type,

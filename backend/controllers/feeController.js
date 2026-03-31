@@ -10,34 +10,44 @@ import School from "../models/school.js";
 export const getFeeStructures = async (req, res) => {
   try {
     const { classId } = req.params;
-    const { schoolId } = req.query; // Get from query params
+    const schoolId = req.user?.school_id;
 
     if (!schoolId) {
-      return res.status(400).json({ message: "School ID is required" });
+      return res.status(400).json({
+        success: false,
+        message: "School ID is required",
+      });
     }
 
-    const schId = new mongoose.Types.ObjectId(schoolId);
-    const cId = new mongoose.Types.ObjectId(classId);
-
-    // Find the structure matching BOTH class and school
     const feeStructure = await FeeStructure.findOne({
-      class: cId,
-      schoolId: schId,
-    });
+      class: classId,
+      schoolId,
+    }).lean();
 
     if (!feeStructure) {
-      return res.json({ class: classId, fees: [] });
+      return res.json({
+        success: true,
+        fees: [],
+      });
     }
 
-    res.json(feeStructure);
+    return res.json({
+      success: true,
+      fees: feeStructure.fees || [],
+    });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
 
 export const addFeeComponent = async (req, res) => {
   try {
-    const { name, amount, isOptional, schoolId } = req.body; // 👈 Extract schoolId
+    const { name, amount, isOptional } = req.body; // 👈 Extract schoolId
+    const schoolId = req.user?.school_id;
 
     if (!name || amount === undefined || !schoolId)
       return res
@@ -62,7 +72,8 @@ export const addFeeComponent = async (req, res) => {
 //  edit a existing one  fee component
 export const editFeeComponent = async (req, res) => {
   try {
-    const { name, amount, isOptional, schoolId } = req.body; // 👈 Extract schoolId
+    const { name, amount, isOptional } = req.body; // 👈 Extract schoolId
+    const schoolId = req.user?.school_id;
     const { classId, feeId } = req.params;
 
     if (!schoolId) {
@@ -101,7 +112,7 @@ export const editFeeComponent = async (req, res) => {
 export const deleteFeeComponent = async (req, res) => {
   try {
     const { classId, feeId } = req.params;
-    const { schoolId } = req.query; // 👈 Take from query params
+    const schoolId = req.user?.school_id;
 
     if (!schoolId) {
       return res
@@ -132,8 +143,15 @@ export const deleteFeeComponent = async (req, res) => {
 // collect fee function
 export const collectStudentFee = async (req, res) => {
   try {
-    const { studentId, amountPaid, paymentMode, remarks, schoolId } = req.body;
+    const { studentId, amountPaid, paymentMode, remarks } = req.body;
+    const schoolId = req.user?.school_id;
 
+    if (!studentId || amountPaid === undefined || !paymentMode || !schoolId) {
+      return res.status(400).json({
+        message:
+          "studentId, amountPaid, paymentMode, and schoolId are required",
+      });
+    }
     // 0. validate school
     if (!schoolId) {
       return res.status(400).json({ message: "School ID is required" });
@@ -208,7 +226,7 @@ export const AllStudentHistory = async (req, res) => {
     const search = (req.query.search || "").trim();
     const month = parseInt(req.query.month) || null;
     const year = parseInt(req.query.year) || null;
-    const schoolId = req.query.schoolId;
+    const schoolId = req.user.school_id;
 
     if (!schoolId) {
       return res
@@ -354,8 +372,8 @@ export const AllStudentHistory = async (req, res) => {
 export const getAllDefaulter = async (req, res) => {
   try {
     // 1. Extract classId (not className) from query
-    const { classId, search, page = 1, limit = 10, schoolId } = req.query;
-
+    const { classId, search, page = 1, limit = 10 } = req.query;
+    const schoolId = req.user?.school_id;
     if (!schoolId)
       return res.status(400).json({ message: "School Id is required" });
 

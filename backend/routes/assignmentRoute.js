@@ -7,13 +7,13 @@ import {
   deleteAssignment,
   togglePublishAssignment,
 } from "../controllers/assignmentController.js";
-
+import { authMiddleware } from "../auth/auth.js";
 import { generateAIQuestions } from "../controllers/aiController.js";
 
 const router = express.Router();
 
 /* ================= CREATE ================= */
-router.post("/create", createAssignment);
+router.post("/create", authMiddleware, createAssignment);
 
 /* ================= GET (TEACHER) ================= */
 router.get("/teacher", getTeacherAssignments);

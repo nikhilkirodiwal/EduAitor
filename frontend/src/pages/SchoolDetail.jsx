@@ -108,7 +108,7 @@ export default function SchoolDetail() {
       ] = await Promise.all([
         p(`${API}/schools/${id}`),
         p(`${API}/students`, { schoolId: id }),
-        p(`${API}/teachers`, { schoolId: id }),
+        p(`${API}/teachers`, {schoolId: id }),
         p(`${API}/sections/all`, { schoolId: id }),
         p(`${API}/classes/all`, { schoolId: id }),
         p(`${API}/subjects/all`, { schoolId: id }),

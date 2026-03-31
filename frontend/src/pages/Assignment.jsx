@@ -22,6 +22,7 @@ import {
   FiRefreshCw,
 } from "react-icons/fi";
 import { HiOutlineClipboardList, HiSparkles } from "react-icons/hi";
+import { useAuth } from "../context/AuthContext";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -40,7 +41,7 @@ const Q_TYPES = ["short", "long", "mcq"];
    MAIN COMPONENT
 ───────────────────────────────────────────── */
 export default function Assignment() {
-  const user = JSON.parse(localStorage.getItem("userData") || "{}");
+  const { user, loading } = useAuth();
   const teacherId =
     user?.teacher_id || user?._id || user?.id || user?.teacherId;
   const schoolId = user?.school_id || user?.schoolId || user?.schoolID;
@@ -48,7 +49,7 @@ export default function Assignment() {
   const [editingAssignmentId, setEditingAssignmentId] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [step, setStep] = useState(STEP_CLASS);
-  const [loading, setLoading] = useState(false);
+  const [loadingg, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -145,11 +146,12 @@ export default function Assignment() {
           params: {
             classId: a.classId._id,
             subjectId: a.subjectId._id,
-            schoolId,
           },
+          withCredentials: true,
         }),
         axios.get(`${API}/teacher-academic/topics`, {
-          params: { chapterId: a.chapterId._id, schoolId },
+          params: { chapterId: a.chapterId._id },
+          withCredentials: true,
         }),
       ]);
       setSubjects(subRes.data.data || []);
@@ -225,7 +227,8 @@ export default function Assignment() {
     setLoading(true);
     try {
       const res = await axios.get(`${API}/teacher-academic/chapters`, {
-        params: { classId: selectedClass._id, subjectId: sub._id, schoolId },
+        params: { classId: selectedClass._id, subjectId: sub._id },
+        withCredentials: true,
       });
       const data = res.data.data || [];
       setChapters(data);
@@ -246,7 +249,8 @@ export default function Assignment() {
     setLoading(true);
     try {
       const res = await axios.get(`${API}/teacher-academic/topics`, {
-        params: { chapterId: ch._id, schoolId },
+        params: { chapterId: ch._id },
+        withCredentials: true,
       });
       setTopics(res.data.data || []);
     } catch (err) {
@@ -375,17 +379,20 @@ export default function Assignment() {
         });
         toast.success("Assignment updated!");
       } else {
-        await axios.post(`${API}/assignment/create`, {
-          teacherId,
-          schoolId,
-          classId: selectedClass._id,
-          subjectId: selectedSubject._id,
-          chapterId: selectedChapter._id,
-          topicId:
-            selectedTopics.length === 1 ? selectedTopics[0]._id : undefined,
-          questions: approvedQuestions,
-          ...details,
-        });
+        await axios.post(
+          `${API}/assignment/create`,
+          {
+            teacherId,
+            classId: selectedClass._id,
+            subjectId: selectedSubject._id,
+            chapterId: selectedChapter._id,
+            topicId:
+              selectedTopics.length === 1 ? selectedTopics[0]._id : undefined,
+            questions: approvedQuestions,
+            ...details,
+          },
+          { withCredentials: true },
+        );
         toast.success("Assignment created! 🎉");
       }
       await fetchAssignments();
@@ -759,7 +766,7 @@ export default function Assignment() {
 
   /* ── STEP CONTENT ── */
   const renderStep = () => {
-    if (loading)
+    if (loadingg)
       return (
         <div className="flex flex-col items-center justify-center h-48 gap-3">
           <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />

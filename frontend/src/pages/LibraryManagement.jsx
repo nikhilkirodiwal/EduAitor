@@ -81,9 +81,7 @@ const LibraryManagement = () => {
 
   const fetchStudents = async () => {
     try {
-      const res = await axios.get(`${API}/students`, {
-        params: { schoolId: getSchoolId() },
-      });
+      const res = await axios.get(`${API}/students`, { withCredentials: true });
       setStudents(res.data.data || []);
     } catch (error) {
       toast.error("Could not load students");
@@ -94,9 +92,9 @@ const LibraryManagement = () => {
     try {
       const res = await axios.get(`${API}/library/books`, {
         params: {
-          schoolId: getSchoolId(),
           search,
         },
+        withCredentials: true,
       });
       const data = res.data.data || [];
       setBooks(data);
@@ -121,10 +119,10 @@ const LibraryManagement = () => {
     try {
       const res = await axios.get(`${API}/library/issues`, {
         params: {
-          schoolId: getSchoolId(),
           search,
           status,
         },
+        withCredentials: true,
       });
       setIssueRecords(res.data.allissuebook || []);
       setIssueStats(
@@ -194,7 +192,6 @@ const LibraryManagement = () => {
     const payload = {
       ...bookForm,
       totalCopies: Number(bookForm.totalCopies),
-      schoolId: getSchoolId(),
     };
 
     const loader = toast.loading(
@@ -203,9 +200,13 @@ const LibraryManagement = () => {
 
     try {
       if (isEditing && selectedBook) {
-        await axios.put(`${API}/library/books/${selectedBook._id}`, payload);
+        await axios.put(`${API}/library/books/${selectedBook._id}`, payload, {
+          withCredentials: true,
+        });
       } else {
-        await axios.post(`${API}/library/books`, payload);
+        await axios.post(`${API}/library/books`, payload, {
+          withCredentials: true,
+        });
       }
 
       toast.update(loader, {
@@ -235,7 +236,7 @@ const LibraryManagement = () => {
 
     try {
       await axios.delete(`${API}/library/books/${selectedBook._id}`, {
-        params: { schoolId: getSchoolId() },
+        withCredentials: true,
       });
       toast.update(loader, {
         render: "Book deleted successfully",
@@ -262,12 +263,17 @@ const LibraryManagement = () => {
     const loader = toast.loading("Issuing book...");
 
     try {
-      await axios.post(`${API}/library/issues`, {
-        schoolId: getSchoolId(),
-        bookId: selectedBook._id,
-        studentId: issueForm.studentId,
-        dueDate: issueForm.dueDate,
-      });
+      await axios.post(
+        `${API}/library/issues`,
+        {
+          bookId: selectedBook._id,
+          studentId: issueForm.studentId,
+          dueDate: issueForm.dueDate,
+        },
+        {
+          withCredentials: true,
+        },
+      );
 
       toast.update(loader, {
         render: "Book issued successfully",
@@ -294,10 +300,15 @@ const LibraryManagement = () => {
     const loader = toast.loading("Processing return...");
 
     try {
-      await axios.post(`${API}/library/issues/${selectedIssue._id}/return`, {
-        schoolId: getSchoolId(),
-        finePaid: selectedIssue.fineAmount || 0,
-      });
+      await axios.post(
+        `${API}/library/issues/${selectedIssue._id}/return`,
+        {
+          finePaid: selectedIssue.fineAmount || 0,
+        },
+        {
+          withCredentials: true,
+        },
+      );
 
       toast.update(loader, {
         render: "Book returned successfully",

@@ -12,20 +12,9 @@ function FeeCollection() {
   const API = import.meta.env.VITE_API_URL;
   /* Fetch all classes for the dropdown */
   const fetchClasses = async () => {
-    // 1. Get the string from localStorage
-    const savedUserData = localStorage.getItem("userData");
-
-    // 2. Parse it back into an object
-    const userData = savedUserData ? JSON.parse(savedUserData) : null;
-    const schoolId = userData?.school_id;
-
-    if (!schoolId) {
-      console.error("No School ID found");
-      return;
-    }
     try {
       const { data } = await axios.get(`${API}/classes/all`, {
-        params: { schoolId },
+        withCredentials: true,
       });
       setClasses(data.classes);
     } catch {
@@ -35,13 +24,9 @@ function FeeCollection() {
 
   //   fetch student
   const fetchStudents = async () => {
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    const schoolId = userData?.school_id;
-
-    if (!schoolId) return alert("school id not found");
     try {
       const res = await axios.get(`${API}/students`, {
-        params: { schoolId },
+        withCredentials: true,
       });
       setStudents(res.data.data);
       setFilteredStudents(res.data.data);
@@ -113,9 +98,6 @@ function FeeCollection() {
   };
 
   const confirmPayment = async () => {
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    const schoolId = userData?.school_id;
-
     if (!amountToPay || Number(amountToPay) <= 0) {
       toast.error("Please enter a valid amount");
       return;
@@ -126,14 +108,15 @@ function FeeCollection() {
       amountPaid: Number(amountToPay),
       paymentMode: paymentMode,
       remarks: "Fee collection via Accountant",
-      schoolId: schoolId,
     };
 
     const loadingToast = toast.loading("Processing payment...");
     let isSuccess = false; // 👈 flag to track what happened
 
     try {
-      const response = await axios.post(`${API}/fee-collect`, payload);
+      const response = await axios.post(`${API}/fee-collect`, payload, {
+        withCredentials: true,
+      });
       toast.dismiss(loadingToast);
 
       if (response.data.success) {
@@ -155,12 +138,9 @@ function FeeCollection() {
       setPaymentMode("Cash");
 
       try {
-        const userData = JSON.parse(localStorage.getItem("userData"));
-        const schoolId = userData?.school_id;
-
         // 1. Fetch the fresh data from the server
         const res = await axios.get(`${API}/students`, {
-          params: { schoolId },
+          withCredentials: true,
         });
         const freshStudents = res.data.data;
 

@@ -27,7 +27,7 @@ const resolveId = (val) =>
 
 export const getSummary = async (req, res) => {
   try {
-    const { school_id } = req.query;
+    const school_id = req.user?.school_id;
     if (!school_id) return missingSchoolId(res);
 
     const schoolObjId = toId(school_id);
@@ -62,7 +62,7 @@ export const getSummary = async (req, res) => {
 
 export const getActivity = async (req, res) => {
   try {
-    const { school_id } = req.query;
+    const school_id = req.user?.school_id;
     if (!school_id) return missingSchoolId(res);
 
     const startOfDay = new Date();
@@ -126,7 +126,7 @@ export const getActivity = async (req, res) => {
 // GET /transport/drivers?school_id=
 export const getDrivers = async (req, res) => {
   try {
-    const { school_id } = req.query;
+    const school_id = req.user?.school_id;
     if (!school_id) return missingSchoolId(res);
 
     const drivers = await Driver.find({ schoolId: toId(school_id) })
@@ -148,8 +148,8 @@ export const createDriver = async (req, res) => {
   session.startTransaction();
 
   try {
+    const school_id = req.user?.school_id;
     const {
-      school_id,
       name,
       phone,
       license,
@@ -260,8 +260,9 @@ export const updateDriver = async (req, res) => {
   session.startTransaction();
 
   try {
+    const school_id = req.user?.school_id;
     const { id } = req.params;
-    const { school_id, bus, route } = req.body;
+    const { bus, route } = req.body;
 
     const driver = await Driver.findOne({ _id: id, schoolId: toId(school_id) });
 
@@ -357,8 +358,9 @@ export const updateDriver = async (req, res) => {
 // body: { school_id, status }
 export const updateDriverStatus = async (req, res) => {
   try {
+    const school_id = req.user?.school_id;
     const { id } = req.params;
-    const { school_id, status } = req.body;
+    const { status } = req.body;
 
     if (!school_id) return missingSchoolId(res);
     if (!["Active", "On Leave", "Inactive"].includes(status))
@@ -389,8 +391,8 @@ export const deleteDriver = async (req, res) => {
   session.startTransaction();
 
   try {
+    const school_id = req.user?.school_id;
     const { id } = req.params;
-    const { school_id } = req.query;
 
     const driver = await Driver.findOneAndDelete(
       { _id: id, schoolId: toId(school_id) },
@@ -429,7 +431,7 @@ export const deleteDriver = async (req, res) => {
 // GET /transport/buses?school_id=
 export const getBuses = async (req, res) => {
   try {
-    const { school_id } = req.query;
+    const school_id = req.user?.school_id;
     if (!school_id) return missingSchoolId(res);
 
     const buses = await Bus.find({ schoolId: toId(school_id) })
@@ -448,15 +450,8 @@ export const getBuses = async (req, res) => {
 // body: { school_id, id (busId), regNo, model, capacity, driver, route }
 export const createBus = async (req, res) => {
   try {
-    const {
-      school_id,
-      id: busId,
-      regNo,
-      model,
-      capacity,
-      driver,
-      route,
-    } = req.body;
+    const school_id = req.user?.school_id;
+    const { id: busId, regNo, model, capacity, driver, route } = req.body;
 
     if (!school_id) return missingSchoolId(res);
 
@@ -497,9 +492,9 @@ export const updateBus = async (req, res) => {
   session.startTransaction();
 
   try {
+    const school_id = req.user?.school_id;
     const { id } = req.params;
     const {
-      school_id,
       regNo,
       model,
       capacity,
@@ -650,8 +645,9 @@ export const updateBus = async (req, res) => {
 // body: { school_id, status }
 export const updateBusStatus = async (req, res) => {
   try {
+    const school_id = req.user?.school_id;
     const { id } = req.params;
-    const { school_id, status } = req.body;
+    const { status } = req.body;
 
     if (!school_id) return missingSchoolId(res);
     if (!["Active", "Maintenance", "Inactive"].includes(status))
@@ -675,8 +671,8 @@ export const updateBusStatus = async (req, res) => {
 // DELETE /transport/buses/:id?school_id=
 export const deleteBus = async (req, res) => {
   try {
+    const school_id = req.user?.school_id;
     const { id } = req.params;
-    const { school_id } = req.query;
 
     if (!school_id) return missingSchoolId(res);
     await Driver.updateMany({ bus: id }, { $set: { bus: null } });
@@ -700,7 +696,7 @@ export const deleteBus = async (req, res) => {
 // GET /transport/routes?school_id=
 export const getRoutes = async (req, res) => {
   try {
-    const { school_id } = req.query;
+    const school_id = req.user?.school_id;
     if (!school_id) return missingSchoolId(res);
 
     const routes = await TransportRoute.find({ schoolId: toId(school_id) })
@@ -727,8 +723,8 @@ export const createRoute = async (req, res) => {
   session.startTransaction();
 
   try {
+    const school_id = req.user?.school_id;
     const {
-      school_id,
       name,
       bus,
       driver,
@@ -824,9 +820,9 @@ export const updateRoute = async (req, res) => {
   session.startTransaction();
 
   try {
+    const school_id = req.user?.school_id;
     const { id } = req.params;
     const {
-      school_id,
       name,
       bus,
       driver,
@@ -913,8 +909,9 @@ export const updateRoute = async (req, res) => {
 // body: { school_id, status }
 export const updateRouteStatus = async (req, res) => {
   try {
+    const school_id = req.user?.school_id;
     const { id } = req.params;
-    const { school_id, status } = req.body;
+    const { status } = req.body;
 
     if (!school_id) return missingSchoolId(res);
     if (!["Active", "Suspended"].includes(status))
@@ -942,8 +939,8 @@ export const updateRouteStatus = async (req, res) => {
 // DELETE /transport/routes/:id?school_id=
 export const deleteRoute = async (req, res) => {
   try {
+    const school_id = req.user?.school_id;
     const { id } = req.params;
-    const { school_id } = req.query;
 
     if (!school_id) return missingSchoolId(res);
 

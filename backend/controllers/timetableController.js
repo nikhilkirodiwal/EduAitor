@@ -40,7 +40,8 @@ const buildSchedule = (assignments) =>
 /* ── SAVE / UPDATE ── */
 export const saveTimetable = async (req, res) => {
   try {
-    const { schoolId, classId, detailId, periodConfigs, assignments } =
+    const schoolId = req.user?.school_id;
+    const { classId, detailId, periodConfigs, assignments } =
       req.body; // ← schoolId
 
     if (!schoolId)
@@ -78,9 +79,9 @@ export const saveTimetable = async (req, res) => {
 /* ── GET ── */
 export const getTimetable = async (req, res) => {
   try {
+    const schoolId = req.user?.school_id;
     const { classId } = req.params;
     const detailId = req.query.detailId || null;
-    const schoolId = req.query.schoolId; // ← schoolId from query param
 
     if (!schoolId)
       return res

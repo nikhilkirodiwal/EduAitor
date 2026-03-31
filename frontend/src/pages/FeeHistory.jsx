@@ -1,16 +1,3 @@
-/**
- * FeeHistory.jsx
- *
- * All filtering (search, month, year) and pagination is handled on the backend.
- * The frontend only:
- *   - Holds the filter state (search, month, year, page)
- *   - Sends those as query params to GET /fee-history
- *   - Renders the results it receives
- *
- * Debounce on search: we wait 500ms after the user stops typing before
- * hitting the backend — avoids a request on every keystroke.
- */
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 
@@ -213,22 +200,12 @@ function FeeHistory() {
   /* ── Fetch from backend ── */
   const fetchHistory = useCallback(
     async (params) => {
-      const savedUserData = localStorage.getItem("userData");
-
-      // 2. Parse it back into an object
-      const userData = savedUserData ? JSON.parse(savedUserData) : null;
-      const schoolId = userData?.school_id;
-
-      if (!schoolId) {
-        console.error("No School ID found");
-        return;
-      }
-
       try {
         setLoading(true);
         setError(null);
         const { data } = await axios.get(`${API}/fee-history`, {
-          params: { ...params, schoolId },
+          params: { ...params },
+          withCredentials: true,
         });
         setRecords(data.Allhistory || []);
         setPagination(data.pagination || { total: 0, totalPages: 1 });

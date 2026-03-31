@@ -1,13 +1,14 @@
 import { FaBell, FaBars } from "react-icons/fa";
 import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const Topbar = ({ toggleSidebar }) => {
   const [time, setTime] = useState({});
 
-  const userData = JSON.parse(localStorage.getItem("userData")) || {};
+  const { user, loading } = useAuth();
 
-  const name = userData?.name || userData?.school_name || "User";
-  const role = userData?.role || "User";
+  const name = user?.name || user?.school_name || "User";
+  const role = user?.role || "User";
 
   const getInitials = (name) => {
     if (!name) return "U";

@@ -15,8 +15,6 @@ import { FiUsers } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 export default function ClassView() {
   const { id } = useParams();
@@ -27,7 +25,7 @@ export default function ClassView() {
 
   const fetchClass = async () => {
     try {
-      const { data } = await axios.get(`${API}/classes/${id}`, {params: {schoolId}});
+      const { data } = await axios.get(`${API}/classes/${id}`, { withCredentials: true });
       setClassData(data.class);
     } catch {
       toast.error("Failed to load class");

@@ -6,8 +6,6 @@ import TermManagement from "../components/TermManagement";
 
 function Syllabus() {
   const API = import.meta.env.VITE_API_URL;
-  const getSchoolId = () =>
-    JSON.parse(localStorage.getItem("userData"))?.school_id;
 
   // ==================== STATE ====================
   const [classes, setClasses] = useState([]);
@@ -36,9 +34,8 @@ function Syllabus() {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const schoolId = getSchoolId();
         const res = await axios.get(`${API}/classes/all`, {
-          params: { schoolId },
+          withCredentials: true,
         });
         setClasses(res.data.classes || []);
       } catch (err) {
@@ -85,11 +82,8 @@ function Syllabus() {
   }, [selectedSubject, selectedTerm]);
 
   const fetchTerms = async () => {
-    const res = await axios.get(`${API}/terms`, {
-      params: { schoolId: getSchoolId() },
-    });
+    const res = await axios.get(`${API}/terms`, { withCredentials: true });
     setTerms(res.data.terms);
-    console.log(res.data.terms);
   };
 
   useEffect(() => {
@@ -99,14 +93,13 @@ function Syllabus() {
   const fetchChapters = async () => {
     try {
       setLoading(true);
-      const schoolId = getSchoolId();
       const res = await axios.get(`${API}/syllabus/chapters`, {
         params: {
-          schoolId,
           classId: selectedClass,
           subjectId: selectedSubject,
           termId: selectedTerm,
         },
+        withCredentials: true,
       });
       setChapters(res.data.chapters || []);
 
@@ -115,7 +108,8 @@ function Syllabus() {
       const topicsData = {};
       for (const chapter of chaptersData) {
         const topicsRes = await axios.get(`${API}/syllabus/topics`, {
-          params: { schoolId, chapterId: chapter._id },
+          params: { chapterId: chapter._id },
+          withCredentials: true,
         });
         topicsData[chapter._id] = topicsRes.data.topics || [];
       }
@@ -184,9 +178,7 @@ function Syllabus() {
       return;
     }
     try {
-      const schoolId = getSchoolId();
       const payload = {
-        schoolId,
         classId: selectedClass,
         subjectId: selectedSubject,
         termId: formData.termId,
@@ -200,10 +192,14 @@ function Syllabus() {
       const toastloading = toast.loading("Processing ..");
 
       if (formData.type === "addChapter") {
-        await axios.post(`${API}/syllabus/chapters`, payload);
+        await axios.post(`${API}/syllabus/chapters`, payload, {
+          withCredentials: true,
+        });
         toast.success("chapter added");
       } else {
-        await axios.put(`${API}/syllabus/chapters/${formData.id}`, payload);
+        await axios.put(`${API}/syllabus/chapters/${formData.id}`, payload, {
+          withCredentials: true,
+        });
         toast.success("chapter updated");
       }
 
@@ -219,9 +215,7 @@ function Syllabus() {
 
   const submitTopic = async () => {
     try {
-      const schoolId = getSchoolId();
       const payload = {
-        schoolId,
         classId: selectedClass,
         subjectId: selectedSubject,
         chapterId: formData.chapterId,
@@ -236,10 +230,14 @@ function Syllabus() {
       const toastloading = toast.loading("Processing ..");
 
       if (formData.type === "addTopic") {
-        await axios.post(`${API}/syllabus/topics`, payload);
+        await axios.post(`${API}/syllabus/topics`, payload, {
+          withCredentials: true,
+        });
         toast.success("topic added successfully");
       } else {
-        await axios.put(`${API}/syllabus/topics/${formData.id}`, payload);
+        await axios.put(`${API}/syllabus/topics/${formData.id}`, payload, {
+          withCredentials: true,
+        });
         toast.success("topic updated successfully");
       }
 

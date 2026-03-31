@@ -8,7 +8,15 @@ import Subject from "../models/subject.js";
 
 export const createChapter = async (req, res) => {
   try {
-    const { schoolId, classId, subjectId, termId,name, description, learningOutcomes } = req.body;
+    const schoolId = req.user?.school_id;
+    const {
+      classId,
+      subjectId,
+      termId,
+      name,
+      description,
+      learningOutcomes,
+    } = req.body;
 
     if (!schoolId || !classId || !subjectId || !name) {
       return res.status(400).json({
@@ -17,16 +25,16 @@ export const createChapter = async (req, res) => {
       });
     }
     if (!termId) {
-  return res.status(400).json({
-    success: false,
-    message: "termId is required",
-  });
-}
+      return res.status(400).json({
+        success: false,
+        message: "termId is required",
+      });
+    }
 
     // Get max order for this subject
     const maxOrder = await Chapter.findOne(
-      { schoolId, classId, subjectId ,termId},
-      { order: 1 }
+      { schoolId, classId, subjectId, termId },
+      { order: 1 },
     ).sort({ order: -1 });
 
     const newChapter = new Chapter({
@@ -34,7 +42,7 @@ export const createChapter = async (req, res) => {
       classId,
       subjectId,
       name,
-       termId,
+      termId,
       description: description || "",
       learningOutcomes: learningOutcomes || [],
       order: (maxOrder?.order || 0) + 1,
@@ -54,7 +62,8 @@ export const createChapter = async (req, res) => {
 
 export const getChapters = async (req, res) => {
   try {
-    const { schoolId, classId, subjectId ,termId } = req.query;
+    const schoolId = req.user?.school_id;
+    const { classId, subjectId, termId } = req.query;
 
     if (!schoolId || !classId || !subjectId) {
       return res.status(400).json({
@@ -62,8 +71,8 @@ export const getChapters = async (req, res) => {
         message: "schoolId, classId, and subjectId are required",
       });
     }
-    if(!termId){
-        return res.status(400).json({
+    if (!termId) {
+      return res.status(400).json({
         success: false,
         message: "TermId is required",
       });
@@ -73,7 +82,7 @@ export const getChapters = async (req, res) => {
       schoolId,
       classId,
       subjectId,
-       termId,
+      termId,
       status: "active",
     }).sort({ order: 1 });
 
@@ -86,7 +95,7 @@ export const getChapters = async (req, res) => {
 export const updateChapter = async (req, res) => {
   try {
     const { chapterId } = req.params;
-    const { name, description, learningOutcomes ,termId } = req.body;
+    const { name, description, learningOutcomes, termId } = req.body;
 
     if (!chapterId) {
       return res.status(400).json({
@@ -101,9 +110,9 @@ export const updateChapter = async (req, res) => {
         name,
         description,
         learningOutcomes,
-         termId,
+        termId,
       },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!chapter) {
@@ -160,7 +169,7 @@ export const reorderChapters = async (req, res) => {
 
     // Bulk update orders
     const updatePromises = chapters.map((ch) =>
-      Chapter.findByIdAndUpdate(ch.id, { order: ch.order })
+      Chapter.findByIdAndUpdate(ch.id, { order: ch.order }),
     );
 
     await Promise.all(updatePromises);
@@ -178,18 +187,30 @@ export const reorderChapters = async (req, res) => {
 
 export const createTopic = async (req, res) => {
   try {
-    const { schoolId, chapterId, subjectId, classId, name, content, difficultyLevel, keywords } =
-      req.body;
+    const schoolId = req.user?.school_id;
+    const {
+      chapterId,
+      subjectId,
+      classId,
+      name,
+      content,
+      difficultyLevel,
+      keywords,
+    } = req.body;
 
     if (!schoolId || !chapterId || !subjectId || !classId || !name) {
       return res.status(400).json({
         success: false,
-        message: "schoolId, chapterId, subjectId, classId, and name are required",
+        message:
+          "schoolId, chapterId, subjectId, classId, and name are required",
       });
     }
 
     // Get max order for this chapter
-    const maxOrder = await Topic.findOne({ schoolId, chapterId }, { order: 1 }).sort({
+    const maxOrder = await Topic.findOne(
+      { schoolId, chapterId },
+      { order: 1 },
+    ).sort({
       order: -1,
     });
 
@@ -219,7 +240,8 @@ export const createTopic = async (req, res) => {
 
 export const getTopics = async (req, res) => {
   try {
-    const { schoolId, chapterId } = req.query;
+    const schoolId = req.user?.school_id;
+    const { chapterId } = req.query;
 
     if (!schoolId || !chapterId) {
       return res.status(400).json({
@@ -260,7 +282,7 @@ export const updateTopic = async (req, res) => {
         difficultyLevel,
         keywords,
       },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
     if (!topic) {
@@ -291,7 +313,7 @@ export const deleteTopic = async (req, res) => {
       });
     }
 
-   await Topic.findByIdAndDelete(topicId);
+    await Topic.findByIdAndDelete(topicId);
 
     res.json({
       success: true,
@@ -314,7 +336,7 @@ export const reorderTopics = async (req, res) => {
     }
 
     const updatePromises = topics.map((t) =>
-      Topic.findByIdAndUpdate(t.id, { order: t.order })
+      Topic.findByIdAndUpdate(t.id, { order: t.order }),
     );
 
     await Promise.all(updatePromises);
@@ -358,7 +380,9 @@ export const getSyllabusStructure = async (req, res) => {
     // Structure data
     const structure = chapters.map((chapter) => ({
       ...chapter.toObject(),
-      topics: topics.filter((t) => t.chapterId.toString() === chapter._id.toString()),
+      topics: topics.filter(
+        (t) => t.chapterId.toString() === chapter._id.toString(),
+      ),
     }));
 
     res.json({
@@ -374,7 +398,6 @@ export const getSyllabusStructure = async (req, res) => {
 
 // fetch all syllabus data for super admin
 export const getCompleteSyllabus = async (req, res) => {
-  console.log("api hit");
   try {
     const { schoolId } = req.params;
 
@@ -383,18 +406,20 @@ export const getCompleteSyllabus = async (req, res) => {
     const classesWithData = await Promise.all(
       classes.map(async (classItem) => {
         // Step 1: Get unique subject IDs for this class
-        const subjectIds = [...new Map(
-          classItem.details
-            .flatMap((section) => section.subjects)
-            .filter(Boolean)
-            .map((id) => [id.toString(), id])
-        ).values()];
+        const subjectIds = [
+          ...new Map(
+            classItem.details
+              .flatMap((section) => section.subjects)
+              .filter(Boolean)
+              .map((id) => [id.toString(), id]),
+          ).values(),
+        ];
 
         // Step 2: Fetch subjects + chapters for this class in parallel
         const [subjects, allChapters] = await Promise.all([
           Subject.find({ _id: { $in: subjectIds } }).lean(),
           Chapter.find({
-            classId: classItem._id,              // ← scoped to this class
+            classId: classItem._id, // ← scoped to this class
             subjectId: { $in: subjectIds },
           }).lean(),
         ]);
@@ -402,7 +427,7 @@ export const getCompleteSyllabus = async (req, res) => {
         // Step 3: Fetch all topics for those chapters in one query
         const chapterIds = allChapters.map((c) => c._id);
         const allTopics = await Topic.find({
-          classId: classItem._id,                // ← scoped to this class
+          classId: classItem._id, // ← scoped to this class
           chapterId: { $in: chapterIds },
         }).lean();
 
@@ -443,14 +468,13 @@ export const getCompleteSyllabus = async (req, res) => {
           subjects: subjectsWithData,
           subjectCount: subjects.length,
         };
-      })
+      }),
     );
 
     res.status(200).json({
       success: true,
       data: { classes: classesWithData },
     });
-
   } catch (error) {
     console.error("Syllabus fetch error:", error);
     res.status(500).json({

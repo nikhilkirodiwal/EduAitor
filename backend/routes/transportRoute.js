@@ -25,66 +25,67 @@ import {
   updateRouteStatus,
   deleteRoute,
 } from "../controllers/transportController.js";
+import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 
 // GET  /transport/summary?school_id=
-router.get("/summary", getSummary);
+router.get("/summary", authMiddleware, getSummary);
 
 // GET  /transport/activity?school_id=
-router.get("/activity", getActivity);
+router.get("/activity", authMiddleware, getActivity);
 
 // ── DRIVERS ───────────────────────────────────────────────────────────────────
 
 // GET    /transport/drivers?school_id=
-router.get("/drivers", getDrivers);
+router.get("/drivers", authMiddleware, getDrivers);
 
 // POST   /transport/drivers           body: { school_id, name, phone, ... }
-router.post("/drivers", createDriver);
+router.post("/drivers", authMiddleware, createDriver);
 
 // PUT    /transport/drivers/:id        body: { school_id, ...fields }
-router.put("/drivers/:id", updateDriver);
+router.put("/drivers/:id", authMiddleware, updateDriver);
 
 // PATCH  /transport/drivers/:id/status body: { school_id, status }
-router.patch("/drivers/:id/status", updateDriverStatus);
+router.patch("/drivers/:id/status", authMiddleware, updateDriverStatus);
 
 // DELETE /transport/drivers/:id        query: ?school_id=
-router.delete("/drivers/:id", deleteDriver);
+router.delete("/drivers/:id", authMiddleware, deleteDriver);
 
 // ── BUSES ─────────────────────────────────────────────────────────────────────
 
 // GET    /transport/buses?school_id=
-router.get("/buses", getBuses);
+router.get("/buses", authMiddleware, getBuses);
 
 // POST   /transport/buses              body: { school_id, id, regNo, ... }
-router.post("/buses", createBus);
+router.post("/buses", authMiddleware, createBus);
 
 // PUT    /transport/buses/:id          body: { school_id, ...fields }
-router.put("/buses/:id", updateBus);
+router.put("/buses/:id", authMiddleware, updateBus);
 
 // PATCH  /transport/buses/:id/status   body: { school_id, status }
 router.patch("/buses/:id/status", updateBusStatus);
 
 // DELETE /transport/buses/:id          query: ?school_id=
-router.delete("/buses/:id", deleteBus);
+router.delete("/buses/:id", authMiddleware, deleteBus);
 
 // ── ROUTES ────────────────────────────────────────────────────────────────────
 
 // GET    /transport/routes?school_id=
-router.get("/routes", getRoutes);
+router.get("/routes", authMiddleware, getRoutes);
 
 // POST   /transport/routes             body: { school_id, name, bus, driver, ... }
-router.post("/routes", createRoute);
+router.post("/routes", authMiddleware, createRoute);
 
 // PUT    /transport/routes/:id         body: { school_id, ...fields }
-router.put("/routes/:id", updateRoute);
+router.put("/routes/:id", authMiddleware, updateRoute);
 
 // PATCH  /transport/routes/:id/status  body: { school_id, status }
-router.patch("/routes/:id/status", updateRouteStatus);
+router.patch("/routes/:id/status", authMiddleware, updateRouteStatus);
 
 // DELETE /transport/routes/:id         query: ?school_id=
-router.delete("/routes/:id", deleteRoute);
+router.delete("/routes/:id", authMiddleware, deleteRoute);
 
 export default router;

@@ -3,7 +3,7 @@ import Event from "../models/event.js";
 // GET all events for a school
 export const getAllEvents = async (req, res) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId = req.user?.school_id;
     const events = await Event.find({ schoolId }).sort({ createdAt: -1 });
 
     const total = events.length;
@@ -43,7 +43,7 @@ export const getEventById = async (req, res) => {
 // POST create event
 export const createEvent = async (req, res) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId = req.user?.school_id;
     const event = await Event.create({ ...req.body, schoolId });
     res
       .status(201)

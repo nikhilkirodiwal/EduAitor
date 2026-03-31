@@ -5,8 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 const Teachers = () => {
   const navigate = useNavigate();
@@ -22,17 +20,11 @@ const Teachers = () => {
   /* FETCH TEACHERS */
 
   const fetchTeachers = async () => {
-    if (!schoolId) {
-      toast.error("School ID not found");
-      return;
-    }
 
     try {
       setLoading(true);
 
-      const res = await axios.get(`${API}/teachers`, {
-        params: { schoolId },
-      });
+      const res = await axios.get(`${API}/teachers`, { withCredentials: true });
 
       setTeachers(res.data.data || []);
     } catch (error) {
@@ -46,11 +38,9 @@ const Teachers = () => {
   /* FETCH CLASSES FOR FILTER */
 
   const fetchClasses = async () => {
-    if (!schoolId) return;
-
     try {
       const res = await axios.get(`${API}/classes/all`, {
-        params: { schoolId },
+        withCredentials: true,
       });
 
       setClasses(res.data.classes || []);
@@ -72,11 +62,11 @@ const Teachers = () => {
   };
 
   const confirmDelete = async () => {
-    if (!deleteId || !schoolId) return;
+    if (!deleteId) return;
 
     try {
       await axios.delete(`${API}/teachers/${deleteId}`, {
-        params: { schoolId },
+        withCredentials: true,
       });
 
       toast.success("Teacher deleted successfully");
@@ -232,9 +222,25 @@ const Teachers = () => {
                   </td>
 
                   <td className="p-4">
-                    <span className="text-gray-700">
-                      {teacher.subject || "-"}
-                    </span>
+                    {teacher.subjects?.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {teacher.subjects.slice(0, 2).map((s) => (
+                          <span
+                            key={s._id}
+                            className="px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-full font-medium"
+                          >
+                            {s.name}
+                          </span>
+                        ))}
+                        {teacher.subjects.length > 2 && (
+                          <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full font-medium">
+                            +{teacher.subjects.length - 2}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
                   </td>
 
                   <td className="p-4">

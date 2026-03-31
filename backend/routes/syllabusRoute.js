@@ -17,20 +17,21 @@ import {
   getSyllabusStructure,
   getCompleteSyllabus,
 } from "../controllers/syllabusController.js";
+import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
 // ==================== CHAPTER ROUTES ====================
-router.post("/chapters", createChapter);
-router.get("/chapters", getChapters);
-router.put("/chapters/:chapterId", updateChapter);
+router.post("/chapters", authMiddleware, createChapter);
+router.get("/chapters", authMiddleware, getChapters);
+router.put("/chapters/:chapterId", authMiddleware, updateChapter);
 router.delete("/chapters/:chapterId", deleteChapter);
 router.post("/chapters/reorder", reorderChapters);
 
 // ==================== TOPIC ROUTES ====================
-router.post("/topics", createTopic);
-router.get("/topics", getTopics);
-router.put("/topics/:topicId", updateTopic);
+router.post("/topics", authMiddleware, createTopic);
+router.get("/topics", authMiddleware, getTopics);
+router.put("/topics/:topicId", authMiddleware, updateTopic);
 router.delete("/topics/:topicId", deleteTopic);
 router.post("/topics/reorder", reorderTopics);
 

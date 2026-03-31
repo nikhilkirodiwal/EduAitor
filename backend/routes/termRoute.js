@@ -5,12 +5,13 @@ import {
   updateTerm,
   deleteTerm
 } from "../controllers/termController.js";
+import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
-router.post("/", createTerm);
-router.get("/", getTerms);
-router.put("/:termId", updateTerm);
+router.post("/", authMiddleware, createTerm);
+router.get("/", authMiddleware, getTerms);
+router.put("/:termId", authMiddleware, updateTerm);
 router.delete("/:termId", deleteTerm);
 
 export default router;

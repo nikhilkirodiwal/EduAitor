@@ -24,7 +24,7 @@ const SchoolView = () => {
   if (!school) return null;
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 min-h-screen">
       <button
         onClick={() => navigate("/admin/schools")}
         className="flex items-center gap-2 text-indigo-600 mb-6"

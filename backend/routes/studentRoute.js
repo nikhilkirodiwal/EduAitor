@@ -1,6 +1,6 @@
 import express from "express";
 import upload from "../middlewares/upload.js";
-
+import { authMiddleware } from "../auth/auth.js";
 import {
   createStudent,
   getStudents,
@@ -13,6 +13,7 @@ const router = express.Router();
 
 router.post(
   "/",
+  authMiddleware,
   upload.fields([
     { name: "studentPhoto", maxCount: 1 },
     { name: "fatherPhoto", maxCount: 1 },
@@ -31,6 +32,7 @@ router.post(
 
 router.put(
   "/:id",
+  authMiddleware,
   upload.fields([
     { name: "studentPhoto", maxCount: 1 },
     { name: "fatherPhoto", maxCount: 1 },
@@ -44,13 +46,14 @@ router.put(
     { name: "fatherAadhar", maxCount: 1 },
     { name: "motherAadhar", maxCount: 1 },
   ]),
+
   updateStudent,
 );
 
-router.get("/", getStudents);
+router.get("/", authMiddleware, getStudents);
 
-router.get("/:id", getStudent);
+router.get("/:id", authMiddleware, getStudent);
 
-router.delete("/:id", deleteStudent);
+router.delete("/:id", authMiddleware, deleteStudent);
 
 export default router;

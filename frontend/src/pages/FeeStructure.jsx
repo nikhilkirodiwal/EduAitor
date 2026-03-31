@@ -39,21 +39,9 @@ const FeeStructure = () => {
 
   /* Fetch all classes for the dropdown */
   const fetchClasses = async () => {
-    // 1. Get the string from localStorage
-    const savedUserData = localStorage.getItem("userData");
-
-    // 2. Parse it back into an object
-    const userData = savedUserData ? JSON.parse(savedUserData) : null;
-    const schoolId = userData?.school_id;
-
-    if (!schoolId) {
-      console.error("No School ID found");
-      return;
-    }
-
     try {
       const { data } = await axios.get(`${API}/classes/all`, {
-        params: { schoolId },
+        withCredentials: true,
       });
       setClasses(data.classes);
     } catch {
@@ -65,11 +53,9 @@ const FeeStructure = () => {
   const refreshFees = async (classId) => {
     const id = classId || selectedClass;
     if (!id) return;
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    const schoolId = userData?.school_id;
     try {
       const { data } = await axios.get(`${API}/fee-structure/${id}`, {
-        params: { schoolId },
+        withCredentials: true,
       });
       setFeeData(data);
     } catch {
@@ -134,32 +120,26 @@ const FeeStructure = () => {
       setErrors(newErrors); // show errors, stop here
       return;
     }
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    const schoolId = userData?.school_id;
-
-    if (!schoolId) {
-      toast.error("Session expired. Please login again.");
-      return;
-    }
-
     setErrors({});
     setSaving(true);
     try {
       const payload = {
         ...formData,
         amount: Number(formData.amount),
-        schoolId, // 👈 Attach schoolId here
       };
       if (editingFee) {
         /* PUT — update existing fee component */
         await axios.put(
           `${API}/fee-structure/${selectedClass}/fee/${editingFee._id}`,
           payload,
+          { withCredentials: true },
         );
         toast.success("Fee component updated successfully");
       } else {
         /* POST — add new fee component */
-        await axios.post(`${API}/fee-structure/${selectedClass}/fee`, payload);
+        await axios.post(`${API}/fee-structure/${selectedClass}/fee`, payload, {
+          withCredentials: true,
+        });
         toast.success("Fee component added successfully");
       }
       await refreshFees(); // re-fetch to show latest data
@@ -178,20 +158,10 @@ const FeeStructure = () => {
   };
 
   const confirmDelete = async () => {
-    // 1. Get the schoolId from localStorage
-    const userData = JSON.parse(localStorage.getItem("userData"));
-    const schoolId = userData?.school_id;
-
-    if (!schoolId) {
-      toast.error("Security error: School ID not found");
-      return;
-    }
-
     try {
-      // 2. Pass the schoolId as a query parameter
       await axios.delete(
         `${API}/fee-structure/${selectedClass}/fee/${confirmId}`,
-        { params: { schoolId } }, // 👈 This goes to req.query on the backend
+        { withCredentials: true },
       );
 
       await refreshFees();

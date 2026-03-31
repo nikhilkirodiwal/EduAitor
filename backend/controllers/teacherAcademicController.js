@@ -79,7 +79,8 @@ export const getSubjectsByClass = async (req, res) => {
 
 export const getChaptersBySubject = async (req, res) => {
   try {
-    const { classId, subjectId, schoolId } = req.query;
+    const schoolId = req.user?.school_id;
+    const { classId, subjectId } = req.query;
 
     if (!classId || !subjectId || !schoolId) {
       return res.status(400).json({
@@ -105,7 +106,8 @@ export const getChaptersBySubject = async (req, res) => {
 
 export const getTopicsByChapter = async (req, res) => {
   try {
-    const { chapterId, schoolId } = req.query;
+    const schoolId = req.user?.school_id;
+    const { chapterId } = req.query;
 
     if (!chapterId || !schoolId) {
       return res.status(400).json({

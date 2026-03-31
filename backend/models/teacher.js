@@ -17,12 +17,17 @@ const teacherSchema = new mongoose.Schema(
 
     qualification: String,
     experience: Number,
-    subject: String,
+    subjects: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Subject",
+      },
+    ],
     department: String,
 
     teacherId: {
       type: String,
-      unique: true,
+      required: true,
     },
 
     designation: String,
@@ -58,6 +63,9 @@ const teacherSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "Present",
+    },
+    temp_password: {
+      type: String,
     },
   },
   { timestamps: true },

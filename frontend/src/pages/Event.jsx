@@ -78,7 +78,9 @@ export default function EventsPage() {
   const loadEvents = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${API}/events/${schoolId}`);
+      const { data } = await axios.get(`${API}/events/`, {
+        withCredentials: true,
+      });
       setEvents(data.events);
       setStats(data.stats);
     } catch (err) {
@@ -91,7 +93,7 @@ export default function EventsPage() {
   const fetchClasses = async () => {
     try {
       const { data } = await axios.get(`${API}/classes/all`, {
-        params: { schoolId },
+        withCredentials: true,
       });
       setClasses(data.classes || []);
     } catch {
@@ -193,7 +195,9 @@ export default function EventsPage() {
         await axios.put(`${API}/events/${editingId}`, form);
         toast.success("Event updated successfully!");
       } else {
-        await axios.post(`${API}/events/${schoolId}`, form);
+        await axios.post(`${API}/events/create`, form, {
+          withCredentials: true,
+        });
         toast.success("Event created successfully!");
       }
 

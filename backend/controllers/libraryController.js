@@ -141,7 +141,8 @@ const buildIssueFilters = ({ schoolId, status, search }) => {
 
 export const addBook = async (req, res) => {
   try {
-    const { schoolId, title, author, isbn, totalCopies, category } = req.body;
+    const schoolId = req.user?.school_id;
+    const { title, author, isbn, totalCopies, category } = req.body;
 
     if (!schoolId || !title || !author || !isbn || !category) {
       return res.status(400).json({ error: "schoolId, title, author, isbn and category are required" });
@@ -177,7 +178,8 @@ export const addBook = async (req, res) => {
 
 export const getBooks = async (req, res) => {
   try {
-    const { schoolId, search = "" } = req.query;
+    const schoolId = req.user?.school_id;
+    const { search = "" } = req.query;
 
     if (!schoolId) {
       return res.status(400).json({ error: "schoolId is required" });
@@ -207,7 +209,8 @@ export const getBooks = async (req, res) => {
 
 export const updateBook = async (req, res) => {
   try {
-    const { schoolId, title, author, isbn, totalCopies, category } = req.body;
+    const schoolId = req.user?.school_id;
+    const { title, author, isbn, totalCopies, category } = req.body;
 
     if (!schoolId) {
       return res.status(400).json({ error: "schoolId is required" });
@@ -259,7 +262,7 @@ export const updateBook = async (req, res) => {
 
 export const deleteBook = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId) {
       return res.status(400).json({ error: "schoolId is required" });
@@ -296,7 +299,8 @@ export const deleteBook = async (req, res) => {
 
 export const issueBook = async (req, res) => {
   try {
-    const { schoolId, bookId, studentId, dueDate } = req.body;
+    const schoolId = req.user?.school_id;
+    const { bookId, studentId, dueDate } = req.body;
 
     if (!schoolId || !bookId || !studentId || !dueDate) {
       return res.status(400).json({ error: "schoolId, bookId, studentId and dueDate are required" });
@@ -367,8 +371,9 @@ export const issueBook = async (req, res) => {
 
 export const returnBook = async (req, res) => {
   try {
+    const schoolId = req.user?.school_id;
     const issueId = req.params.issueId || req.body.issueId;
-    const { schoolId, finePaid } = req.body;
+    const { finePaid } = req.body;
 
     if (!schoolId || !issueId) {
       return res.status(400).json({ error: "schoolId and issueId are required" });
@@ -422,7 +427,8 @@ export const returnBook = async (req, res) => {
 
 export const getIssueBooks = async (req, res) => {
   try {
-    const { schoolId, search = "", status = "all" } = req.query;
+    const schoolId = req.user?.school_id;
+    const { search = "", status = "all" } = req.query;
 
     if (!schoolId) {
       return res.status(400).json({ error: "schoolId is required" });

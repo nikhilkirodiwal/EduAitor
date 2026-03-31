@@ -14,19 +14,9 @@ const Defaulters = () => {
   const API = import.meta.env.VITE_API_URL;
 
   const loadClasses = async () => {
-    const savedUserData = localStorage.getItem("userData");
-
-    // 2. Parse it back into an object
-    const userData = savedUserData ? JSON.parse(savedUserData) : null;
-    const schoolId = userData?.school_id;
-
-    if (!schoolId) {
-      console.error("No School ID found");
-      return;
-    }
     try {
       const { data } = await axios.get(`${API}/classes/all`, {
-        params: { schoolId },
+        withCredentials: true,
       });
       setClasses(data.classes || []);
     } catch (err) {
@@ -40,28 +30,17 @@ const Defaulters = () => {
 
   // 1. Fetch Logic
   const fetchDefaulters = useCallback(async () => {
-    const savedUserData = localStorage.getItem("userData");
-
-    // 2. Parse it back into an object
-    const userData = savedUserData ? JSON.parse(savedUserData) : null;
-    const schoolId = userData?.school_id;
-
-    if (!schoolId) {
-      console.error("No School ID found");
-      return toast.error("school id not found");
-    }
-
     setLoading(true);
     try {
       // Adjust the URL to your actual backend endpoint
       const response = await axios.get(`${API}/fees/defaulters`, {
         params: {
           classId: selectedClass,
-          schoolId: schoolId,
-          search: searchTerm, // Added this!
+          search: searchTerm,
           page: page,
           limit: 10,
         },
+        withCredentials: true,
       });
 
       setDefaulters(response.data.defaulters || []);

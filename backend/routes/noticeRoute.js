@@ -6,12 +6,13 @@ import {
   updateNotice,
   deleteNotice,
 } from "../controllers/noticeController.js";
+import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
-router.get("/:schoolId", getAllNotices);
+router.get("/", authMiddleware, getAllNotices);
 router.get("/detail/:id", getNoticeById);
-router.post("/:schoolId", createNotice);
+router.post("/create", authMiddleware , createNotice);
 router.put("/:id", updateNotice);
 router.delete("/:id", deleteNotice);
 

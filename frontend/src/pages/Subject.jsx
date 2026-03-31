@@ -28,7 +28,7 @@ export default function Subject() {
     try {
       setLoading(true);
       const { data } = await axios.get(`${API}/subjects/all`, {
-        params: { schoolId },
+        withCredentials: true,
       });
       setSubjects(data.subjects || []);
     } catch {
@@ -97,16 +97,22 @@ export default function Subject() {
     try {
       setSubmitting(true);
       if (editing) {
-        await axios.put(`${API}/subjects/update/${editing._id}`, {
-          ...form,
-          schoolId,
-        });
+        await axios.put(
+          `${API}/subjects/update/${editing._id}`,
+          {
+            ...form,
+          },
+          { withCredentials: true },
+        );
         toast.success("Subject updated successfully!");
       } else {
-        await axios.post(`${API}/subjects/create`, {
-          ...form,
-          schoolId,
-        });
+        await axios.post(
+          `${API}/subjects/create`,
+          {
+            ...form,
+          },
+          { withCredentials: true },
+        );
         toast.success("Subject created successfully!");
       }
       closeModal();
@@ -121,7 +127,9 @@ export default function Subject() {
   /* ── delete ── */
   const handleDelete = async () => {
     try {
-      await axios.delete(`${API}/subjects/delete/${deleteId}`, {params: { schoolId },});
+      await axios.delete(`${API}/subjects/delete/${deleteId}`, {
+        withCredentials: true,
+      });
       toast.success("Subject deleted successfully!");
       setDeleteId(null);
       fetchSubjects();

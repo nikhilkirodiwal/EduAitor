@@ -5,7 +5,8 @@ import Teacher from "../models/teacher.js";
 /* ── CREATE CLASS ── */
 export const createClass = async (req, res) => {
   try {
-    let { name, details, status, schoolId } = req.body;
+    const schoolId = req.user?.school_id;
+    let { name, details, status } = req.body;
 
     if (!schoolId)
       return res.status(400).json({
@@ -98,30 +99,52 @@ export const createClass = async (req, res) => {
 /* ── GET ALL CLASSES ── */
 export const getClasses = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
 
-    if (!schoolId)
+    const schoolId = req.user.school_id;
+
+    if (!schoolId) {
       return res.status(400).json({
         success: false,
         message: "schoolId is required",
       });
+    }
 
     const classes = await Class.find({ schoolId })
-      .populate("details.sectionId", "name status")
-      .populate("details.teacherId", "fullName")
-      .populate("details.subjects", "name")
-      .sort({ name: 1 });
+      .populate({
+        path: "details.sectionId",
+        select: "name status",
+      })
+      .populate({
+        path: "details.teacherId",
+        select: "fullName",
+      })
+      .populate({
+        path: "details.subjects",
+        select: "name",
+      })
+      .sort({ name: 1 })
+      .lean();
 
     res.json({ success: true, classes });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
 
 /* ── GET SINGLE CLASS ── */
 export const getClassById = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId)
       return res.status(400).json({
@@ -157,7 +180,7 @@ export const getClassById = async (req, res) => {
 */
 export const getClassesFlat = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId)
       return res.status(400).json({
@@ -199,7 +222,8 @@ export const getClassesFlat = async (req, res) => {
 /* ── UPDATE CLASS ── */
 export const updateClass = async (req, res) => {
   try {
-    const { schoolId, name, details, status } = req.body;
+    const schoolId = req.user?.school_id;
+    const { name, details, status } = req.body;
 
     if (!schoolId)
       return res.status(400).json({
@@ -296,7 +320,7 @@ export const updateClass = async (req, res) => {
 /* ── DELETE CLASS ── */
 export const deleteClass = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     const cls = await Class.findOne({
       _id: req.params.id,

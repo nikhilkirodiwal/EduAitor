@@ -5,12 +5,13 @@ import {
   getChaptersBySubject,
   getTopicsByChapter,
 } from "../controllers/teacherAcademicController.js";
+import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
 router.get("/classes", getTeacherClasses);
 router.get("/subjects", getSubjectsByClass);
-router.get("/chapters", getChaptersBySubject);
-router.get("/topics", getTopicsByChapter);
+router.get("/chapters", authMiddleware, getChaptersBySubject);
+router.get("/topics", authMiddleware, getTopicsByChapter);
 
 export default router;

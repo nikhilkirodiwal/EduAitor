@@ -8,8 +8,6 @@ import { toast } from "react-toastify";
 import { FiTrash2 } from "react-icons/fi";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 const Students = () => {
   const navigate = useNavigate();
@@ -25,7 +23,7 @@ const Students = () => {
   const fetchClasses = async () => {
     try {
       const res = await axios.get(`${API}/classes/all`, {
-        params: { schoolId },
+        withCredentials: true,
       });
 
       setClasses(res.data.classes || []);
@@ -35,12 +33,8 @@ const Students = () => {
   };
 
   const fetchStudents = async () => {
-    if (!schoolId) return;
-
     try {
-      const res = await axios.get(`${API}/students`, {
-        params: { schoolId },
-      });
+      const res = await axios.get(`${API}/students`, { withCredentials: true });
 
       setStudents(res.data.data);
     } catch {
@@ -49,10 +43,9 @@ const Students = () => {
   };
 
   useEffect(() => {
-    if (!schoolId) return;
     fetchStudents();
     fetchClasses();
-  }, [schoolId]);
+  }, []);
 
   /* ================= STATS ================= */
 
@@ -79,9 +72,7 @@ const Students = () => {
 
   const deleteStudent = async (id) => {
     try {
-      await axios.delete(`${API}/students/${id}`, {
-        params: { schoolId },
-      });
+      await axios.delete(`${API}/students/${id}`, { withCredentials: true });
 
       toast.success("Student deleted successfully");
 

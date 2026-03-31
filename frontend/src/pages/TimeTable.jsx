@@ -57,9 +57,9 @@ export default function TimeTable() {
   const loadData = async () => {
     try {
       const [cls, sub, tea] = await Promise.all([
-        axios.get(`${API}/classes/flat`, { params: { schoolId } }),
-        axios.get(`${API}/subjects/all`, { params: { schoolId } }),
-        axios.get(`${API}/teachers`, { params: { schoolId } }),
+        axios.get(`${API}/classes/flat`, { withCredentials: true }),
+        axios.get(`${API}/subjects/all`, { withCredentials: true }),
+        axios.get(`${API}/teachers`, { withCredentials: true }),
       ]);
       setClasses(cls.data.classes || []);
       setSubjects(sub.data.subjects || []);
@@ -81,10 +81,12 @@ export default function TimeTable() {
   const fetchTimetable = async () => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({ schoolId });
+      const params = new URLSearchParams();
       if (detailId) params.append("detailId", detailId);
 
-      const res = await axios.get(`${API}/timetable/${classId}?${params}`);
+      const res = await axios.get(`${API}/timetable/${classId}?${params}`, {
+        withCredentials: true,
+      });
       if (res.data.data) {
         const pc = res.data.data.periodConfigs || [];
         const as = res.data.data.assignments || {};
@@ -164,13 +166,16 @@ export default function TimeTable() {
   const saveDraft = async () => {
     if (!classId) return toast.warning("Select a class first");
     try {
-      await axios.post(`${API}/timetable/save`, {
-        schoolId, // ← schoolId
-        classId,
-        detailId: detailId || null,
-        periodConfigs,
-        assignments,
-      });
+      await axios.post(
+        `${API}/timetable/save`,
+        {
+          classId,
+          detailId: detailId || null,
+          periodConfigs,
+          assignments,
+        },
+        { withCredentials: true },
+      );
       toast.success("Timetable saved successfully!");
       setIsEditMode(false);
       setHasChanges(false);
@@ -181,13 +186,16 @@ export default function TimeTable() {
 
   const saveTeacherUpdate = async () => {
     try {
-      await axios.post(`${API}/timetable/save`, {
-        schoolId, // ← schoolId
-        classId,
-        detailId: detailId || null,
-        periodConfigs,
-        assignments,
-      });
+      await axios.post(
+        `${API}/timetable/save`,
+        {
+          classId,
+          detailId: detailId || null,
+          periodConfigs,
+          assignments,
+        },
+        { withCredentials: true },
+      );
       toast.success("Teacher assignment updated!");
       setHasChanges(false);
       fetchTimetable();

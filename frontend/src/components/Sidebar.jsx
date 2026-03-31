@@ -23,14 +23,17 @@ import { HiAcademicCap } from "react-icons/hi2";
 
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const Sidebar = ({ closeSidebar }) => {
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [openMenu, setOpenMenu] = useState(null);
 
-  const role = localStorage.getItem("userRole"); // super_admin / school_admin / teacher_admin
-
+  // const role = localStorage.getItem("userRole"); // super_admin / school_admin / teacher_admin
+  
+  const role = user?.role;
   const logout = () => {
     localStorage.clear();
     navigate("/admin/login");

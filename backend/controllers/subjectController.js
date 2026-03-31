@@ -4,7 +4,8 @@ import Class from "../models/class.js";
 /* ── CREATE ── */
 export const createSubject = async (req, res) => {
   try {
-    let { name, status, schoolId } = req.body;
+    const schoolId = req.user?.school_id;
+    let { name, status } = req.body;
 
     if (!schoolId)
       return res.status(400).json({
@@ -44,7 +45,7 @@ export const createSubject = async (req, res) => {
 /* ── GET ALL ── */
 export const getSubjects = async (req, res) => {
   try {
-    const schoolId = req.query.schoolId; // ← get schoolId from query param
+    const schoolId = req.user?.school_id;
 
     if (!schoolId)
       return res
@@ -106,7 +107,8 @@ export const getSubjects = async (req, res) => {
 /* ── UPDATE ── */
 export const updateSubject = async (req, res) => {
   try {
-    let { name, status, schoolId } = req.body;
+    const schoolId = req.user?.school_id;
+    let { name, status } = req.body;
 
     if (!schoolId)
       return res.status(400).json({
@@ -159,7 +161,7 @@ export const updateSubject = async (req, res) => {
 /* ── DELETE ── */
 export const deleteSubject = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId)
       return res.status(400).json({

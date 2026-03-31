@@ -1,34 +1,19 @@
-import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaUserShield, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from "axios";
 
 const API = import.meta.env.VITE_API_URL;
 
 export default function Login() {
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-
-  const [error, setError] = useState("");
+  const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  /* ================= REDIRECT IF LOGGED IN ================= */
-
-  useEffect(() => {
-    const role = localStorage.getItem("userRole");
-
-    if (role === "super_admin") {
-      window.location.href = "/admin/dashboard";
-    } else if (role === "school_admin") {
-      window.location.href = "/school/dashboard";
-    } else if (role === "teacher_admin") {
-      window.location.href = "/teacher/dashboard";
-    }
-  }, []);
-
-  /* ================= HANDLERS ================= */
+  const navigate = useNavigate();
+  const { fetchUser } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -41,28 +26,25 @@ export default function Login() {
       setLoading(true);
       setError("");
 
-      const res = await axios.post(`${API}/auth/login`, form);
-      const user = res.data.data;
+      const res = await axios.post(`${API}/auth/login`, form, {
+        withCredentials: true,
+      });
 
-      localStorage.setItem("userRole", user.role);
-      localStorage.setItem("userData", JSON.stringify(user));
+      // 🔥 important: fetch user after login
+      await fetchUser();
 
-      // smooth delay for UX
-      setTimeout(() => {
-        let redirectPath = "/";
+      const role = res.data.data.role;
 
-        if (user.role === "super_admin") {
-          redirectPath = "/admin/dashboard";
-        } else if (user.role === "school_admin") {
-          redirectPath = "/school/dashboard";
-        } else if (user.role === "teacher_admin") {
-          redirectPath = "/teacher/dashboard";
-        }
-
-        window.location.href = redirectPath;
-      }, 800);
+      if (role === "super_admin") {
+        navigate("/admin/dashboard");
+      } else if (role === "school_admin") {
+        navigate("/school/dashboard");
+      } else if (role === "teacher_admin") {
+        navigate("/teacher/dashboard");
+      }
     } catch {
       setError("Invalid credentials");
+    } finally {
       setLoading(false);
     }
   };

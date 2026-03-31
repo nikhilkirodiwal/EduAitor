@@ -16,8 +16,6 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 /* one blank detail row */
 const EMPTY_DETAIL = {
@@ -58,10 +56,10 @@ export default function ClassPage() {
     try {
       setLoading(true);
       const [cls, sec, sub, tch] = await Promise.all([
-        axios.get(`${API}/classes/all`, { params: { schoolId } }),
-        axios.get(`${API}/sections/all`, { params: { schoolId } }),
-        axios.get(`${API}/subjects/all`, { params: { schoolId } }),
-        axios.get(`${API}/teachers`, { params: { schoolId } }),
+        axios.get(`${API}/classes/all`, { withCredentials: true }),
+        axios.get(`${API}/sections/all`, { withCredentials: true }),
+        axios.get(`${API}/subjects/all`, { withCredentials: true }),
+        axios.get(`${API}/teachers`, { withCredentials: true }),
       ]);
       setClasses(cls.data.classes || []);
       setSections(sec.data.sections || []);
@@ -179,16 +177,22 @@ export default function ClassPage() {
     try {
       setSubmitting(true);
       if (editingClass) {
-        await axios.put(`${API}/classes/update/${editingClass._id}`, {
-          ...form,
-          schoolId,
-        });
+        await axios.put(
+          `${API}/classes/update/${editingClass._id}`,
+          {
+            ...form,
+          },
+          { withCredentials: true },
+        );
         toast.success("Class updated successfully!");
       } else {
-        await axios.post(`${API}/classes/create`, {
-          ...form,
-          schoolId,
-        });
+        await axios.post(
+          `${API}/classes/create`,
+          {
+            ...form,
+          },
+          { withCredentials: true },
+        );
         toast.success("Class created successfully!");
       }
       closeModal();
@@ -203,7 +207,7 @@ export default function ClassPage() {
   const handleDelete = async () => {
     try {
       await axios.delete(`${API}/classes/delete/${deleteId}`, {
-        params: { schoolId },
+        withCredentials: true,
       });
       toast.success("Class deleted successfully!");
       setDeleteId(null);

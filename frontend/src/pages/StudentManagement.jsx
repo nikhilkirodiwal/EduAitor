@@ -4,8 +4,6 @@ import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 const steps = [
   "Student Details",
@@ -118,11 +116,9 @@ const StudentManagement = () => {
   /* FETCH CLASS */
   useEffect(() => {
     const fetchClasses = async () => {
-      if (!schoolId) return;
-
       try {
         const res = await axios.get(`${API}/classes/all`, {
-          params: { schoolId },
+          withCredentials: true,
         });
 
         setClasses(res.data.classes || []);
@@ -133,7 +129,7 @@ const StudentManagement = () => {
     };
 
     fetchClasses();
-  }, [schoolId]);
+  }, []);
 
   /* FETCH SECTION CLASS BASED*/
   useEffect(() => {
@@ -162,34 +158,41 @@ const StudentManagement = () => {
 
   /* FETCH FEE STRUCTURE */
   useEffect(() => {
-    if (!form.classId || !schoolId) return;
+    if (!form.classId) return;
 
     const fetchFeeStructure = async () => {
       try {
-        const res = await axios.get(`${API}/fee-structure/${form.classId}`, {
-          params: { schoolId },
-        });
+        const { data } = await axios.get(
+          `${API}/fee-structure/${form.classId}`,
+          { withCredentials: true },
+        );
 
-        const fees = res.data?.fees || [];
-        setFeeStructure(fees);
+        if (data?.success) {
+          setFeeStructure(data.fees || []);
+        } else {
+          toast.error(data.message || "Failed to load fee structure");
+          setFeeStructure([]);
+        }
       } catch (err) {
         console.error(err);
-        toast.error("Failed to load fee structure");
+        toast.error(
+          err?.response?.data?.message || "Failed to load fee structure",
+        );
         setFeeStructure([]);
       }
     };
 
     fetchFeeStructure();
-  }, [form.classId, schoolId]);
+  }, [form.classId]);
 
   /* FETCH STUDENT */
   useEffect(() => {
-    if (!id || !schoolId) return;
+    if (!id) return;
 
     const fetchStudent = async () => {
       try {
         const res = await axios.get(`${API}/students/${id}`, {
-          params: { schoolId },
+          withCredentials: true,
         });
         const student = res.data.data;
 
@@ -208,7 +211,7 @@ const StudentManagement = () => {
     };
 
     fetchStudent();
-  }, [id, schoolId]);
+  }, [id]);
 
   /* CHANGE */
   const handleChange = (e) => {
@@ -359,17 +362,23 @@ const StudentManagement = () => {
         if (forbidden.includes(key)) return;
 
         if (value !== null && value !== "" && key !== "documents") {
-          data.append(key, value);
+          if (typeof value === "object") {
+            data.append(key, JSON.stringify(value)); // ✅ FIX
+          } else {
+            data.append(key, value);
+          }
         }
       });
+
       data.set("feeFrequency", freqFilter);
-      data.append("schoolId", schoolId);
 
       if (isEdit) {
-        await axios.put(`${API}/students/${id}`, data);
+        await axios.put(`${API}/students/${id}`, data, {
+          withCredentials: true,
+        });
         toast.success("Student Updated Successfully");
       } else {
-        await axios.post(`${API}/students`, data);
+        await axios.post(`${API}/students`, data, { withCredentials: true });
         toast.success("Student Added Successfully");
       }
 
@@ -524,7 +533,7 @@ const StudentManagement = () => {
                 />
                 <Input
                   type="date"
-                  label="Admission Date"
+                  label="Admission Date *"
                   name="admissionDate"
                   value={form.admissionDate}
                   onChange={handleChange}
@@ -805,7 +814,7 @@ const StudentManagement = () => {
                   name="discountValue"
                   value={form.discountValue}
                   onChange={handleChange}
-                  disabled={!form.discountType} 
+                  disabled={!form.discountType}
                 />
 
                 <Input

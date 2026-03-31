@@ -3,15 +3,24 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import errorHandler from "./middlewares/errorHandler.js";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+app.set("trust proxy", 1);
 
 // DB
 connectDB();
@@ -45,6 +54,42 @@ import syllabusRoute from "./routes/syllabusRoute.js";
 import teacherAcademicRoute from "./routes/teacherAcademicRoute.js";
 import assignmentRoute from "./routes/assignmentRoute.js";
 import termRoute from "./routes/termRoute.js";
+import { authMiddleware } from "./auth/auth.js";
+
+app.get("/api/auth/me", authMiddleware, (req, res) => {
+  if (req.user.role === "super_admin") {
+    return res.json({
+      success: true,
+      user: {
+        email: req.user.email,
+        role: req.user.role,
+      },
+    });
+  } else if (req.user.role === "school_admin") {
+    return res.json({
+      success: true,
+      user: {
+        email: req.user.email,
+        role: req.user.role,
+        school_id: req.user.school_id,
+        name: req.user.name,
+      },
+    });
+  } else if (req.user.role === "teacher_admin") {
+    return res.json({
+      success: true,
+      user: {
+        email: req.user.email,
+        role: req.user.role,
+        school_id: req.user.school_id,
+        teacher_id: req.user.teacher_id,
+        name: req.user.name,
+      },
+    });
+  } else {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+});
 
 app.use("/api/auth", authRoutes);
 
@@ -71,7 +116,7 @@ app.use("/api/library", libraryRoute);
 app.use("/api/syllabus", syllabusRoute);
 app.use("/api/teacher-academic", teacherAcademicRoute);
 app.use("/api/assignment", assignmentRoute);
-app.use("/api/terms",termRoute);
+app.use("/api/terms", termRoute);
 
 // Error middleware
 app.use(errorHandler);

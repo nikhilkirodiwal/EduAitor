@@ -2,7 +2,7 @@ import Notice from "../models/notice.js";
 
 export const getAllNotices = async (req, res) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId= req.user?.school_id;
     const notices = await Notice.find({ schoolId }).sort({ createdAt: -1 });
 
     const total = notices.length;
@@ -35,7 +35,7 @@ export const getNoticeById = async (req, res) => {
 
 export const createNotice = async (req, res) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId = req.user?.school_id;
     if (req.body.audience !== "Class") req.body.assignedClass = "";
     const notice = await Notice.create({ ...req.body, schoolId });
     res

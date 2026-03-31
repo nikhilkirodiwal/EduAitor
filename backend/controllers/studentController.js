@@ -16,10 +16,11 @@ const generateStudentId = async (schoolId) => {
 
 export const createStudent = async (req, res) => {
   try {
-    const { schoolId, ...safeBody } = req.body;
+    const schoolId = req.user?.school_id;
+    const { ...safeBody } = req.body;
 
-    const totalDue = safeBody.finalFee;
-    
+    const totalDue = Number(safeBody.finalFee) || 0;
+
     if (!schoolId) {
       return res.status(400).json({
         success: false,
@@ -31,14 +32,18 @@ export const createStudent = async (req, res) => {
     const documents = {};
 
     const uploadFile = async (field, folder) => {
-      if (!files[field] || !files[field][0]) return;
+      try {
+        if (!files[field] || !files[field][0]) return;
 
-      const uploaded = await uploadToCloudinary(files[field][0], folder);
+        const uploaded = await uploadToCloudinary(files[field][0], folder);
 
-      documents[field] = {
-        url: uploaded.url,
-        public_id: uploaded.public_id,
-      };
+        documents[field] = {
+          url: uploaded.url,
+          public_id: uploaded.public_id,
+        };
+      } catch (err) {
+        console.error(`Upload failed for ${field}`, err);
+      }
     };
 
     // Upload images
@@ -85,7 +90,7 @@ export const createStudent = async (req, res) => {
 
 export const getStudents = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId) {
       return res.status(400).json({
@@ -117,7 +122,7 @@ export const getStudents = async (req, res) => {
 
 export const getStudent = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId) {
       return res.status(400).json({
@@ -158,7 +163,8 @@ export const getStudent = async (req, res) => {
 
 export const updateStudent = async (req, res) => {
   try {
-    const { schoolId, ...safeBody } = req.body;
+    const schoolId = req.user?.school_id;
+    const { ...safeBody } = req.body;
 
     if (!schoolId) {
       return res.status(400).json({
@@ -218,7 +224,7 @@ export const updateStudent = async (req, res) => {
         ...safeBody,
         documents,
       },
-      { new: true }
+      { new: true },
     )
       .populate("classId", "name className")
       .populate("sectionId", "name sectionName");
@@ -242,7 +248,7 @@ export const updateStudent = async (req, res) => {
 
 export const deleteStudent = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId) {
       return res.status(400).json({

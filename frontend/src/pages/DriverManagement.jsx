@@ -47,10 +47,10 @@ const DriverManagement = () => {
     try {
       const [b, r] = await Promise.all([
         axios.get(`${API}/transport/buses`, {
-          params: { school_id: schoolId },
+          withCredentials: true,
         }),
         axios.get(`${API}/transport/routes`, {
-          params: { school_id: schoolId },
+          withCredentials: true,
         }),
       ]);
 
@@ -66,7 +66,7 @@ const DriverManagement = () => {
     try {
       setLoading(true);
       const res = await axios.get(`${API}/transport/drivers`, {
-        params: { school_id: schoolId },
+        withCredentials: true,
       });
       setDrivers(res.data.data || []);
     } catch {
@@ -135,13 +135,16 @@ const DriverManagement = () => {
         bus: form.bus || null,
         route: form.route || null,
         status: form.status,
-        school_id: schoolId,
       };
       if (isEdit) {
-        await axios.put(`${API}/transport/drivers/${editId}`, payload);
+        await axios.put(`${API}/transport/drivers/${editId}`, payload, {
+          withCredentials: true,
+        });
         toast.success("Driver updated successfully");
       } else {
-        await axios.post(`${API}/transport/drivers`, payload);
+        await axios.post(`${API}/transport/drivers`, payload, {
+          withCredentials: true,
+        });
         toast.success("Driver added successfully");
       }
       setFormModal(false);
@@ -164,7 +167,7 @@ const DriverManagement = () => {
   const confirmDelete = async () => {
     try {
       await axios.delete(`${API}/transport/drivers/${deleteId}`, {
-        params: { school_id: schoolId },
+        withCredentials: true,
       });
       toast.success("Driver deleted successfully");
       setDeleteModal(false);

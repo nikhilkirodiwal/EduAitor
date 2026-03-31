@@ -4,7 +4,8 @@ import Section from "../models/section.js";
 
 export const createSection = async (req, res) => {
   try {
-    let { name, status, schoolId } = req.body;
+    const schoolId = req.user?.school_id;
+    let { name, status } = req.body;
 
     if (!schoolId)
       return res.status(400).json({
@@ -46,7 +47,7 @@ export const createSection = async (req, res) => {
 
 export const getSections = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     if (!schoolId)
       return res.status(400).json({
@@ -71,8 +72,9 @@ export const getSections = async (req, res) => {
 
 export const updateSection = async (req, res) => {
   try {
+    const schoolId = req.user?.school_id;
     const { id } = req.params;
-    let { name, status, schoolId } = req.body;
+    let { name, status } = req.body;
 
     if (!schoolId)
       return res.status(400).json({
@@ -130,7 +132,7 @@ export const updateSection = async (req, res) => {
 
 export const deleteSection = async (req, res) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user?.school_id;
 
     const section = await Section.findOne({
       _id: req.params.id,
@@ -158,8 +160,9 @@ export const deleteSection = async (req, res) => {
 
 export const addSubSection = async (req, res) => {
   try {
+    const schoolId = req.user?.school_id;
     const { sectionId } = req.params;
-    const { name, status, schoolId } = req.body;
+    const { name, status } = req.body;
 
     const section = await Section.findOne({
       _id: sectionId,
@@ -202,8 +205,9 @@ export const addSubSection = async (req, res) => {
 
 export const updateSubSection = async (req, res) => {
   try {
+    const schoolId = req.user?.school_id;
     const { sectionId, subId } = req.params;
-    const { name, status, schoolId } = req.body;
+    const { name, status } = req.body;
 
     const section = await Section.findOne({
       _id: sectionId,
@@ -250,8 +254,8 @@ export const updateSubSection = async (req, res) => {
 
 export const deleteSubSection = async (req, res) => {
   try {
+    const schoolId = req.user?.school_id;
     const { sectionId, subId } = req.params;
-    const { schoolId } = req.query;
 
     const section = await Section.findOne({
       _id: sectionId,

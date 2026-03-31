@@ -174,7 +174,7 @@ const SchoolSubscription = () => {
   };
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="p-8 min-h-screen">
       {/* HEADER */}
 
       <div className="flex justify-between items-center mb-8">

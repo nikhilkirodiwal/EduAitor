@@ -50,12 +50,8 @@ const RouteManagement = () => {
   const fetchMeta = async () => {
     try {
       const [b, d] = await Promise.all([
-        axios.get(`${API}/transport/buses`, {
-          params: { school_id: schoolId },
-        }),
-        axios.get(`${API}/transport/drivers`, {
-          params: { school_id: schoolId },
-        }),
+        axios.get(`${API}/transport/buses`, { withCredentials: true }),
+        axios.get(`${API}/transport/drivers`, { withCredentials: true }),
       ]);
 
       setBuses(b.data.data || []);
@@ -70,7 +66,7 @@ const RouteManagement = () => {
     try {
       setLoading(true);
       const res = await axios.get(`${API}/transport/routes`, {
-        params: { school_id: schoolId },
+        withCredentials: true,
       });
       setRoutes(res.data.data || []);
     } catch {
@@ -118,7 +114,6 @@ const RouteManagement = () => {
     try {
       setFormLoading(true);
       const payload = {
-        school_id: schoolId,
         name: form.name.trim(),
         bus: form.bus || null,
         driver: form.driver || null,
@@ -132,10 +127,14 @@ const RouteManagement = () => {
           .filter(Boolean),
       };
       if (isEdit) {
-        await axios.put(`${API}/transport/routes/${editId}`, payload);
+        await axios.put(`${API}/transport/routes/${editId}`, payload, {
+          withCredentials: true,
+        });
         toast.success("Route updated successfully");
       } else {
-        await axios.post(`${API}/transport/routes`, payload);
+        await axios.post(`${API}/transport/routes`, payload, {
+          withCredentials: true,
+        });
         toast.success("Route added successfully");
       }
       setFormModal(false);
@@ -157,7 +156,7 @@ const RouteManagement = () => {
   const confirmDelete = async () => {
     try {
       await axios.delete(`${API}/transport/routes/${deleteTarget._id}`, {
-        params: { school_id: schoolId },
+        withCredentials: true,
       });
       toast.success("Route deleted successfully");
       setDeleteModal(false);

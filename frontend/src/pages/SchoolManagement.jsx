@@ -163,7 +163,7 @@ const SchoolManagement = () => {
   };
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="p-6 min-h-screen">
       {/* HEADER */}
 
       <div className="flex justify-between items-center mb-6">

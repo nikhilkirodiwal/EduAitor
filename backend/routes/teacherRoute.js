@@ -8,25 +8,28 @@ import {
   updateTeacher,
   deleteTeacher,
 } from "../controllers/teacherController.js";
+import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
 router.post(
   "/",
+  authMiddleware,
   upload.fields([{ name: "photo", maxCount: 1 }]),
   createTeacher,
 );
 
 router.put(
   "/:id",
+  authMiddleware,
   upload.fields([{ name: "photo", maxCount: 1 }]),
   updateTeacher,
 );
 
-router.get("/", getTeachers);
+router.get("/", authMiddleware, getTeachers);
 
-router.get("/:id", getTeacher);
+router.get("/:id", authMiddleware, getTeacher);
 
-router.delete("/:id", deleteTeacher);
+router.delete("/:id", authMiddleware, deleteTeacher);
 
 export default router;

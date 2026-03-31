@@ -4,8 +4,6 @@ import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 const steps = [
   "Basic Information",
@@ -27,7 +25,7 @@ const emptyForm = {
 
   qualification: "",
   experience: "",
-  subject: "",
+  subjects: [],
   department: "",
 
   designation: "",
@@ -65,17 +63,13 @@ const TeacherManagement = () => {
 
   useEffect(() => {
     const fetchDropdownData = async () => {
-      if (!schoolId) {
-        toast.error("School ID not found");
-        return;
-      }
 
       try {
         setLoading(true);
 
         const [subjectsRes, classesRes] = await Promise.all([
-          axios.get(`${API}/subjects/all`, { params: { schoolId } }),
-          axios.get(`${API}/classes/all`, { params: { schoolId } }),
+          axios.get(`${API}/subjects/all`, { withCredentials: true }),
+          axios.get(`${API}/classes/all`, { withCredentials: true }),
         ]);
 
         setSubjects(subjectsRes.data.subjects || []);
@@ -99,7 +93,7 @@ const TeacherManagement = () => {
     const fetchTeacher = async () => {
       try {
         const res = await axios.get(`${API}/teachers/${id}`, {
-          params: { schoolId },
+          withCredentials: true,
         });
 
         const t = res.data.data;
@@ -108,7 +102,13 @@ const TeacherManagement = () => {
           ...t,
           dob: t.dob ? t.dob.split("T")[0] : "",
           joiningDate: t.joiningDate ? t.joiningDate.split("T")[0] : "",
-          assignedClasses: t.assignedClasses || [],
+          // Normalize to plain IDs in case they come back as populated objects
+          assignedClasses: (t.assignedClasses || []).map((c) =>
+            typeof c === "object" ? c._id : c,
+          ),
+          subjects: (t.subjects || []).map((s) =>
+            typeof s === "object" ? s._id : s,
+          ),
         });
       } catch {
         toast.error("Failed to load teacher");
@@ -184,7 +184,7 @@ const TeacherManagement = () => {
 
     if (step === 2) {
       if (!form.qualification) errors.push("Qualification required");
-      if (!form.subject) errors.push("Subject required");
+      if (!form.subjects) errors.push("Subject required");
     }
 
     if (step === 3) {
@@ -250,31 +250,28 @@ const TeacherManagement = () => {
   };
 
   const submitTeacher = async () => {
-    if (!schoolId) {
-      toast.error("School ID not found");
-      return;
-    }
 
     try {
       const data = new FormData();
 
       Object.keys(form).forEach((key) => {
-        if (key === "assignedClasses") {
-          // Send as JSON array
+        if (key === "subjects") {
+          data.append(key, JSON.stringify(form.subjects));
+        } else if (key === "assignedClasses") {
           data.append(key, JSON.stringify(form[key]));
         } else if (form[key] !== null && form[key] !== "") {
           data.append(key, form[key]);
         }
       });
 
-      data.append("schoolId", schoolId);
-
       if (isEdit) {
-        await axios.put(`${API}/teachers/${id}`, data);
+        await axios.put(`${API}/teachers/${id}`, data, {
+          withCredentials: true,
+        });
 
         toast.success("Teacher updated successfully");
       } else {
-        await axios.post(`${API}/teachers`, data);
+        await axios.post(`${API}/teachers`, data, { withCredentials: true });
 
         toast.success("Teacher added successfully");
       }
@@ -300,6 +297,13 @@ const TeacherManagement = () => {
 
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [form]);
+
+  /* RESOLVE SUBJECT NAMES for Review */
+
+  const resolvedSubjectNames = subjects
+    .filter((s) => (form.subjects || []).includes(s._id))
+    .map((s) => s.name)
+    .join(", ");
 
   if (loading) {
     return (
@@ -488,10 +492,14 @@ const TeacherManagement = () => {
                   placeholder="Years of teaching"
                 />
                 <Select
-                  label="Subject *"
-                  name="subject"
-                  value={form.subject}
-                  options={subjects.map((s) => s.name || s.subjectName)}
+                  label="Subjects *"
+                  name="subjects"
+                  multiple
+                  value={form.subjects}
+                  options={subjects.map((s) => ({
+                    label: s.name,
+                    value: s._id,
+                  }))}
                   onChange={handleChange}
                 />
                 <Input
@@ -604,7 +612,10 @@ const TeacherManagement = () => {
                     label="Qualification"
                     value={form.qualification}
                   />
-                  <ReviewField label="Subject" value={form.subject} />
+                  <ReviewField
+                    label="Subjects"
+                    value={resolvedSubjectNames || "Not provided"}
+                  />
                   <ReviewField label="Designation" value={form.designation} />
                   <ReviewField
                     label="Employment Type"
@@ -684,22 +695,62 @@ const Input = ({ label, className = "", ...props }) => (
   </div>
 );
 
-const Select = ({ label, options, ...props }) => (
-  <div>
-    <label className="block text-sm mb-1 text-gray-600">{label}</label>
-    <select
-      {...props}
-      className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
-    >
-      <option value="">Select</option>
-      {options.map((o, i) => (
-        <option key={i} value={o}>
-          {o}
-        </option>
-      ))}
-    </select>
-  </div>
-);
+const Select = ({
+  label,
+  options,
+  multiple = false,
+  value,
+  name,
+  onChange,
+  ...props
+}) => {
+  const handleChange = (e) => {
+    if (!multiple) return onChange(e);
+
+    const values = Array.from(e.target.selectedOptions).map((opt) => opt.value);
+
+    onChange({
+      target: {
+        name,
+        value: values,
+      },
+    });
+  };
+
+  return (
+    <div>
+      <label className="block text-sm mb-1 text-gray-600">{label}</label>
+
+      <select
+        {...props}
+        name={name}
+        value={value}
+        multiple={multiple}
+        onChange={handleChange}
+        className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+      >
+        {!multiple && <option value="">Select</option>}
+
+        {options.map((o, i) => {
+          const val = typeof o === "object" ? o.value : o;
+          const label = typeof o === "object" ? o.label : o;
+
+          return (
+            <option key={i} value={val}>
+              {label}
+            </option>
+          );
+        })}
+      </select>
+
+      {multiple && (
+        <p className="text-xs text-gray-500 mt-1">
+          Hold Ctrl/Cmd to select multiple
+        </p>
+      )}
+    </div>
+  );
+};
 
 const File = ({ label, name, onChange }) => (
   <div>

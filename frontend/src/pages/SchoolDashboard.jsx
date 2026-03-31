@@ -25,8 +25,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 const settingsKey = "schoolDashboardVisibility";
 const defaultVisibility = {
   highlights: true,
@@ -73,7 +71,8 @@ const getTrendBars = (payments) => {
     const paidDate = payment?.paidDate ? new Date(payment.paidDate) : null;
     if (!paidDate || Number.isNaN(paidDate.getTime())) return;
     const key = `${paidDate.getFullYear()}-${paidDate.getMonth()}`;
-    if (monthMap.has(key)) monthMap.get(key).value += Number(payment.amountPaid || 0);
+    if (monthMap.has(key))
+      monthMap.get(key).value += Number(payment.amountPaid || 0);
   });
 
   const maxValue = Math.max(...months.map((m) => m.value), 1);
@@ -119,7 +118,6 @@ const SchoolDashboard = () => {
   }, [visibility]);
 
   const fetchDashboard = async ({ silent = false } = {}) => {
-    if (!schoolId) return toast.error("School ID not found");
 
     try {
       silent ? setRefreshing(true) : setLoading(true);
@@ -134,15 +132,24 @@ const SchoolDashboard = () => {
         booksRes,
         issuesRes,
       ] = await Promise.all([
-        axios.get(`${API}/students`, { params: { schoolId } }),
-        axios.get(`${API}/teachers`, { params: { schoolId } }),
-        axios.get(`${API}/classes/all`, { params: { schoolId } }),
-        axios.get(`${API}/notices/${schoolId}`),
-        axios.get(`${API}/events/${schoolId}`),
-        axios.get(`${API}/fee-history`, { params: { schoolId, page: 1, limit: 200 } }),
-        axios.get(`${API}/fees/defaulters`, { params: { schoolId, page: 1, limit: 5 } }),
-        axios.get(`${API}/library/books`, { params: { schoolId } }),
-        axios.get(`${API}/library/issues`, { params: { schoolId, status: "active" } }),
+        axios.get(`${API}/students`, { withCredentials: true }),
+        axios.get(`${API}/teachers`, { withCredentials: true }),
+        axios.get(`${API}/classes/all`, { withCredentials: true }),
+        axios.get(`${API}/notices/`, { withCredentials: true }),
+        axios.get(`${API}/events/`, { withCredentials: true }),
+        axios.get(`${API}/fee-history`, {
+          params: { page: 1, limit: 200 },
+          withCredentials: true,
+        }),
+        axios.get(`${API}/fees/defaulters`, {
+          params: { page: 1, limit: 5 },
+          withCredentials: true,
+        }),
+        axios.get(`${API}/library/books`, { withCredentials: true }),
+        axios.get(`${API}/library/issues`, {
+          params: { status: "active" },
+          withCredentials: true,
+        }),
       ]);
 
       setDashboard({
@@ -194,28 +201,45 @@ const SchoolDashboard = () => {
     const totalCapacity = dashboard.classes.reduce(
       (sum, item) =>
         sum +
-        (item.details || []).reduce((inner, detail) => inner + Number(detail.capacity || 0), 0),
+        (item.details || []).reduce(
+          (inner, detail) => inner + Number(detail.capacity || 0),
+          0,
+        ),
       0,
     );
     const classStudents = dashboard.classes.reduce(
       (sum, item) =>
         sum +
-        (item.details || []).reduce((inner, detail) => inner + Number(detail.studentCount || 0), 0),
+        (item.details || []).reduce(
+          (inner, detail) => inner + Number(detail.studentCount || 0),
+          0,
+        ),
       0,
     );
     const teachersPresent = dashboard.teachers.filter(
       (teacher) => (teacher.status || "Present") === "Present",
     ).length;
     const classesWithTeachers = dashboard.classes.reduce(
-      (sum, item) => sum + (item.details || []).filter((detail) => detail.teacherId).length,
+      (sum, item) =>
+        sum + (item.details || []).filter((detail) => detail.teacherId).length,
       0,
     );
-    const classesReadyRate = totalSections ? Math.round((classesWithTeachers / totalSections) * 100) : 0;
+    const classesReadyRate = totalSections
+      ? Math.round((classesWithTeachers / totalSections) * 100)
+      : 0;
     const teacherAttendanceRate = dashboard.teachers.length
       ? Math.round((teachersPresent / dashboard.teachers.length) * 100)
       : 0;
     const studentAttendanceRate = dashboard.students.length
-      ? Math.min(99, Math.max(72, Math.round(78 + classesReadyRate * 0.12 + teacherAttendanceRate * 0.1)))
+      ? Math.min(
+          99,
+          Math.max(
+            72,
+            Math.round(
+              78 + classesReadyRate * 0.12 + teacherAttendanceRate * 0.1,
+            ),
+          ),
+        )
       : 0;
     const libraryAvailable = dashboard.books.reduce(
       (sum, book) => sum + Number(book.availableCopies || 0),
@@ -238,7 +262,10 @@ const SchoolDashboard = () => {
     };
   }, [dashboard]);
 
-  const feeTrend = useMemo(() => getTrendBars(dashboard.payments), [dashboard.payments]);
+  const feeTrend = useMemo(
+    () => getTrendBars(dashboard.payments),
+    [dashboard.payments],
+  );
 
   const reportCards = [
     {
@@ -289,7 +316,10 @@ const SchoolDashboard = () => {
     },
     {
       label: "School Capacity",
-      value: metrics.totalCapacity > 0 ? `${metrics.enrolledStudents}/${metrics.totalCapacity}` : metrics.enrolledStudents,
+      value:
+        metrics.totalCapacity > 0
+          ? `${metrics.enrolledStudents}/${metrics.totalCapacity}`
+          : metrics.enrolledStudents,
       subtext: `${metrics.totalClasses} classes in operation`,
     },
   ];
@@ -319,10 +349,34 @@ const SchoolDashboard = () => {
   ];
 
   const quickActions = [
-    { label: "Add Student", helper: "Start a new admission", icon: <FaUserGraduate />, to: "/school/student-manage", tone: "blue" },
-    { label: "Collect Fee", helper: "Record a payment quickly", icon: <FaFileInvoiceDollar />, to: "/school/fee-collection", tone: "emerald" },
-    { label: "Publish Notice", helper: "Share school updates", icon: <FiBell />, to: "/school/notice", tone: "amber" },
-    { label: "Plan Event", helper: "Create calendar activity", icon: <FiCalendar />, to: "/school/event", tone: "violet" },
+    {
+      label: "Add Student",
+      helper: "Start a new admission",
+      icon: <FaUserGraduate />,
+      to: "/school/student-manage",
+      tone: "blue",
+    },
+    {
+      label: "Collect Fee",
+      helper: "Record a payment quickly",
+      icon: <FaFileInvoiceDollar />,
+      to: "/school/fee-collection",
+      tone: "emerald",
+    },
+    {
+      label: "Publish Notice",
+      helper: "Share school updates",
+      icon: <FiBell />,
+      to: "/school/notice",
+      tone: "amber",
+    },
+    {
+      label: "Plan Event",
+      helper: "Create calendar activity",
+      icon: <FiCalendar />,
+      to: "/school/event",
+      tone: "violet",
+    },
   ];
 
   const latestNotices = dashboard.notices.slice(0, 3);
@@ -336,7 +390,9 @@ const SchoolDashboard = () => {
       <div className="flex min-h-screen items-center justify-center bg-slate-50 p-8">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-sky-600" />
-          <p className="text-sm font-semibold text-slate-600">Loading school dashboard...</p>
+          <p className="text-sm font-semibold text-slate-600">
+            Loading school dashboard...
+          </p>
         </div>
       </div>
     );
@@ -348,9 +404,12 @@ const SchoolDashboard = () => {
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">School Dashboard</h1>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">
+                School Dashboard
+              </h1>
               <p className="mt-2 max-w-3xl text-sm text-slate-500">
-                Monitor reports, fee health, attendance, notices, events, and daily action points from one control center.
+                Monitor reports, fee health, attendance, notices, events, and
+                daily action points from one control center.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
@@ -373,7 +432,12 @@ const SchoolDashboard = () => {
           {settingsOpen && (
             <DashboardSettingsControl
               visibility={visibility}
-              onToggle={(key) => setVisibility((current) => ({ ...current, [key]: !current[key] }))}
+              onToggle={(key) =>
+                setVisibility((current) => ({
+                  ...current,
+                  [key]: !current[key],
+                }))
+              }
               onReset={() => setVisibility(defaultVisibility)}
             />
           )}
@@ -382,80 +446,176 @@ const SchoolDashboard = () => {
 
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard title="Students" value={metrics.totalStudents.toLocaleString()} note={`${metrics.totalClasses} classes and ${metrics.totalSections} sections`} icon={<FaUserGraduate />} tone="blue" />
-          <StatCard title="Teachers" value={metrics.totalTeachers} note={`${metrics.teachersPresent} marked present today`} icon={<FaChessBoard />} tone="emerald" />
-          <StatCard title="Fee Collected" value={formatCurrency(dashboard.feeSummary.totalAmount)} note={`${dashboard.defaulters.length} defaulters need follow-up`} icon={<FaFileInvoiceDollar />} tone="amber" />
-          <StatCard title="Operational Score" value={`${Math.round((metrics.classesReadyRate + metrics.teacherAttendanceRate + metrics.studentAttendanceRate) / 3)}%`} note="Combined readiness and attendance view" icon={<FaArrowTrendUp />} tone="violet" />
+          <StatCard
+            title="Students"
+            value={metrics.totalStudents.toLocaleString()}
+            note={`${metrics.totalClasses} classes and ${metrics.totalSections} sections`}
+            icon={<FaUserGraduate />}
+            tone="blue"
+          />
+          <StatCard
+            title="Teachers"
+            value={metrics.totalTeachers}
+            note={`${metrics.teachersPresent} marked present today`}
+            icon={<FaChessBoard />}
+            tone="emerald"
+          />
+          <StatCard
+            title="Fee Collected"
+            value={formatCurrency(dashboard.feeSummary.totalAmount)}
+            note={`${dashboard.defaulters.length} defaulters need follow-up`}
+            icon={<FaFileInvoiceDollar />}
+            tone="amber"
+          />
+          <StatCard
+            title="Operational Score"
+            value={`${Math.round((metrics.classesReadyRate + metrics.teacherAttendanceRate + metrics.studentAttendanceRate) / 3)}%`}
+            note="Combined readiness and attendance view"
+            icon={<FaArrowTrendUp />}
+            tone="violet"
+          />
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
           <div className="overflow-hidden rounded-3xl bg-linear-to-br from-slate-950 via-sky-950 to-cyan-900 p-6 text-white shadow-xl">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-sky-200">Command Center</p>
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-sky-200">
+              Command Center
+            </p>
             <h2 className="mt-3 text-2xl font-black">
-              {userData?.schoolName || "Your school"} is operating with {metrics.classesReadyRate}% classroom readiness
+              { "Your school"} is operating with{" "}
+              {metrics.classesReadyRate}% classroom readiness
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-slate-300">
-              Keep academic operations, fee recovery, and communication priorities visible for your daily admin team.
+              Keep academic operations, fee recovery, and communication
+              priorities visible for your daily admin team.
             </p>
             {visibility.highlights && (
               <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                {highlights.map((item) => <HighlightCard key={item.label} {...item} />)}
+                {highlights.map((item) => (
+                  <HighlightCard key={item.label} {...item} />
+                ))}
               </div>
             )}
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center gap-3">
-              <div className="rounded-2xl bg-red-50 p-3 text-red-600"><FaTriangleExclamation /></div>
+              <div className="rounded-2xl bg-red-50 p-3 text-red-600">
+                <FaTriangleExclamation />
+              </div>
               <div>
-                <h2 className="text-lg font-black text-slate-900">Priority Focus</h2>
-                <p className="text-sm text-slate-500">What the school office should review first.</p>
+                <h2 className="text-lg font-black text-slate-900">
+                  Priority Focus
+                </h2>
+                <p className="text-sm text-slate-500">
+                  What the school office should review first.
+                </p>
               </div>
             </div>
             <div className="space-y-3">
-              <AlertRow label="Fee Defaulters" value={dashboard.defaulters.length} helper="Students pending fee follow-up" tone="red" />
-              <AlertRow label="High Priority Notices" value={dashboard.noticeStats.highPriority} helper="Urgent parent or staff communication" tone="amber" />
-              <AlertRow label="Overdue Library Issues" value={dashboard.issueStats.overdue || 0} helper="Books to recover or extend" tone="blue" />
-              <AlertRow label="Upcoming Events" value={dashboard.eventStats.upcoming} helper="Programs needing preparation" tone="emerald" />
+              <AlertRow
+                label="Fee Defaulters"
+                value={dashboard.defaulters.length}
+                helper="Students pending fee follow-up"
+                tone="red"
+              />
+              <AlertRow
+                label="High Priority Notices"
+                value={dashboard.noticeStats.highPriority}
+                helper="Urgent parent or staff communication"
+                tone="amber"
+              />
+              <AlertRow
+                label="Overdue Library Issues"
+                value={dashboard.issueStats.overdue || 0}
+                helper="Books to recover or extend"
+                tone="blue"
+              />
+              <AlertRow
+                label="Upcoming Events"
+                value={dashboard.eventStats.upcoming}
+                helper="Programs needing preparation"
+                tone="emerald"
+              />
             </div>
           </div>
         </section>
 
         {visibility.reports && (
-          <SectionCard title="Reports Overview" subtitle="Cross-functional summary across finance, academics, and library operations">
+          <SectionCard
+            title="Reports Overview"
+            subtitle="Cross-functional summary across finance, academics, and library operations"
+          >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {reportCards.map((card) => <ReportCard key={card.title} {...card} />)}
+              {reportCards.map((card) => (
+                <ReportCard key={card.title} {...card} />
+              ))}
             </div>
           </SectionCard>
         )}
 
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
           {visibility.feeTrends && (
-            <SectionCard title="Fee Trend" subtitle="Recent six-month collection pattern from fee history">
+            <SectionCard
+              title="Fee Trend"
+              subtitle="Recent six-month collection pattern from fee history"
+            >
               <div className="grid gap-5 lg:grid-cols-[0.78fr_1.22fr]">
                 <div className="rounded-2xl bg-slate-50 p-5">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Collection Snapshot</p>
-                  <p className="mt-3 text-3xl font-black text-slate-900">{formatCurrency(dashboard.feeSummary.totalAmount)}</p>
-                  <p className="mt-2 text-sm text-slate-500">Current loaded collection total from fee history.</p>
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+                    Collection Snapshot
+                  </p>
+                  <p className="mt-3 text-3xl font-black text-slate-900">
+                    {formatCurrency(dashboard.feeSummary.totalAmount)}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Current loaded collection total from fee history.
+                  </p>
                   <div className="mt-5 space-y-3">
-                    <InfoMetric label="Receipts" value={dashboard.payments.length} icon={<FiCreditCard />} />
+                    <InfoMetric
+                      label="Receipts"
+                      value={dashboard.payments.length}
+                      icon={<FiCreditCard />}
+                    />
                     <InfoMetric
                       label="Average Receipt"
-                      value={dashboard.payments.length ? formatCurrency(dashboard.feeSummary.totalAmount / dashboard.payments.length) : formatCurrency(0)}
+                      value={
+                        dashboard.payments.length
+                          ? formatCurrency(
+                              dashboard.feeSummary.totalAmount /
+                                dashboard.payments.length,
+                            )
+                          : formatCurrency(0)
+                      }
                       icon={<FiTrendingUp />}
                     />
-                    <InfoMetric label="Defaulters" value={dashboard.defaulters.length} icon={<FaTriangleExclamation />} />
+                    <InfoMetric
+                      label="Defaulters"
+                      value={dashboard.defaulters.length}
+                      icon={<FaTriangleExclamation />}
+                    />
                   </div>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-white p-5">
                   <div className="flex h-56 items-end justify-between gap-3">
                     {feeTrend.map((item) => (
-                      <div key={item.key} className="flex flex-1 flex-col items-center justify-end gap-3">
-                        <span className="text-[11px] font-bold text-slate-500">{item.value ? formatCurrency(item.value) : "No data"}</span>
+                      <div
+                        key={item.key}
+                        className="flex flex-1 flex-col items-center justify-end gap-3"
+                      >
+                        <span className="text-[11px] font-bold text-slate-500">
+                          {item.value ? formatCurrency(item.value) : "No data"}
+                        </span>
                         <div className="flex h-36 w-full items-end">
-                          <div className="w-full rounded-t-2xl bg-linear-to-t from-sky-500 via-cyan-400 to-emerald-300" style={{ height: `${item.height}%` }} title={`${item.fullLabel}: ${formatCurrency(item.value)}`} />
+                          <div
+                            className="w-full rounded-t-2xl bg-linear-to-t from-sky-500 via-cyan-400 to-emerald-300"
+                            style={{ height: `${item.height}%` }}
+                            title={`${item.fullLabel}: ${formatCurrency(item.value)}`}
+                          />
                         </div>
-                        <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">{item.label}</span>
+                        <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">
+                          {item.label}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -465,9 +625,14 @@ const SchoolDashboard = () => {
           )}
 
           {visibility.attendance && (
-            <SectionCard title="Attendance Snapshot" subtitle="Operational view for staff presence, class readiness, and student attendance confidence">
+            <SectionCard
+              title="Attendance Snapshot"
+              subtitle="Operational view for staff presence, class readiness, and student attendance confidence"
+            >
               <div className="grid gap-4 sm:grid-cols-3">
-                {attendanceCards.map((card) => <AttendanceCard key={card.title} {...card} />)}
+                {attendanceCards.map((card) => (
+                  <AttendanceCard key={card.title} {...card} />
+                ))}
               </div>
             </SectionCard>
           )}
@@ -475,7 +640,10 @@ const SchoolDashboard = () => {
 
         <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
           {visibility.quickActions && (
-            <SectionCard title="Quick Actions" subtitle="Fast entry points for the tasks a school admin handles every day">
+            <SectionCard
+              title="Quick Actions"
+              subtitle="Fast entry points for the tasks a school admin handles every day"
+            >
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {quickActions.map((item) => (
                   <button
@@ -483,11 +651,19 @@ const SchoolDashboard = () => {
                     onClick={() => navigate(item.to)}
                     className="group rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
                   >
-                    <div className={`mb-4 inline-flex rounded-2xl p-3 text-lg ${quickActionTone[item.tone]}`}>{item.icon}</div>
+                    <div
+                      className={`mb-4 inline-flex rounded-2xl p-3 text-lg ${quickActionTone[item.tone]}`}
+                    >
+                      {item.icon}
+                    </div>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h3 className="text-base font-black text-slate-900">{item.label}</h3>
-                        <p className="mt-1 text-sm text-slate-500">{item.helper}</p>
+                        <h3 className="text-base font-black text-slate-900">
+                          {item.label}
+                        </h3>
+                        <p className="mt-1 text-sm text-slate-500">
+                          {item.helper}
+                        </p>
                       </div>
                       <FiArrowRight className="mt-1 text-slate-300 transition group-hover:text-slate-700" />
                     </div>
@@ -497,19 +673,44 @@ const SchoolDashboard = () => {
             </SectionCard>
           )}
 
-          <SectionCard title="Operational Highlights" subtitle="Active communication and school calendar priorities">
+          <SectionCard
+            title="Operational Highlights"
+            subtitle="Active communication and school calendar priorities"
+          >
             <div className="grid gap-4 sm:grid-cols-2">
               {visibility.notices && (
-                <MiniPanel title="Latest Notices" tone="blue" actionLabel="Open Notices" onAction={() => navigate("/school/notice")} emptyMessage="No notices published yet.">
+                <MiniPanel
+                  title="Latest Notices"
+                  tone="blue"
+                  actionLabel="Open Notices"
+                  onAction={() => navigate("/school/notice")}
+                  emptyMessage="No notices published yet."
+                >
                   {latestNotices.map((notice) => (
-                    <TimelineRow key={notice._id} title={notice.title} meta={`${notice.audience || "All"} | ${notice.priority || "Normal"}`} date={formatShortDate(notice.publishDate)} />
+                    <TimelineRow
+                      key={notice._id}
+                      title={notice.title}
+                      meta={`${notice.audience || "All"} | ${notice.priority || "Normal"}`}
+                      date={formatShortDate(notice.publishDate)}
+                    />
                   ))}
                 </MiniPanel>
               )}
               {visibility.events && (
-                <MiniPanel title="Upcoming Events" tone="amber" actionLabel="Open Events" onAction={() => navigate("/school/event")} emptyMessage="No upcoming events on the calendar.">
+                <MiniPanel
+                  title="Upcoming Events"
+                  tone="amber"
+                  actionLabel="Open Events"
+                  onAction={() => navigate("/school/event")}
+                  emptyMessage="No upcoming events on the calendar."
+                >
                   {upcomingEvents.map((event) => (
-                    <TimelineRow key={event._id} title={event.title} meta={`${event.location || "Campus"} | ${event.time || "Time pending"}`} date={formatShortDate(event.startDate)} />
+                    <TimelineRow
+                      key={event._id}
+                      title={event.title}
+                      meta={`${event.location || "Campus"} | ${event.time || "Time pending"}`}
+                      date={formatShortDate(event.startDate)}
+                    />
                   ))}
                 </MiniPanel>
               )}
@@ -536,10 +737,17 @@ const DashboardSettingsControl = ({ visibility, onToggle, onReset }) => {
     <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-base font-black text-slate-900">Dashboard Content Control</h2>
-          <p className="text-sm text-slate-500">Choose which dashboard sections stay visible for your school team.</p>
+          <h2 className="text-base font-black text-slate-900">
+            Dashboard Content Control
+          </h2>
+          <p className="text-sm text-slate-500">
+            Choose which dashboard sections stay visible for your school team.
+          </p>
         </div>
-        <button onClick={onReset} className="rounded-2xl bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-100">
+        <button
+          onClick={onReset}
+          className="rounded-2xl bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-100"
+        >
           Reset Defaults
         </button>
       </div>
@@ -549,11 +757,15 @@ const DashboardSettingsControl = ({ visibility, onToggle, onReset }) => {
             key={key}
             onClick={() => onToggle(key)}
             className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
-              visibility[key] ? "border-sky-200 bg-sky-50 text-sky-900" : "border-slate-200 bg-white text-slate-600"
+              visibility[key]
+                ? "border-sky-200 bg-sky-50 text-sky-900"
+                : "border-slate-200 bg-white text-slate-600"
             }`}
           >
             <span className="text-sm font-bold">{label}</span>
-            <span className={`rounded-full px-2 py-1 text-[11px] font-black uppercase ${visibility[key] ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-500"}`}>
+            <span
+              className={`rounded-full px-2 py-1 text-[11px] font-black uppercase ${visibility[key] ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-500"}`}
+            >
               {visibility[key] ? "On" : "Off"}
             </span>
           </button>
@@ -584,7 +796,9 @@ const StatCard = ({ title, value, note, icon, tone }) => {
     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">{title}</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+            {title}
+          </p>
           <p className="mt-3 text-3xl font-black text-slate-900">{value}</p>
           <p className="mt-2 text-sm text-slate-500">{note}</p>
         </div>
@@ -596,7 +810,9 @@ const StatCard = ({ title, value, note, icon, tone }) => {
 
 const HighlightCard = ({ label, value, subtext }) => (
   <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-    <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-300">{label}</p>
+    <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-300">
+      {label}
+    </p>
     <p className="mt-2 text-2xl font-black text-white">{value}</p>
     <p className="mt-2 text-sm text-slate-300">{subtext}</p>
   </div>
@@ -615,7 +831,11 @@ const AlertRow = ({ label, value, helper, tone }) => {
         <p className="text-sm font-bold text-slate-900">{label}</p>
         <p className="text-xs text-slate-500">{helper}</p>
       </div>
-      <span className={`rounded-full px-3 py-1 text-xs font-bold ${tones[tone]}`}>{value}</span>
+      <span
+        className={`rounded-full px-3 py-1 text-xs font-bold ${tones[tone]}`}
+      >
+        {value}
+      </span>
     </div>
   );
 };
@@ -631,7 +851,9 @@ const ReportCard = ({ title, value, helper, icon, tone }) => {
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">{title}</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+            {title}
+          </p>
           <p className="mt-2 text-2xl font-black text-slate-900">{value}</p>
           <p className="mt-2 text-sm text-slate-500">{helper}</p>
         </div>
@@ -661,7 +883,9 @@ const AttendanceCard = ({ title, value, helper, tone, icon }) => {
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">{title}</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+            {title}
+          </p>
           <p className="mt-2 text-3xl font-black text-slate-900">{value}</p>
           <p className="mt-2 text-sm text-slate-500">{helper}</p>
         </div>
@@ -671,23 +895,50 @@ const AttendanceCard = ({ title, value, helper, tone, icon }) => {
   );
 };
 
-const MiniPanel = ({ title, tone, actionLabel, onAction, children, emptyMessage }) => {
-  const tones = { blue: "bg-blue-50 text-blue-600", amber: "bg-amber-50 text-amber-600" };
-  const hasChildren = Array.isArray(children) ? children.length > 0 : !!children;
+const MiniPanel = ({
+  title,
+  tone,
+  actionLabel,
+  onAction,
+  children,
+  emptyMessage,
+}) => {
+  const tones = {
+    blue: "bg-blue-50 text-blue-600",
+    amber: "bg-amber-50 text-amber-600",
+  };
+  const hasChildren = Array.isArray(children)
+    ? children.length > 0
+    : !!children;
   return (
     <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className={`rounded-2xl p-3 ${tones[tone]}`}>{title.includes("Notice") ? <FiBell /> : <FiCalendar />}</div>
+          <div className={`rounded-2xl p-3 ${tones[tone]}`}>
+            {title.includes("Notice") ? <FiBell /> : <FiCalendar />}
+          </div>
           <div>
             <h3 className="text-base font-black text-slate-900">{title}</h3>
-            <p className="text-sm text-slate-500">Daily items that deserve quick visibility</p>
+            <p className="text-sm text-slate-500">
+              Daily items that deserve quick visibility
+            </p>
           </div>
         </div>
-        <button onClick={onAction} className="text-xs font-bold text-slate-500 transition hover:text-slate-900">{actionLabel}</button>
+        <button
+          onClick={onAction}
+          className="text-xs font-bold text-slate-500 transition hover:text-slate-900"
+        >
+          {actionLabel}
+        </button>
       </div>
       <div className="space-y-3">
-        {hasChildren ? children : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm font-medium text-slate-500">{emptyMessage}</div>}
+        {hasChildren ? (
+          children
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm font-medium text-slate-500">
+            {emptyMessage}
+          </div>
+        )}
       </div>
     </div>
   );

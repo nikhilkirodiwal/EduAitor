@@ -9,26 +9,27 @@ import {
   updateSubSection,
   deleteSubSection,
 } from "../controllers/sectionController.js";
+import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
 
 // SECTION ROUTES
-router.post("/create", createSection);
+router.post("/create", authMiddleware, createSection);
 
-router.get("/all", getSections);
+router.get("/all", authMiddleware, getSections);
 
-router.put("/update/:id", updateSection);
+router.put("/update/:id", authMiddleware, updateSection);
 
-router.delete("/delete/:id", deleteSection);
+router.delete("/delete/:id", authMiddleware, deleteSection);
 
 
 // SUBSECTION ROUTES
-router.post("/sub/create/:sectionId", addSubSection);
+router.post("/sub/create/:sectionId", authMiddleware, addSubSection);
 
-router.put("/sub/update/:sectionId/:subId", updateSubSection);
+router.put("/sub/update/:sectionId/:subId", authMiddleware, updateSubSection);
 
-router.delete("/sub/delete/:sectionId/:subId", deleteSubSection);
+router.delete("/sub/delete/:sectionId/:subId", authMiddleware, deleteSubSection);
 
 
 export default router;

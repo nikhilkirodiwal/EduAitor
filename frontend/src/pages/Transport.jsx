@@ -44,21 +44,11 @@ const Transport = () => {
       setLoading(true);
 
       const [sumRes, actRes, busRes, routeRes, driverRes] = await Promise.all([
-        axios.get(`${API}/transport/summary`, {
-          params: { school_id: schoolId },
-        }),
-        axios.get(`${API}/transport/activity`, {
-          params: { school_id: schoolId },
-        }),
-        axios.get(`${API}/transport/buses`, {
-          params: { school_id: schoolId },
-        }),
-        axios.get(`${API}/transport/routes`, {
-          params: { school_id: schoolId },
-        }),
-        axios.get(`${API}/transport/drivers`, {
-          params: { school_id: schoolId },
-        }),
+        axios.get(`${API}/transport/summary`, { withCredentials: true }),
+        axios.get(`${API}/transport/activity`, { withCredentials: true }),
+        axios.get(`${API}/transport/buses`, { withCredentials: true }),
+        axios.get(`${API}/transport/routes`, { withCredentials: true }),
+        axios.get(`${API}/transport/drivers`, { withCredentials: true }),
       ]);
 
       setSummary({

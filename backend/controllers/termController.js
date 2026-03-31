@@ -2,9 +2,9 @@ import Term from "../models/Term.js";
 
 // CREATE
 export const createTerm = async (req, res) => {
-    console.log("api hit")
   try {
-    const { schoolId, name, academicYear } = req.body;
+    const schoolId = req.user?.school_id;
+    const { name, academicYear } = req.body;
 
     if (!schoolId || !name || !academicYear) {
       return res.status(400).json({
@@ -33,7 +33,8 @@ export const createTerm = async (req, res) => {
 // GET ALL
 export const getTerms = async (req, res) => {
   try {
-    const { schoolId, academicYear } = req.query;
+    const schoolId = req.user?.school_id;
+    const { academicYear } = req.query;
 
     const filter = { schoolId };
     if (academicYear) filter.academicYear = academicYear;

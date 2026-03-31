@@ -17,9 +17,9 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
-const createdBy = userData?.name || "Admin";
+
+// Add later 
+const createdBy = "Admin";
 
 /* ── style maps ── */
 const CATEGORY_STYLES = {
@@ -95,7 +95,9 @@ export default function Notice() {
   const loadNotices = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get(`${API}/notices/${schoolId}`);
+      const { data } = await axios.get(`${API}/notices/`, {
+        withCredentials: true,
+      });
       setNotices(data.notices);
       setStats(data.stats);
     } catch (err) {
@@ -109,11 +111,20 @@ export default function Notice() {
   const fetchClasses = async () => {
     try {
       const { data } = await axios.get(`${API}/classes/all`, {
-        params: { schoolId },
+        withCredentials: true,
       });
-      setClasses(data.classes || []);
-    } catch {
-      toast.error("Failed to load classes");
+
+      if (data.success) {
+        setClasses(data.classes || []);
+      } else {
+        toast.error(data.message || "Failed to load classes");
+      }
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message ||
+          error.message ||
+          "Failed to load classes",
+      );
     }
   };
 
@@ -242,7 +253,11 @@ export default function Notice() {
         await axios.put(`${API}/notices/${editingId}`, { ...form, createdBy });
         toast.success("Notice updated successfully!");
       } else {
-        await axios.post(`${API}/notices/${schoolId}`, { ...form, createdBy });
+        await axios.post(
+          `${API}/notices/create`,
+          { ...form, createdBy },
+          { withCredentials: true },
+        );
         toast.success("Notice created successfully!");
       }
       closeModal();

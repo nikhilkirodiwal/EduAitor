@@ -6,12 +6,13 @@ import {
   updateEvent,
   deleteEvent,
 } from "../controllers/eventController.js";
+import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
-router.get("/:schoolId", getAllEvents);
+router.get("/", authMiddleware, getAllEvents);
 router.get("/detail/:id", getEventById);
-router.post("/:schoolId", createEvent);
+router.post("/create", authMiddleware, createEvent);
 router.put("/:id", updateEvent);
 router.delete("/:id", deleteEvent);
 
