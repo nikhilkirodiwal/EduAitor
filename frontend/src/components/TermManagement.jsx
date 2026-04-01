@@ -11,8 +11,7 @@ import { toast } from "react-toastify";
 
 function TermManagement({ onDataChange }) {
   const API = import.meta.env.VITE_API_URL;
-  const schoolId = JSON.parse(localStorage.getItem("userData"))?.school_id;
-
+  
   const [terms, setTerms] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null); // Controls the Delete Popup

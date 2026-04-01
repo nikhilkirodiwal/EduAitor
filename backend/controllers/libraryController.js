@@ -457,3 +457,83 @@ export const getIssueBooks = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// SUPER ADMIN FUNCTION
+export const getAdminBooks = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const schoolId = req.query.schoolId;
+    const { search = "" } = req.query;
+
+    if (!schoolId) {
+      return res.status(400).json({ error: "schoolId is required" });
+    }
+
+    const query = { schoolId };
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { author: { $regex: search, $options: "i" } },
+        { isbn: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const books = await Book.find(query).sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: books,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getAdminBookIssues = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const schoolId = req.query.schoolId;
+    
+    const { search = "", status = "all" } = req.query;
+
+    if (!schoolId) {
+      return res.status(400).json({ error: "schoolId is required" });
+    }
+
+    const issueDocs = await Issue.aggregate(buildIssueFilters({ schoolId, status, search }));
+    const allIssueBooks = issueDocs.map(serializeIssue);
+
+    const summary = {
+      totalIssued: allIssueBooks.filter((issue) => issue.status !== "Returned").length,
+      overdue: allIssueBooks.filter((issue) => issue.status === "Overdue").length,
+      returned: allIssueBooks.filter((issue) => issue.status === "Returned").length,
+      pendingFine: allIssueBooks.reduce(
+        (sum, issue) => sum + (issue.status === "Returned" ? issue.outstandingFine : issue.fineAmount),
+        0,
+      ),
+    };
+
+    res.json({
+      success: true,
+      message: "Issue records fetched successfully",
+      allissuebook: allIssueBooks,
+      summary,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

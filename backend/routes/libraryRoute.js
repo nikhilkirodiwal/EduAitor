@@ -10,9 +10,16 @@ import {
   getIssueBooks,
   updateBook,
   deleteBook,
+  getAdminBooks,
+  getAdminBookIssues,
 } from "../controllers/libraryController.js";
 import { authMiddleware } from "../auth/auth.js";
 
+// SUPER ADMIN ROUTES
+router.get("/books/admin", authMiddleware, getAdminBooks);
+router.get("/issues/admin", authMiddleware, getAdminBookIssues);
+
+// LIBRARY ROUTES
 router.get("/books", authMiddleware, getBooks);
 router.post("/books", authMiddleware, addBook);
 router.put("/books/:id", authMiddleware, updateBook);

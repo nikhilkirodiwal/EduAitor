@@ -4,8 +4,6 @@ import { FaPlus, FaTrash, FaEdit, FaBus } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 const EMPTY_FORM = {
   _id: null,
@@ -54,10 +52,6 @@ const BusManagement = () => {
   };
 
   const fetchBuses = async () => {
-    if (!schoolId) {
-      toast.error("Session expired. Please login again");
-      return;
-    }
     try {
       setLoading(true);
       const res = await axios.get(`${API}/transport/buses`, {
@@ -72,10 +66,9 @@ const BusManagement = () => {
   };
 
   useEffect(() => {
-    if (!schoolId) return;
     fetchBuses();
     fetchMeta();
-  }, [schoolId]);
+  }, []);
 
   /* ── ADD / EDIT ───────────────────────────────────────────────────────── */
 

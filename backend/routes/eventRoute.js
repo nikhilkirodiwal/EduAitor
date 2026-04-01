@@ -5,11 +5,16 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
+  getAllAdminEvents,
 } from "../controllers/eventController.js";
 import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
+// SUPER ADMIN ROUTES
+router.get("/all/admin",authMiddleware, getAllAdminEvents);
+
+// EVENT ROUTES
 router.get("/", authMiddleware, getAllEvents);
 router.get("/detail/:id", getEventById);
 router.post("/create", authMiddleware, createEvent);

@@ -54,6 +54,8 @@ import syllabusRoute from "./routes/syllabusRoute.js";
 import teacherAcademicRoute from "./routes/teacherAcademicRoute.js";
 import assignmentRoute from "./routes/assignmentRoute.js";
 import termRoute from "./routes/termRoute.js";
+import attendanceRoute from "./routes/attendanceRoute.js";
+
 import { authMiddleware } from "./auth/auth.js";
 
 app.get("/api/auth/me", authMiddleware, (req, res) => {
@@ -117,6 +119,7 @@ app.use("/api/syllabus", syllabusRoute);
 app.use("/api/teacher-academic", teacherAcademicRoute);
 app.use("/api/assignment", assignmentRoute);
 app.use("/api/terms", termRoute);
+app.use("/api/attendance", attendanceRoute);
 
 // Error middleware
 app.use(errorHandler);

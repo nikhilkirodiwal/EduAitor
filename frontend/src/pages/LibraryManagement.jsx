@@ -29,9 +29,7 @@ const bookCategories = [
 
 const LibraryManagement = () => {
   const API = import.meta.env.VITE_API_URL;
-  const getSchoolId = () =>
-    JSON.parse(localStorage.getItem("userData"))?.school_id;
-
+  
   const [activeTab, setActiveTab] = useState("inventory");
   const [searchTerm, setSearchTerm] = useState("");
   const [books, setBooks] = useState([]);

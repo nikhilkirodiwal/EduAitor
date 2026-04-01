@@ -310,3 +310,41 @@ export const deleteTeacher = async (req, res) => {
     });
   }
 };
+
+/* ================= GET ALL TEACHERS (SUPER ADMIN) ================= */
+export const getAllTeachers = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const schoolId = req.query.schoolId;
+
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "School ID is required",
+      });
+    }
+
+    const teachers = await Teacher.find({ schoolId })
+      .populate("assignedClasses", "name className section")
+      .populate("subjects", "name")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: teachers,
+    });
+  } catch (error) {
+    console.error("Get teachers error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch teachers",
+    });
+  }
+};

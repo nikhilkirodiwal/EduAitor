@@ -958,3 +958,119 @@ export const deleteRoute = async (req, res) => {
     serverError(res, err);
   }
 };
+
+/* SUPER ADMIN */
+// GET /transport/drivers?school_id=
+export const getAdminDrivers = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const school_id = req.query.schoolId;
+    if (!school_id) return missingSchoolId(res);
+
+    const drivers = await Driver.find({ schoolId: toId(school_id) })
+      .populate("bus", "busId regNo")
+      .populate("route", "name")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ success: true, data: drivers });
+  } catch (err) {
+    serverError(res, err);
+  }
+};
+
+export const getAdminBuses = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const school_id = req.query.schoolId;
+    if (!school_id) return missingSchoolId(res);
+
+    const buses = await Bus.find({ schoolId: toId(school_id) })
+      .populate("driver", "name")
+      .populate("route", "name")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ success: true, data: buses });
+  } catch (err) {
+    serverError(res, err);
+  }
+};
+
+export const getAdminRoutes = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const school_id = req.query.schoolId;
+    if (!school_id) return missingSchoolId(res);
+
+    const routes = await TransportRoute.find({ schoolId: toId(school_id) })
+      .populate("bus", "busId")
+      .populate("driver", "name")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const data = routes.map((r) => ({
+      ...r,
+      id: r.routeId,
+    }));
+
+    res.json({ success: true, data });
+  } catch (err) {
+    serverError(res, err);
+  }
+};
+
+export const getAdminSummary = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const school_id = req.query.schoolId;
+    if (!school_id) return missingSchoolId(res);
+
+    const schoolObjId = toId(school_id);
+
+    const [buses, routes, drivers] = await Promise.all([
+      Bus.find({ schoolId: schoolObjId }).lean(),
+      TransportRoute.find({ schoolId: schoolObjId }).lean(),
+      Driver.find({ schoolId: schoolObjId }).lean(),
+    ]);
+
+    const totalStudents = routes.reduce((sum, r) => sum + (r.students || 0), 0);
+
+    res.json({
+      success: true,
+      buses: buses.length,
+      routes: routes.length,
+      drivers: drivers.length,
+      students: totalStudents,
+      maintenance: buses.filter((b) => b.status === "Maintenance").length,
+      suspended: routes.filter((r) => r.status === "Suspended").length,
+      on_leave: drivers.filter((d) => d.status === "On Leave").length,
+    });
+  } catch (err) {
+    serverError(res, err);
+  }
+};

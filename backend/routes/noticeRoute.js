@@ -5,11 +5,16 @@ import {
   createNotice,
   updateNotice,
   deleteNotice,
+  getAllAdminNotices,
 } from "../controllers/noticeController.js";
 import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
+// SUPER ADMIN ROUTES
+router.get("/all/admin", authMiddleware, getAllAdminNotices);
+
+// NOTICE ROUTES
 router.get("/", authMiddleware, getAllNotices);
 router.get("/detail/:id", getNoticeById);
 router.post("/create", authMiddleware , createNotice);

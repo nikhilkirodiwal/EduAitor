@@ -7,10 +7,15 @@ import {
   getStudent,
   updateStudent,
   deleteStudent,
+  getAllStudents,
 } from "../controllers/studentController.js";
 
 const router = express.Router();
 
+/* SUPER ADMIN ROUTES */
+router.get("/all/admin", authMiddleware, getAllStudents);
+
+/* STUDENT ROUTES */
 router.post(
   "/",
   authMiddleware,

@@ -5,8 +5,6 @@ import { toast } from "react-toastify";
 import { FaArrowLeft } from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 const TeacherView = () => {
   const { id } = useParams();

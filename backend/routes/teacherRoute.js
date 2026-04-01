@@ -7,11 +7,16 @@ import {
   getTeacher,
   updateTeacher,
   deleteTeacher,
+  getAllTeachers,
 } from "../controllers/teacherController.js";
 import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
+/* SUPER ADMIN TEACHER ROUTES */
+router.get("/all/admin", authMiddleware, getAllTeachers);
+
+/* TEACHER ROUTES */
 router.post(
   "/",
   authMiddleware,

@@ -8,11 +8,14 @@ import {
   addSubSection,
   updateSubSection,
   deleteSubSection,
+  getAllSections,
 } from "../controllers/sectionController.js";
 import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
+// SUPER ADMIN ROUTES
+router.get ("/all/admin", authMiddleware, getAllSections);
 
 // SECTION ROUTES
 router.post("/create", authMiddleware, createSection);

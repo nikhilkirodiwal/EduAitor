@@ -281,3 +281,34 @@ export const deleteSubSection = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+/* -------------------------------- GET ALL SECTIONS (SUPER ADMIN) ------------------------------- */
+export const getAllSections = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const schoolId = req.query.schoolId;
+
+    if (!schoolId)
+      return res.status(400).json({
+        success: false,
+        message: "schoolId is required",
+      });
+
+    const sections = await Section.find({ schoolId }).sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json({
+      success: true,
+      sections,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

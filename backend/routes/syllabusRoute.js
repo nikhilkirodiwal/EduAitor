@@ -21,6 +21,9 @@ import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
+// ==================== SUPER ADMIN SYLLABUS ROUTES ====================
+router.get("/complete/",authMiddleware, getCompleteSyllabus);
+
 // ==================== CHAPTER ROUTES ====================
 router.post("/chapters", authMiddleware, createChapter);
 router.get("/chapters", authMiddleware, getChapters);
@@ -37,6 +40,5 @@ router.post("/topics/reorder", reorderTopics);
 
 // ==================== BULK ROUTES ====================
 router.get("/structure", getSyllabusStructure);
-router.get("/complete/:schoolId",getCompleteSyllabus);
 
 export default router;

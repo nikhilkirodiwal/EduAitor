@@ -12,8 +12,6 @@ import {
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 const emptySummary = {
   buses: 0,
@@ -35,10 +33,6 @@ const Transport = () => {
   const [search, setSearch] = useState("");
 
   const fetchDashboard = async () => {
-    if (!schoolId) {
-      toast.error("School ID not found");
-      return;
-    }
 
     try {
       setLoading(true);

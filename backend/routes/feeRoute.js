@@ -1,5 +1,4 @@
 import express from "express";
-
 import {
   getFeeStructures,
   addFeeComponent,
@@ -8,6 +7,8 @@ import {
   collectStudentFee,
   AllStudentHistory,
   getAllDefaulter,
+  getAllAdminDefaulter,
+  getAllStudentAdminHistory,
 } from "../controllers/feeController.js";
 import { authMiddleware } from "../auth/auth.js";
 
@@ -17,6 +18,10 @@ const router = express.Router();
 
 // router.post("/", createFeeStructure);
 // router.get("/:classId", getFeeStructures);
+
+// SUPER ADMIN ROUTES
+router.get("/defaulters/admin", authMiddleware, getAllAdminDefaulter);
+router.get("/admin", authMiddleware, getAllStudentAdminHistory);
 
 // fetch all defaulter
 router.get("/defaulters", authMiddleware, getAllDefaulter);

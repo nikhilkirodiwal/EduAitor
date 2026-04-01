@@ -19,8 +19,6 @@ import { toast } from "react-toastify";
 import { FiAlertTriangle } from "react-icons/fi";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 const TYPE_COLORS = {
   Competition: "bg-orange-100 text-orange-600",

@@ -203,3 +203,72 @@ export const deleteSubject = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+/* ── GET ALL FOR SUPER ADMIN ── */
+export const getAllSubjects = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const schoolId = req.query.schoolId;
+
+    if (!schoolId)
+      return res
+        .status(400)
+        .json({ success: false, message: "schoolId is required" });
+
+    // Only fetch subjects for this school
+    const subjects = await Subject.find({ schoolId }).sort({ createdAt: -1 });
+
+    const classes = await Class.find({ schoolId }) // ← filter by schoolId
+      .populate("details.sectionId", "name")
+      .select("name details");
+
+    const result = subjects.map((sub) => {
+      const subId = sub._id.toString();
+
+      /*
+        For each class, check each detail entry's subjects array.
+        Collect unique class+section combos that use this subject.
+      */
+      const usedIn = [];
+
+      classes.forEach((cls) => {
+        cls.details.forEach((detail) => {
+          const hasSubject = detail.subjects?.some(
+            (s) => s.toString() === subId,
+          );
+
+          if (hasSubject) {
+            usedIn.push({
+              _id: `${cls._id}_${detail._id}`,
+              classId: cls._id,
+              name: cls.name,
+              section: detail.sectionId?.name || null,
+              // display label e.g. "Class 1 - A" or "Class 1"
+              label: detail.sectionId
+                ? `${cls.name} - ${detail.sectionId.name}`
+                : cls.name,
+            });
+          }
+        });
+      });
+
+      return {
+        _id: sub._id,
+        name: sub.name,
+        status: sub.status,
+        classCount: usedIn.length,
+        classes: usedIn,
+      };
+    });
+
+    res.status(200).json({ success: true, subjects: result });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

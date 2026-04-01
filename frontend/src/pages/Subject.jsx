@@ -5,8 +5,6 @@ import { FiX, FiCheckCircle, FiAlertTriangle } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 const EMPTY_FORM = { name: "", status: "Active" };
 

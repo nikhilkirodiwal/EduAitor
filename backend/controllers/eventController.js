@@ -87,3 +87,36 @@ export const deleteEvent = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// GET all events for super admin
+export const getAllAdminEvents = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const schoolId = req.query.schoolId;
+    const events = await Event.find({ schoolId }).sort({ createdAt: -1 });
+
+    const total = events.length;
+    const completed = events.filter((e) => {
+      const end = e.endDate || e.startDate;
+      return new Date(end) < new Date();
+    }).length;
+    const upcoming = events.filter(
+      (e) => new Date(e.startDate) > new Date(),
+    ).length;
+    const categories = [...new Set(events.map((e) => e.type))].length;
+
+    res.status(200).json({
+      success: true,
+      stats: { total, completed, upcoming, categories },
+      events,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

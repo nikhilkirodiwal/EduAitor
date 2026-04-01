@@ -13,6 +13,7 @@ import {
   FaBell,
   FaBusAlt,
   FaBookDead,
+  FaCalendar,
 } from "react-icons/fa";
 
 import { FaBookJournalWhills, FaSchoolFlag } from "react-icons/fa6";
@@ -121,8 +122,9 @@ const Sidebar = ({ closeSidebar }) => {
       ],
     },
 
-    { name: "Events", icon: <FaCalendarAlt />, path: "/school/event" },
+    { name: "Events", icon: <FaCalendar />, path: "/school/event" },
     { name: "Notices", icon: <FaBell />, path: "/school/notice" },
+    { name: "Calendar", icon: <FaCalendarAlt />, path: "/school/calendar" },
     // { name: "Reports", icon: <FiBarChart2 />, path: "/school/reports" },
     {
       name: "Transport Management",

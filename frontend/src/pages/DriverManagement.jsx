@@ -4,8 +4,7 @@ import { FaPlus, FaTrash, FaEdit, FaEye, FaIdCard } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
+
 
 const EMPTY_FORM = {
   _id: null,
@@ -62,7 +61,6 @@ const DriverManagement = () => {
   };
 
   const fetchDrivers = async () => {
-    if (!schoolId) return toast.error("School ID not found");
     try {
       setLoading(true);
       const res = await axios.get(`${API}/transport/drivers`, {
@@ -77,10 +75,9 @@ const DriverManagement = () => {
   };
 
   useEffect(() => {
-    if (!schoolId) return;
     fetchDrivers();
     fetchMeta();
-  }, [schoolId]);
+  }, []);
 
   /* ── ADD / EDIT ───────────────────────────────────────────────────────── */
 

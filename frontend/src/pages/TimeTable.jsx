@@ -16,8 +16,6 @@ import { MdOutlineClass } from "react-icons/md";
 import { FiX } from "react-icons/fi";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
 
 const DAYS = [
   "Monday",

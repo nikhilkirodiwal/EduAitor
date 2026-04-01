@@ -494,3 +494,294 @@ export const getAllDefaulter = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
+// all defaulter of particular school students for super admin
+export const getAllAdminDefaulter = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+    // 1. Extract classId (not className) from query
+    const { schoolId, classId, search, page = 1, limit = 10 } = req.query;
+    if (!schoolId)
+      return res.status(400).json({ message: "School Id is required" });
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const pageSize = parseInt(limit);
+    const now = new Date();
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // 2. Build matchQuery using classId
+    let matchQuery = {
+      schoolId: new mongoose.Types.ObjectId(schoolId),
+    };
+
+    // Use classId because your Schema uses classId
+    if (classId) matchQuery.classId = new mongoose.Types.ObjectId(classId);
+
+    if (search) {
+      matchQuery.$or = [
+        { firstName: { $regex: search, $options: "i" } },
+        { lastName: { $regex: search, $options: "i" } },
+        { studentId: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    const result = await Student.aggregate([
+      { $match: matchQuery },
+
+      // JOIN with Classes to get the Name for the UI
+      {
+        $lookup: {
+          from: "classes",
+          localField: "classId",
+          foreignField: "_id",
+          as: "classInfo",
+        },
+      },
+      { $unwind: { path: "$classInfo", preserveNullAndEmptyArrays: true } },
+
+      // JOIN with Payments
+      {
+        $lookup: {
+          from: "payments",
+          let: { studId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$studentId", "$$studId"] },
+                    {
+                      $eq: ["$schoolId", new mongoose.Types.ObjectId(schoolId)],
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "paymentHistory",
+        },
+      },
+
+      {
+        $addFields: {
+          // Map the joined class name to a field the UI expects
+          className: "$classInfo.name",
+          hasPaidThisMonth: {
+            $gt: [
+              {
+                $size: {
+                  $filter: {
+                    input: "$paymentHistory",
+                    as: "p",
+                    cond: { $gte: ["$$p.paidDate", startOfCurrentMonth] },
+                  },
+                },
+              },
+              0,
+            ],
+          },
+          lastPayment: {
+            $arrayElemAt: [
+              {
+                $sortArray: {
+                  input: "$paymentHistory",
+                  sortBy: { paidDate: -1 },
+                },
+              },
+              0,
+            ],
+          },
+          calculatedDue: {
+            $subtract: ["$finalFee", { $ifNull: ["$totalPaid", 0] }],
+          },
+        },
+      },
+
+      { $match: { hasPaidThisMonth: false, calculatedDue: { $gt: 0 } } },
+
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [{ $skip: skip }, { $limit: pageSize }],
+        },
+      },
+    ]);
+
+    const defaulters = result[0]?.data || [];
+    const totalRecords = result[0]?.metadata[0]?.total || 0;
+
+    res.status(200).json({
+      success: true,
+      defaulters,
+      totalRecords,
+      totalPages: Math.ceil(totalRecords / pageSize),
+      currentPage: parseInt(page),
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+// all history of particular school students for super admin
+export const getAllStudentAdminHistory = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const schoolId = req.query.schoolId;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const search = (req.query.search || "").trim();
+    const month = parseInt(req.query.month) || null;
+    const year = parseInt(req.query.year) || null;
+
+    if (!schoolId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "School ID required" });
+    }
+
+    const initialMatch = {
+      schoolId: new mongoose.Types.ObjectId(schoolId),
+    };
+
+    if (year) {
+      initialMatch["$expr"] = { $eq: [{ $year: "$paidDate" }, year] };
+    }
+    if (month) {
+      if (initialMatch["$expr"]) {
+        initialMatch["$expr"] = {
+          $and: [
+            initialMatch["$expr"],
+            { $eq: [{ $month: "$paidDate" }, month] },
+          ],
+        };
+      } else {
+        initialMatch["$expr"] = { $eq: [{ $month: "$paidDate" }, month] };
+      }
+    }
+
+    let studentMatch = {};
+    if (search) {
+      const words = search.split(/\s+/);
+      const wordConditions = words.map((word) => ({
+        $or: [
+          { "studentData.firstName": { $regex: word, $options: "i" } },
+          { "studentData.lastName": { $regex: word, $options: "i" } },
+          { "studentData.studentId": { $regex: word, $options: "i" } },
+          { receiptNo: { $regex: word, $options: "i" } },
+        ],
+      }));
+      studentMatch = { $and: wordConditions };
+    }
+
+    const pipeline = [
+      { $match: initialMatch },
+      {
+        $lookup: {
+          from: "students",
+          localField: "studentId",
+          foreignField: "_id",
+          as: "studentData",
+        },
+      },
+      {
+        $unwind: {
+          path: "$studentData",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      /* ─── NEW STEP: Join with Classes and Sections ─── */
+      {
+        $lookup: {
+          from: "classes", // Make sure this is your actual collection name
+          localField: "studentData.classId",
+          foreignField: "_id",
+          as: "classDetails",
+        },
+      },
+      { $unwind: { path: "$classDetails", preserveNullAndEmptyArrays: true } },
+
+      {
+        $lookup: {
+          from: "sections", // Make sure this is your actual collection name
+          localField: "studentData.sectionId",
+          foreignField: "_id",
+          as: "sectionDetails",
+        },
+      },
+      {
+        $unwind: { path: "$sectionDetails", preserveNullAndEmptyArrays: true },
+      },
+      /* ────────────────────────────────────────────── */
+
+      { $match: studentMatch },
+
+      {
+        $facet: {
+          records: [
+            { $sort: { paidDate: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $project: {
+                _id: 1,
+                receiptNo: 1,
+                amountPaid: 1,
+                paymentMode: 1,
+                paidDate: 1,
+                remarks: 1,
+                studentId: {
+                  _id: "$studentData._id",
+                  studentId: "$studentData.studentId",
+                  firstName: "$studentData.firstName",
+                  lastName: "$studentData.lastName",
+                  // Use the joined names from classDetails and sectionDetails
+                  className: "$classDetails.name",
+                  section: "$sectionDetails.name",
+                },
+              },
+            },
+          ],
+          totalCount: [{ $count: "count" }],
+          totalAmount: [
+            { $group: { _id: null, sum: { $sum: "$amountPaid" } } },
+          ],
+        },
+      },
+    ];
+
+    const [result] = await Payment.aggregate(pipeline);
+
+    const records = result.records || [];
+    const total = result.totalCount[0]?.count || 0;
+    const totalAmount = result.totalAmount[0]?.sum || 0;
+    const totalPages = Math.ceil(total / limit);
+
+    return res.status(200).json({
+      success: true,
+      Allhistory: records,
+      pagination: { total, totalPages, currentPage: page, limit },
+      summary: { totalAmount, appliedFilters: { search, month, year } },
+    });
+  } catch (error) {
+    console.error("AllStudentHistory error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch fee history",
+      error: error.message,
+    });
+  }
+};

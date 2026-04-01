@@ -9,14 +9,8 @@ import Subject from "../models/subject.js";
 export const createChapter = async (req, res) => {
   try {
     const schoolId = req.user?.school_id;
-    const {
-      classId,
-      subjectId,
-      termId,
-      name,
-      description,
-      learningOutcomes,
-    } = req.body;
+    const { classId, subjectId, termId, name, description, learningOutcomes } =
+      req.body;
 
     if (!schoolId || !classId || !subjectId || !name) {
       return res.status(400).json({
@@ -399,7 +393,14 @@ export const getSyllabusStructure = async (req, res) => {
 // fetch all syllabus data for super admin
 export const getCompleteSyllabus = async (req, res) => {
   try {
-    const { schoolId } = req.params;
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const schoolId = req.query.schoolId;
 
     const classes = await Class.find({ schoolId }).lean();
 

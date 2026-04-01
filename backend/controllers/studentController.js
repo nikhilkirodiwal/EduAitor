@@ -293,3 +293,41 @@ export const deleteStudent = async (req, res) => {
     });
   }
 };
+
+/* ================= GET ALL STUDENTS FOR SUPER ADMIN ================= */
+export const getAllStudents = async (req, res) => {
+  try {
+    if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const schoolId = req.query.schoolId;
+
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "School ID is required",
+      });
+    }
+
+    const students = await Student.find({ schoolId })
+      .populate("classId", "name className")
+      .populate("sectionId", "name sectionName")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: students,
+    });
+  } catch (error) {
+    console.error("Get students error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch students",
+    });
+  }
+};

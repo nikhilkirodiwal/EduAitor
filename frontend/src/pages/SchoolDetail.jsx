@@ -86,7 +86,13 @@ export default function SchoolDetail() {
     setLoadingWS(true);
     setWs(null);
     try {
-      const p = (url, params) => axios.get(url, { params }).catch(() => null);
+      const p = (url, options = {}) =>
+        axios
+          .get(url, {
+            ...options,
+            withCredentials: true,
+          })
+          .catch(() => null);
       const [
         school,
         students,
@@ -107,22 +113,22 @@ export default function SchoolDetail() {
         syllabus,
       ] = await Promise.all([
         p(`${API}/schools/${id}`),
-        p(`${API}/students`, { schoolId: id }),
-        p(`${API}/teachers`, {schoolId: id }),
-        p(`${API}/sections/all`, { schoolId: id }),
-        p(`${API}/classes/all`, { schoolId: id }),
-        p(`${API}/subjects/all`, { schoolId: id }),
-        p(`${API}/notices/${id}`),
-        p(`${API}/events/${id}`),
-        p(`${API}/fee-history`, { schoolId: id, page: 1, limit: 50 }),
-        p(`${API}/fees/defaulters`, { schoolId: id, page: 1, limit: 50 }),
-        p(`${API}/transport/buses`, { school_id: id }),
-        p(`${API}/transport/drivers`, { school_id: id }),
-        p(`${API}/transport/routes`, { school_id: id }),
-        p(`${API}/transport/summary`, { school_id: id }),
-        p(`${API}/library/books`, { schoolId: id }),
-        p(`${API}/library/issues`, { schoolId: id, status: "all" }),
-        p(`${API}/syllabus/complete/${id}`),
+        p(`${API}/students/all/admin`, { params: { schoolId: id } }),
+        p(`${API}/teachers/all/admin`, { params: { schoolId: id } }),
+        p(`${API}/sections/all/admin`, { params: { schoolId: id } }),
+        p(`${API}/classes/all/admin`, { params: { schoolId: id } }),
+        p(`${API}/subjects/all/admin`, { params: { schoolId: id } }),
+        p(`${API}/notices/all/admin`, { params: { schoolId: id } }),
+        p(`${API}/events/all/admin`, { params: { schoolId: id } }),
+        p(`${API}/fee-history/admin`, { params: { schoolId: id, page: 1, limit: 50 } }),
+        p(`${API}/fees/defaulters/admin`, { params: { schoolId: id, page: 1, limit: 50 } }),
+        p(`${API}/transport/buses/admin`, { params: { schoolId: id } }),
+        p(`${API}/transport/drivers/admin`, { params: { schoolId: id } }),
+        p(`${API}/transport/routes/admin`, { params: { schoolId: id } }),
+        p(`${API}/transport/summary/admin`, { params: { schoolId: id } }),
+        p(`${API}/library/books/admin`, { params: { schoolId: id } }),
+        p(`${API}/library/issues/admin`, { params: { schoolId: id, status: "all" } }),
+        p(`${API}/syllabus/complete/`, { params: { schoolId: id } }),
       ]);
 
       const schoolData = school?.data?.data;

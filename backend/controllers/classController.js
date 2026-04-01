@@ -343,3 +343,48 @@ export const deleteClass = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+/* ── GET ALL CLASSES (ADMIN) ── */
+export const getAllClasses = async (req, res) => {
+  try {
+if (req.user.role !== "super_admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    const schoolId = req.query.schoolId;
+
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "schoolId is required",
+      });
+    }
+
+    const classes = await Class.find({ schoolId })
+      .populate({
+        path: "details.sectionId",
+        select: "name status",
+      })
+      .populate({
+        path: "details.teacherId",
+        select: "fullName",
+      })
+      .populate({
+        path: "details.subjects",
+        select: "name",
+      })
+      .sort({ name: 1 })
+      .lean();
+
+    res.json({ success: true, classes });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};

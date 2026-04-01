@@ -40,6 +40,8 @@ import SchoolDetail from "./pages/SchoolDetail";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import Syllabus from "./pages/Syllabus";
 import Assignment from "./pages/Assignment";
+import Calendar from "./pages/Calendar";
+import Attendance from "./pages/Attendance";
 
 const App = () => {
   return (
@@ -101,6 +103,7 @@ const App = () => {
         <Route path="event" element={<Event />} />
         <Route path="event/:id" element={<EventView />} />
         <Route path="notice" element={<Notice />} />
+        <Route path="calendar" element={<Calendar />} />
         <Route path="transport" element={<Transport />} />
         <Route path="transport-driver" element={<DriverManagement />} />
         <Route path="transport-bus" element={<BusManagement />} />
@@ -121,6 +124,7 @@ const App = () => {
       >
         <Route path="dashboard" element={<TeacherDashboard />} />
         <Route path="assignment" element={<Assignment />} />
+        <Route path="attendance" element={<Attendance />} />
 
         <Route path="*" element={<Navigate to="/teacher/dashboard" />} />
       </Route>

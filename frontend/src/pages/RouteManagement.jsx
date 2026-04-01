@@ -11,8 +11,7 @@ import {
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
-const userData = JSON.parse(localStorage.getItem("userData"));
-const schoolId = userData?.school_id;
+
 
 const EMPTY_FORM = {
   name: "",
@@ -62,7 +61,6 @@ const RouteManagement = () => {
   };
 
   const fetchRoutes = async () => {
-    if (!schoolId) return toast.error("School ID not found");
     try {
       setLoading(true);
       const res = await axios.get(`${API}/transport/routes`, {
@@ -77,10 +75,9 @@ const RouteManagement = () => {
   };
 
   useEffect(() => {
-    if (!schoolId) return;
     fetchRoutes();
     fetchMeta();
-  }, [schoolId]);
+  }, []);
 
   /* ── ADD / EDIT ───────────────────────────────────────────────────────── */
 
