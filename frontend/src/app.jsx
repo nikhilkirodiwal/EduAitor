@@ -42,6 +42,7 @@ import Syllabus from "./pages/Syllabus";
 import Assignment from "./pages/Assignment";
 import Calendar from "./pages/Calendar";
 import Attendance from "./pages/Attendance";
+import AttendanceReportTeacher from "./pages/AttendanceReportTeacher";
 
 const App = () => {
   return (
@@ -124,7 +125,8 @@ const App = () => {
       >
         <Route path="dashboard" element={<TeacherDashboard />} />
         <Route path="assignment" element={<Assignment />} />
-        <Route path="attendance" element={<Attendance />} />
+        <Route path="attendance/mark" element={<Attendance />} />
+        <Route path="attendance/report" element={<AttendanceReportTeacher />} />
 
         <Route path="*" element={<Navigate to="/teacher/dashboard" />} />
       </Route>

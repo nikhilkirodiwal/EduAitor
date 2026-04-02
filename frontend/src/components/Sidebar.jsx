@@ -33,7 +33,7 @@ const Sidebar = ({ closeSidebar }) => {
   const [openMenu, setOpenMenu] = useState(null);
 
   // const role = localStorage.getItem("userRole"); // super_admin / school_admin / teacher_admin
-  
+
   const role = user?.role;
   const logout = () => {
     localStorage.clear();
@@ -158,6 +158,10 @@ const Sidebar = ({ closeSidebar }) => {
       name: "Attendance",
       icon: <FiUsers />,
       path: "/teacher/attendance",
+      children: [
+        { name: "Mark Attendance", path: "/teacher/attendance/mark" },
+        { name: "Attendance Report", path: "/teacher/attendance/report" },
+      ],
     },
 
     {
@@ -183,6 +187,8 @@ const Sidebar = ({ closeSidebar }) => {
     { name: "Notices", icon: <FaBell />, path: "/teacher/notice" },
 
     { name: "Events", icon: <FaCalendarAlt />, path: "/teacher/event" },
+
+    { name: "Calendar", icon: <FaCalendarAlt />, path: "/teacher/calendar" },
   ];
 
   let menu = [];
