@@ -51,7 +51,11 @@ export const createClass = async (req, res) => {
       ...d,
       sectionId: d.sectionId || null,
       teacherId: d.teacherId || null,
-      subjects: d.subjects || [],
+      subjectTeachers:
+        d.subjectTeachers?.map((st) => ({
+          subjectId: st.subjectId || null,
+          teacherId: st.teacherId || null,
+        })) || [],
       capacity: d.capacity || 40,
     }));
 
@@ -84,7 +88,8 @@ export const createClass = async (req, res) => {
     const populated = await Class.findById(newClass._id)
       .populate("details.sectionId", "name status")
       .populate("details.teacherId", "fullName")
-      .populate("details.subjects", "name");
+      .populate("details.subjectTeachers.teacherId", "fullName")
+      .populate("details.subjectTeachers.subjectId", "name");
 
     res.status(201).json({
       success: true,
@@ -124,10 +129,8 @@ export const getClasses = async (req, res) => {
         path: "details.teacherId",
         select: "fullName",
       })
-      .populate({
-        path: "details.subjects",
-        select: "name",
-      })
+      .populate("details.subjectTeachers.subjectId", "name")
+      .populate("details.subjectTeachers.teacherId", "fullName")
       .sort({ name: 1 })
       .lean();
 
@@ -158,7 +161,8 @@ export const getClassById = async (req, res) => {
     })
       .populate("details.sectionId", "name status")
       .populate("details.teacherId", "fullName")
-      .populate("details.subjects", "name");
+      .populate("details.subjectTeachers.teacherId", "fullName")
+      .populate("details.subjectTeachers.subjectId", "name");
 
     if (!cls)
       return res.status(404).json({
@@ -265,7 +269,11 @@ export const updateClass = async (req, res) => {
       ...d,
       sectionId: d.sectionId || null,
       teacherId: d.teacherId || null,
-      subjects: d.subjects || [],
+      subjectTeachers:
+        d.subjectTeachers?.map((st) => ({
+          subjectId: st.subjectId || null,
+          teacherId: st.teacherId || null,
+        })) || [],
       capacity: d.capacity || 40,
     }));
 
@@ -305,7 +313,8 @@ export const updateClass = async (req, res) => {
     const populated = await Class.findById(cls._id)
       .populate("details.sectionId", "name status")
       .populate("details.teacherId", "fullName")
-      .populate("details.subjects", "name");
+      .populate("details.subjectTeachers.subjectId", "name")
+      .populate("details.subjectTeachers.teacherId", "fullName");
 
     res.json({
       success: true,
@@ -347,7 +356,7 @@ export const deleteClass = async (req, res) => {
 /* ── GET ALL CLASSES (ADMIN) ── */
 export const getAllClasses = async (req, res) => {
   try {
-if (req.user.role !== "super_admin") {
+    if (req.user.role !== "super_admin") {
       return res.status(403).json({
         success: false,
         message: "Access denied",
@@ -372,10 +381,8 @@ if (req.user.role !== "super_admin") {
         path: "details.teacherId",
         select: "fullName",
       })
-      .populate({
-        path: "details.subjects",
-        select: "name",
-      })
+      .populate("details.subjectTeachers.subjectId", "name")
+      .populate("details.subjectTeachers.teacherId", "fullName")
       .sort({ name: 1 })
       .lean();
 

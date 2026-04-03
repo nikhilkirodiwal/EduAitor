@@ -7,7 +7,7 @@ import Topic from "../models/topic.js";
 
 export const getTeacherClasses = async (req, res) => {
   try {
-    const { teacherId } = req.query;
+    const teacherId = req.user?.teacher_id;
 
     if (!teacherId) {
       return res.status(400).json({ message: "teacherId is required" });
@@ -39,6 +39,7 @@ export const getTeacherClasses = async (req, res) => {
 
 export const getSubjectsByClass = async (req, res) => {
   try {
+    const teacherId = req.user?.teacher_id;
     const { classId } = req.query;
 
     if (!classId) {
@@ -47,7 +48,7 @@ export const getSubjectsByClass = async (req, res) => {
 
     // Populate subjects inside each detail entry
     const cls = await Class.findById(classId).populate(
-      "details.subjects",
+      "details.subjectTeachers.subjectId",
       "name status",
     );
 
@@ -59,9 +60,16 @@ export const getSubjectsByClass = async (req, res) => {
     const subjectMap = new Map();
 
     cls.details.forEach((d) => {
-      (d.subjects || []).forEach((s) => {
+      (d.subjectTeachers || []).forEach((st) => {
+        if (teacherId && st.teacherId && st.teacherId.toString() !== teacherId)
+          return;
+
+        const s = st.subjectId;
+
         if (s && s._id) {
-          subjectMap.set(s._id.toString(), s);
+          subjectMap.set(s._id.toString(), {
+            ...s.toObject(),
+          });
         }
       });
     });
@@ -81,6 +89,19 @@ export const getChaptersBySubject = async (req, res) => {
   try {
     const schoolId = req.user?.school_id;
     const { classId, subjectId } = req.query;
+    const teacherId = req.user?.teacher_id;
+
+    const teacher = await Teacher.findById(teacherId);
+
+    const isAllowed = teacher.assignedClasses.some(
+      (c) => c.toString() === classId,
+    );
+
+    if (!isAllowed) {
+      return res.status(403).json({
+        message: "Unauthorized class access",
+      });
+    }
 
     if (!classId || !subjectId || !schoolId) {
       return res.status(400).json({

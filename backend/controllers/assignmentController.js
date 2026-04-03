@@ -1,13 +1,15 @@
 import Assignment from "../models/assignment.js";
 import Teacher from "../models/teacher.js";
+import Class from "../models/class.js";
 
 /* ================= CREATE ================= */
 
 export const createAssignment = async (req, res) => {
   try {
     const schoolId = req.user?.school_id;
+    const teacherId = req.user?.teacher_id;
+
     const {
-      teacherId,
       title,
       description,
       type,
@@ -56,6 +58,25 @@ export const createAssignment = async (req, res) => {
       });
     }
 
+    // SUBJECT VALIDATION — teacher must be assigned to this subject in the class
+    const cls = await Class.findById(classId);
+
+    const isSubjectAllowed = cls.details.some((d) =>
+      (d.subjectTeachers || []).some(
+        (st) =>
+          st.subjectId.toString() === subjectId &&
+          st.teacherId &&
+          st.teacherId.toString() === teacherId,
+      ),
+    );
+
+    if (!isSubjectAllowed) {
+      return res.status(403).json({
+        success: false,
+        message: "Not assigned to this subject",
+      });
+    }
+
     // CALCULATE MARKS
     const totalMarks = (questions || []).reduce(
       (sum, q) => sum + (Number(q.marks) || 0),
@@ -94,7 +115,7 @@ export const createAssignment = async (req, res) => {
 
 export const getTeacherAssignments = async (req, res) => {
   try {
-    const { teacherId } = req.query;
+    const teacherId = req.user?.teacher_id;
 
     if (!teacherId) {
       return res.status(400).json({
@@ -121,6 +142,15 @@ export const getTeacherAssignments = async (req, res) => {
 
 export const getAssignmentById = async (req, res) => {
   try {
+    const teacherId = req.user?.teacher_id;
+
+    if (!teacherId) {
+      return res.status(400).json({
+        success: false,
+        message: "teacherId is required",
+      });
+    }
+
     const assignment = await Assignment.findById(req.params.id)
       .populate("classId", "name")
       .populate("subjectId", "name")
@@ -131,6 +161,13 @@ export const getAssignmentById = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Assignment not found" });
+    }
+
+    if (assignment.teacherId.toString() !== teacherId) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
     }
 
     res.json({ success: true, data: assignment });
@@ -144,6 +181,24 @@ export const getAssignmentById = async (req, res) => {
 
 export const updateAssignment = async (req, res) => {
   try {
+    const teacherId = req.user?.teacher_id;
+
+    const assignment = await Assignment.findById(req.params.id);
+
+    if (!assignment) {
+      return res.status(404).json({
+        success: false,
+        message: "Assignment not found",
+      });
+    }
+
+    if (assignment.teacherId.toString() !== teacherId) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
     const allowedFields = [
       "title",
       "description",
@@ -172,12 +227,6 @@ export const updateAssignment = async (req, res) => {
       { new: true, runValidators: true },
     );
 
-    if (!updated) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Assignment not found" });
-    }
-
     res.json({
       success: true,
       message: "Updated successfully",
@@ -193,10 +242,19 @@ export const updateAssignment = async (req, res) => {
 
 export const deleteAssignment = async (req, res) => {
   try {
+    const teacherId = req.user?.teacher_id;
+
     const assignment = await Assignment.findById(req.params.id);
 
     if (!assignment) {
       return res.status(404).json({ success: false, message: "Not found" });
+    }
+
+    if (assignment.teacherId.toString() !== teacherId) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
     }
 
     await assignment.deleteOne();
@@ -215,10 +273,18 @@ export const deleteAssignment = async (req, res) => {
 
 export const togglePublishAssignment = async (req, res) => {
   try {
+    const teacherId = req.user?.teacher_id;
     const assignment = await Assignment.findById(req.params.id);
 
     if (!assignment) {
       return res.status(404).json({ success: false, message: "Not found" });
+    }
+
+    if (assignment.teacherId.toString() !== teacherId) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
     }
 
     assignment.isPublished = !assignment.isPublished;

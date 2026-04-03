@@ -14,9 +14,14 @@ import {
   FaBusAlt,
   FaBookDead,
   FaCalendar,
+  FaBookOpen,
 } from "react-icons/fa";
 
-import { FaBookJournalWhills, FaSchoolFlag } from "react-icons/fa6";
+import {
+  FaBookJournalWhills,
+  FaSchoolFlag,
+  FaUserGroup,
+} from "react-icons/fa6";
 import { FiUsers } from "react-icons/fi";
 
 import { GiOpenBook, GiSchoolBag, GiTeacher } from "react-icons/gi";
@@ -25,9 +30,13 @@ import { HiAcademicCap } from "react-icons/hi2";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import axios from "axios";
+import { toast } from "react-toastify";
+
+const API = import.meta.env.VITE_API_URL;
 
 const Sidebar = ({ closeSidebar }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, setUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [openMenu, setOpenMenu] = useState(null);
@@ -35,9 +44,24 @@ const Sidebar = ({ closeSidebar }) => {
   // const role = localStorage.getItem("userRole"); // super_admin / school_admin / teacher_admin
 
   const role = user?.role;
-  const logout = () => {
+  const logout = async () => {
+    try {
+      const res = await axios.post(
+        `${API}/auth/logout`,
+        {},
+        {
+          withCredentials: true,
+        },
+      );
+      toast.info("You have been logged out successfully.");
+    } catch (err) {
+      console.error("Backend logout failed:", err);
+      toast.error("Logout failed. Please try again.");
+    }
+    setUser(null); // Clear user from context
     localStorage.clear();
-    navigate("/admin/login");
+    sessionStorage.clear();
+    navigate("/admin/login", { replace: true });
   };
 
   /* ---------------- SUPER ADMIN MENU ---------------- */
@@ -59,6 +83,7 @@ const Sidebar = ({ closeSidebar }) => {
       icon: <FaSchool />,
       children: [
         { name: "All Schools", path: "/admin/schools" },
+        { name: "Add School", path: "/admin/add-school" },
         { name: "School Management", path: "/admin/school-manage" },
         { name: "School Subscription Plan", path: "/admin/subscription-plan" },
       ],
@@ -184,9 +209,13 @@ const Sidebar = ({ closeSidebar }) => {
 
     { name: "Timetable", icon: <FaClock />, path: "/teacher/timetable" },
 
+    { name: "Diary", icon: <FaBookOpen />, path: "/teacher/diary" },
+
+    { name: "Group", icon: <FaUserGroup />, path: "/teacher/group" },
+
     { name: "Notices", icon: <FaBell />, path: "/teacher/notice" },
 
-    { name: "Events", icon: <FaCalendarAlt />, path: "/teacher/event" },
+    { name: "Events", icon: <FaCalendar />, path: "/teacher/event" },
 
     { name: "Calendar", icon: <FaCalendarAlt />, path: "/teacher/calendar" },
   ];

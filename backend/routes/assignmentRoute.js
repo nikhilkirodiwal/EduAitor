@@ -16,21 +16,21 @@ const router = express.Router();
 router.post("/create", authMiddleware, createAssignment);
 
 /* ================= GET (TEACHER) ================= */
-router.get("/teacher", getTeacherAssignments);
+router.get("/teacher", authMiddleware, getTeacherAssignments);
 
 /* ================= GET SINGLE ================= */
-router.get("/:id", getAssignmentById);
+router.get("/:id", authMiddleware, getAssignmentById);
 
 /* ================= UPDATE ================= */
-router.put("/:id", updateAssignment);
+router.put("/:id", authMiddleware, updateAssignment);
 
 /* ================= DELETE ================= */
-router.delete("/:id", deleteAssignment);
+router.delete("/:id", authMiddleware, deleteAssignment);
 
 /* ================= PUBLISH ================= */
-router.patch("/publish/:id", togglePublishAssignment);
+router.patch("/publish/:id", authMiddleware, togglePublishAssignment);
 
 /* ================= AI INTEGRATE =================*/
-router.post("/generate-questions", generateAIQuestions);
+router.post("/generate-questions", authMiddleware, generateAIQuestions);
 
 export default router;

@@ -30,10 +30,25 @@ const sectionDetailSchema = new mongoose.Schema(
       default: 0,
     },
 
-    subjects: [
+    // subjects: [
+    //   {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Subject",
+    //   },
+    // ],
+
+    subjectTeachers: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Subject",
+        subjectId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Subject",
+          // required: true,
+        },
+        teacherId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Teacher",
+          default: null,
+        },
       },
     ],
   },

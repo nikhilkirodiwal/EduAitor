@@ -14,7 +14,7 @@ app.use(
   cors({
     origin: process.env.CLIENT_URL,
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -92,6 +92,19 @@ app.get("/api/auth/me", authMiddleware, (req, res) => {
   } else {
     return res.status(401).json({ success: false, message: "Unauthorized" });
   }
+});
+
+app.post("/api/auth/logout", (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    path: "/",
+  });
+  // If using sessions
+  req.session?.destroy();
+
+  res.status(200).json({ message: "Logged out" });
 });
 
 app.use("/api/auth", authRoutes);

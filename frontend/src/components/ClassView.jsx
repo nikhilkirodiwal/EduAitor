@@ -25,7 +25,9 @@ export default function ClassView() {
 
   const fetchClass = async () => {
     try {
-      const { data } = await axios.get(`${API}/classes/${id}`, { withCredentials: true });
+      const { data } = await axios.get(`${API}/classes/${id}`, {
+        withCredentials: true,
+      });
       setClassData(data.class);
     } catch {
       toast.error("Failed to load class");
@@ -64,7 +66,9 @@ export default function ClassView() {
   const totalStudents = details.reduce((s, d) => s + (d.studentCount || 0), 0);
   const totalCap = details.reduce((s, d) => s + (d.capacity || 0), 0);
   const totalSubjects = new Set(
-    details.flatMap((d) => d.subjects?.map((s) => s._id) || []),
+    details.flatMap((d) =>
+      (d.subjectTeachers || []).map((st) => st.subjectId?._id || st.subjectId),
+    ),
   ).size;
   const activeDetail = details[activeTab] || details[0];
 
@@ -263,21 +267,27 @@ function SingleDetailView({ detail }) {
           <h3 className="text-sm font-semibold text-gray-700">
             Subjects
             <span className="ml-2 text-xs font-normal text-gray-400">
-              ({detail.subjects?.length || 0} assigned)
+              ({detail.subjectTeachers?.length || 0} assigned)
             </span>
           </h3>
         </div>
-        {!detail.subjects || detail.subjects.length === 0 ? (
+        {!detail.subjectTeachers || detail.subjectTeachers.length === 0 ? (
           <p className="text-sm text-gray-400">No subjects assigned yet.</p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {detail.subjects.map((sub) => (
-              <span
-                key={sub._id}
-                className="text-xs font-medium px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100"
+            {detail.subjectTeachers.map((st, i) => (
+              <div
+                key={i}
+                className="text-xs font-medium px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center gap-2"
               >
-                {sub.name}
-              </span>
+                <span>{st.subjectId?.name}</span>
+
+                {st.teacherId && (
+                  <span className="text-[10px] text-gray-400">
+                    ({st.teacherId.fullName})
+                  </span>
+                )}
+              </div>
             ))}
           </div>
         )}

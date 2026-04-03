@@ -58,8 +58,8 @@ function Syllabus() {
       return;
     }
 
-    const allSubjects = selected.details.flatMap(
-      (detail) => detail.subjects || [],
+    const allSubjects = selected.details.flatMap((detail) =>
+      (detail.subjectTeachers || []).map((st) => st.subjectId),
     );
 
     // ✅ remove duplicates

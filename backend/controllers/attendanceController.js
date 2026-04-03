@@ -1,13 +1,15 @@
-import mongoose from 'mongoose';
-import Attendance from '../models/attendance.js';
-import Student from '../models/student.js';
-import Teacher from '../models/teacher.js';
+import mongoose from "mongoose";
+import Attendance from "../models/attendance.js";
+import Student from "../models/student.js";
+import Teacher from "../models/teacher.js";
+import Class from "../models/class.js";
+import Subject from "../models/subject.js";
 
 /* ─── Helper: derive month/year/academicYear from a date string ── */
 function getDateMeta(dateStr) {
   const d = new Date(dateStr);
-  const month = d.getMonth() + 1;  // 1–12
-  const year  = d.getFullYear();
+  const month = d.getMonth() + 1; // 1–12
+  const year = d.getFullYear();
   // Academic year: if month >= 4 (April), it's "YYYY-(YY+1)", else "(YYYY-1)-YY"
   const academicYear =
     month >= 4
@@ -16,12 +18,12 @@ function getDateMeta(dateStr) {
   return { month, year, academicYear };
 }
 
-
 /* ══════════════════════════════════════════════════════════════
    GET  /attendance/meta
    Returns teacher's assigned classes (with sections) + subjects
    ══════════════════════════════════════════════════════════════ */
 export const getMetaData = async (req, res) => {
+  if(req.user.role =="teacher_admin"){
   try {
     const teacherId = req.user.teacher_id;
     const teacher = await Teacher.findById(teacherId)
@@ -37,8 +39,33 @@ export const getMetaData = async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, message: 'Internal Server Error', error: err.message });
   }
-};
+} 
+else if (req.user.role == "school_admin") {
+  try {
+    const schoolId = req.user.school_id;
 
+    // ✅ Added populate so sections come through (same as teacher branch)
+    const classes = await Class.find({ schoolId }).populate({
+      path: "details.sectionId",
+      model: "Section",
+      select: "name",
+    });
+
+    const subjects = await Subject.find({ schoolId });
+
+    res.status(200).json({ success: true, classes, subjects });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Internal Server Error", error: err.message });
+  }
+}
+else{
+  res.status(403).json({
+    success: false,
+    message: "Unauthorized role",
+  });
+
+}
+};
 
 /* ══════════════════════════════════════════════════════════════
    GET  /attendance/students/filter?classId=&sectionId=
@@ -53,18 +80,25 @@ export const getStudentsByClassAndSection = async (req, res) => {
       !mongoose.Types.ObjectId.isValid(classId) ||
       !mongoose.Types.ObjectId.isValid(sectionId)
     ) {
-      return res.status(400).json({ success: false, message: 'Invalid classId or sectionId' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid classId or sectionId" });
     }
-    const students = await Student.find({ classId, sectionId , schoolId })
-      .select('firstName lastName rollNo')
+    const students = await Student.find({ classId, sectionId, schoolId })
+      .select("firstName lastName rollNo")
       .sort({ rollNo: 1 });
 
     res.status(200).json({ success: true, students });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Internal Server Error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Internal Server Error",
+        error: err.message,
+      });
   }
 };
-
 
 /* ══════════════════════════════════════════════════════════════
    GET  /attendance/existing?classId=&sectionId=&subjectId=&date=
@@ -87,25 +121,35 @@ export const getExistingAttendance = async (req, res) => {
       sectionId,
       subjectId,
       date: { $gte: dayStart, $lte: dayEnd },
-    }).select('studentId status');
+    }).select("studentId status");
 
     if (!records.length) {
-      return res.status(404).json({ success: false, message: 'No attendance record found for this date' });
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "No attendance record found for this date",
+        });
     }
 
     // Return { studentId (string), status, _id } so frontend can map them
-    const formatted = records.map(r => ({
-      _id:       r._id,
+    const formatted = records.map((r) => ({
+      _id: r._id,
       studentId: r.studentId.toString(),
-      status:    r.status,
+      status: r.status,
     }));
 
     res.status(200).json({ success: true, records: formatted });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Internal Server Error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Internal Server Error",
+        error: err.message,
+      });
   }
 };
-
 
 /* ══════════════════════════════════════════════════════════════
    POST  /attendance/save
@@ -124,8 +168,17 @@ export const saveAttendance = async (req, res) => {
   const { classId, sectionId, subjectId, date, records } = req.body;
   const schoolId = req.user.school_id;
 
-  if (!classId || !sectionId || !subjectId || !date || !Array.isArray(records) || !records.length) {
-    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  if (
+    !classId ||
+    !sectionId ||
+    !subjectId ||
+    !date ||
+    !Array.isArray(records) ||
+    !records.length
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing required fields" });
   }
 
   try {
@@ -133,50 +186,63 @@ export const saveAttendance = async (req, res) => {
     const parsedDate = new Date(date);
 
     // Guard: prevent duplicate saves for the same day
-    const dayStart = new Date(date); dayStart.setHours(0, 0, 0, 0);
-    const dayEnd   = new Date(date); dayEnd.setHours(23, 59, 59, 999);
+    const dayStart = new Date(date);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(date);
+    dayEnd.setHours(23, 59, 59, 999);
 
     const alreadyExists = await Attendance.exists({
-      schoolId, classId, sectionId, subjectId,
+      schoolId,
+      classId,
+      sectionId,
+      subjectId,
       date: { $gte: dayStart, $lte: dayEnd },
     });
 
     if (alreadyExists) {
       return res.status(409).json({
         success: false,
-        message: 'Attendance already recorded for this date. Use the update endpoint.',
+        message:
+          "Attendance already recorded for this date. Use the update endpoint.",
       });
     }
 
     // Bulk insert
-    const docs = records.map(r => ({
+    const docs = records.map((r) => ({
       studentId: r.studentId,
       classId,
       sectionId,
       subjectId,
       schoolId,
-      date:         parsedDate,
+      date: parsedDate,
       month,
       year,
       academicYear,
-      status: r.status ?? 'Present',
+      status: r.status ?? "Present",
     }));
 
     const saved = await Attendance.insertMany(docs, { ordered: false });
 
     // Return saved docs with studentId + _id so frontend stores them
-    const savedRecords = saved.map(s => ({
-      _id:       s._id,
+    const savedRecords = saved.map((s) => ({
+      _id: s._id,
       studentId: s.studentId.toString(),
-      status:    s.status,
+      status: s.status,
     }));
 
-    res.status(201).json({ success: true, message: 'Attendance saved', savedRecords });
+    res
+      .status(201)
+      .json({ success: true, message: "Attendance saved", savedRecords });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Internal Server Error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Internal Server Error",
+        error: err.message,
+      });
   }
 };
-
 
 /* ══════════════════════════════════════════════════════════════
    PUT  /attendance/update
@@ -196,17 +262,28 @@ export const updateAttendance = async (req, res) => {
   const { classId, sectionId, subjectId, date, records } = req.body;
   const schoolId = req.user.school_id;
 
-  if (!classId || !sectionId || !subjectId || !date || !Array.isArray(records) || !records.length) {
-    return res.status(400).json({ success: false, message: 'Missing required fields' });
+  if (
+    !classId ||
+    !sectionId ||
+    !subjectId ||
+    !date ||
+    !Array.isArray(records) ||
+    !records.length
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing required fields" });
   }
 
   try {
     const { month, year, academicYear } = getDateMeta(date);
     const parsedDate = new Date(date);
-    const dayStart   = new Date(date); dayStart.setHours(0, 0, 0, 0);
-    const dayEnd     = new Date(date); dayEnd.setHours(23, 59, 59, 999);
+    const dayStart = new Date(date);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(date);
+    dayEnd.setHours(23, 59, 59, 999);
 
-    const bulkOps = records.map(r => {
+    const bulkOps = records.map((r) => {
       if (r.attendanceId && mongoose.Types.ObjectId.isValid(r.attendanceId)) {
         // Update by doc _id (fast path)
         return {
@@ -228,7 +305,7 @@ export const updateAttendance = async (req, res) => {
             date: { $gte: dayStart, $lte: dayEnd },
           },
           update: {
-            $set:    { status: r.status },
+            $set: { status: r.status },
             $setOnInsert: { date: parsedDate, month, year, academicYear },
           },
           upsert: true,
@@ -240,18 +317,24 @@ export const updateAttendance = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Attendance updated',
+      message: "Attendance updated",
       modified: result.modifiedCount,
       upserted: result.upsertedCount,
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Internal Server Error', error: err.message });
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Internal Server Error",
+        error: err.message,
+      });
   }
 };
 
-// teacher attendance report 
+// teacher attendance report
 // controllers/attendance.controller.js
-  // adjust path as needed
+// adjust path as needed
 
 /* ═══════════════════════════════════════════════════════════════
    GET /attendance/my-report
@@ -263,92 +346,92 @@ export const updateAttendance = async (req, res) => {
 ═══════════════════════════════════════════════════════════════ */
 export const getStudentAttendanceReport = async (req, res) => {
   try {
-    const schoolId  = req.user.school_id;
+    const schoolId = req.user.school_id;
     const { classId, sectionId, subjectId, date, month, year } = req.query;
- 
+
     console.log("QUERY:", req.query);
- 
+
     if (!classId || !sectionId || !subjectId) {
       return res.status(400).json({
         success: false,
         message: "Class, Section and Subject are required",
       });
     }
- 
+
     if (!date && (!month || !year)) {
       return res.status(400).json({
         success: false,
         message: "Provide date OR month + year",
       });
     }
- 
+
     // Filter attendance by the logged-in student's own ID
     const baseMatch = {
-      schoolId:  new mongoose.Types.ObjectId(schoolId),
-      classId:   new mongoose.Types.ObjectId(classId),
+      schoolId: new mongoose.Types.ObjectId(schoolId),
+      classId: new mongoose.Types.ObjectId(classId),
       sectionId: new mongoose.Types.ObjectId(sectionId),
       subjectId: new mongoose.Types.ObjectId(subjectId),
     };
- 
+
     /* ───── DAILY ───── */
     if (date) {
       const start = new Date(date);
       start.setHours(0, 0, 0, 0);
- 
+
       const end = new Date(date);
       end.setHours(23, 59, 59, 999);
- 
+
       const data = await Attendance.find({
         ...baseMatch,
         date: { $gte: start, $lte: end },
       })
         .populate("studentId", "firstName lastName rollNo")
         .lean();
- 
+
       console.log("DAILY RESULT:", data.length);
- 
+
       return res.json({
         success: true,
         type: "daily",
         data,
       });
     }
- 
+
     /* ───── MONTHLY ───── */
     const summary = await Attendance.aggregate([
       {
         $match: {
           ...baseMatch,
           month: Number(month),
-          year:  Number(year),
+          year: Number(year),
         },
       },
       {
         $group: {
-          _id:     "$studentId",
+          _id: "$studentId",
           present: { $sum: { $cond: [{ $eq: ["$status", "Present"] }, 1, 0] } },
-          absent:  { $sum: { $cond: [{ $eq: ["$status", "Absent"]  }, 1, 0] } },
-          late:    { $sum: { $cond: [{ $eq: ["$status", "Late"]    }, 1, 0] } },
-          total:   { $sum: 1 },
+          absent: { $sum: { $cond: [{ $eq: ["$status", "Absent"] }, 1, 0] } },
+          late: { $sum: { $cond: [{ $eq: ["$status", "Late"] }, 1, 0] } },
+          total: { $sum: 1 },
         },
       },
       {
         $lookup: {
-          from:         "students",
-          localField:   "_id",
+          from: "students",
+          localField: "_id",
           foreignField: "_id",
-          as:           "student",
+          as: "student",
         },
       },
       { $unwind: "$student" },
       {
         $project: {
-          name:       "$student.firstName",
+          name: "$student.firstName",
           rollNumber: "$student.rollNo",
           present: 1,
-          absent:  1,
-          late:    1,
-          total:   1,
+          absent: 1,
+          late: 1,
+          total: 1,
           percentage: {
             $round: [
               { $multiply: [{ $divide: ["$present", "$total"] }, 100] },
@@ -358,18 +441,16 @@ export const getStudentAttendanceReport = async (req, res) => {
         },
       },
     ]);
- 
+
     console.log("MONTHLY RESULT:", summary.length);
- 
+
     return res.json({
       success: true,
       type: "monthly",
       data: summary,
     });
- 
   } catch (error) {
     console.error("ERROR:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
- 

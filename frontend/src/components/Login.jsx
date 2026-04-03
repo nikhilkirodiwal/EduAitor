@@ -1,8 +1,9 @@
 import { useAuth } from "../context/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaUserShield, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -14,6 +15,18 @@ export default function Login() {
 
   const navigate = useNavigate();
   const { fetchUser } = useAuth();
+
+  useEffect(() => {
+    // Push a dummy entry so back has nowhere protected to go
+    window.history.pushState(null, "", window.location.href);
+
+    const handlePopState = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -37,13 +50,17 @@ export default function Login() {
 
       if (role === "super_admin") {
         navigate("/admin/dashboard");
+        toast.success("Login successful! Welcome back.");
       } else if (role === "school_admin") {
         navigate("/school/dashboard");
+        toast.success("Login successful! Welcome back.");
       } else if (role === "teacher_admin") {
         navigate("/teacher/dashboard");
+        toast.success("Login successful! Welcome back.");
       }
     } catch {
       setError("Invalid credentials");
+      toast.error("Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }

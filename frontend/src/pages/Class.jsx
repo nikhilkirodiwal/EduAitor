@@ -23,7 +23,7 @@ const EMPTY_DETAIL = {
   roomNumber: "",
   teacherId: "",
   capacity: 40,
-  subjects: [],
+  subjectTeachers: [],
 };
 
 const EMPTY_FORM = {
@@ -85,16 +85,26 @@ export default function ClassPage() {
     });
   };
 
-  const toggleSubject = (index, id) => {
+  const toggleSubject = (index, subjectId) => {
     setForm((p) => {
       const details = [...p.details];
-      const subjects = details[index].subjects;
+      const subjectTeachers = [...(details[index].subjectTeachers || [])];
+
+      const exists = subjectTeachers.find((s) => s.subjectId === subjectId);
+
+      let updated;
+
+      if (exists) {
+        updated = subjectTeachers.filter((s) => s.subjectId !== subjectId);
+      } else {
+        updated = [...subjectTeachers, { subjectId, teacherId: "" }];
+      }
+
       details[index] = {
         ...details[index],
-        subjects: subjects.includes(id)
-          ? subjects.filter((s) => s !== id)
-          : [...subjects, id],
+        subjectTeachers: updated,
       };
+
       return { ...p, details };
     });
   };
@@ -135,7 +145,11 @@ export default function ClassPage() {
         roomNumber: d.roomNumber,
         teacherId: d.teacherId?._id || "",
         capacity: d.capacity || 40,
-        subjects: d.subjects?.map((s) => s._id) || [],
+        subjectTeachers:
+          d.subjectTeachers?.map((st) => ({
+            subjectId: st.subjectId?._id || "",
+            teacherId: st.teacherId?._id || "",
+          })) || [],
       })),
     };
     setEditingClass(cls);
@@ -231,6 +245,11 @@ export default function ClassPage() {
     (sum, c) => sum + c.details.filter((d) => d.teacherId).length,
     0,
   );
+
+  const getSubjectName = (id) => {
+    const sub = subjects.find((s) => s._id === id);
+    return sub?.name || "Unknown";
+  };
 
   /* ════════════════════════════════════════════════════ */
   return (
@@ -329,8 +348,9 @@ export default function ClassPage() {
                 : cls.name.replace(/\D/g, "") ||
                   cls.name.slice(0, 2).toUpperCase();
 
-              const visibleSubjects = detail.subjects?.slice(0, 3) || [];
-              const extraSubjects = (detail.subjects?.length || 0) - 3;
+              const visibleSubjects = detail.subjectTeachers?.slice(0, 3) || [];
+
+              const extraSubjects = (detail.subjectTeachers?.length || 0) - 3;
 
               return (
                 <div
@@ -370,7 +390,9 @@ export default function ClassPage() {
                     </div>
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <FaBook size={13} className="shrink-0 text-gray-400" />
-                      <span>{detail.subjects?.length || 0} subjects</span>
+                      <span>
+                        {detail.subjectTeachers?.length || 0} subjects
+                      </span>
                     </div>
                   </div>
 
@@ -404,7 +426,7 @@ export default function ClassPage() {
                           key={i}
                           className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100"
                         >
-                          {sub.name}
+                          {getSubjectName(sub.subjectId?._id || sub.subjectId)}
                         </span>
                       ))}
                       {extraSubjects > 0 && (
@@ -623,7 +645,9 @@ export default function ClassPage() {
                           >
                             <input
                               type="checkbox"
-                              checked={detail.subjects.includes(sub._id)}
+                              checked={detail.subjectTeachers?.some(
+                                (s) => s.subjectId === sub._id,
+                              )}
                               onChange={() => toggleSubject(index, sub._id)}
                               className="accent-indigo-500"
                             />
@@ -632,6 +656,57 @@ export default function ClassPage() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Subject Teacher Mapping */}
+                    {detail.subjectTeachers?.length > 0 && (
+                      <div className="space-y-2 mt-3">
+                        <label className="text-xs font-medium text-gray-600">
+                          Assign Teacher per Subject
+                        </label>
+
+                        {detail.subjectTeachers.map((st, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="text-xs w-28">
+                              {getSubjectName(st.subjectId)}
+                            </span>
+
+                            <select
+                              value={st.teacherId}
+                              onChange={(e) => {
+                                const value = e.target.value;
+
+                                setForm((p) => {
+                                  const details = [...p.details];
+                                  const subjectTeachers = [
+                                    ...details[index].subjectTeachers,
+                                  ];
+
+                                  subjectTeachers[i] = {
+                                    ...subjectTeachers[i],
+                                    teacherId: value,
+                                  };
+
+                                  details[index] = {
+                                    ...details[index],
+                                    subjectTeachers,
+                                  };
+
+                                  return { ...p, details };
+                                });
+                              }}
+                              className="text-xs border rounded px-2 py-1 flex-1"
+                            >
+                              <option value="">Assign Teacher</option>
+                              {teachers.map((t) => (
+                                <option key={t._id} value={t._id}>
+                                  {t.fullName}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

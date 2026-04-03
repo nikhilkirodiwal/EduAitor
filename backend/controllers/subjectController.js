@@ -70,8 +70,11 @@ export const getSubjects = async (req, res) => {
 
       classes.forEach((cls) => {
         cls.details.forEach((detail) => {
-          const hasSubject = detail.subjects?.some(
-            (s) => s.toString() === subId,
+          const hasSubject = detail.subjectTeachers?.some(
+            (st) =>
+              (typeof st.subjectId === "object"
+                ? st.subjectId._id.toString()
+                : st.subjectId.toString()) === subId,
           );
 
           if (hasSubject) {
@@ -183,7 +186,7 @@ export const deleteSubject = async (req, res) => {
     // Check usage in classes
     const isUsed = await Class.findOne({
       schoolId,
-      "details.subjects": subject._id,
+      "details.subjectTeachers.subjectId": subject._id,
     });
 
     if (isUsed) {
@@ -239,8 +242,11 @@ export const getAllSubjects = async (req, res) => {
 
       classes.forEach((cls) => {
         cls.details.forEach((detail) => {
-          const hasSubject = detail.subjects?.some(
-            (s) => s.toString() === subId,
+          const hasSubject = detail.subjectTeachers?.some(
+            (st) =>
+              (typeof st.subjectId === "object"
+                ? st.subjectId._id.toString()
+                : st.subjectId.toString()) === subId,
           );
 
           if (hasSubject) {

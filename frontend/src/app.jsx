@@ -43,6 +43,8 @@ import Assignment from "./pages/Assignment";
 import Calendar from "./pages/Calendar";
 import Attendance from "./pages/Attendance";
 import AttendanceReportTeacher from "./pages/AttendanceReportTeacher";
+import AttendanceReportPrincipal from "./pages/AttendanceReportPrincipal";
+import AddSchool from "./pages/AddSchool";
 
 const App = () => {
   return (
@@ -57,7 +59,7 @@ const App = () => {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["super_admin"]}>
             <AdminLayout />
           </ProtectedRoute>
         }
@@ -66,6 +68,7 @@ const App = () => {
         <Route path="access-control" element={<AccessControl />} />
         <Route path="roles" element={<RoleManagement />} />
         <Route path="schools" element={<Schools />} />
+        <Route path="add-school" element={<AddSchool />} />
         <Route path="school-manage" element={<SchoolManagement />} />
         <Route path="school-detail" element={<SchoolDetail />} />
         <Route path="subscription-plan" element={<SchoolSubscription />} />
@@ -77,7 +80,7 @@ const App = () => {
       <Route
         path="/school"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["school_admin"]}>
             <AdminLayout />
           </ProtectedRoute>
         }
@@ -96,6 +99,7 @@ const App = () => {
         <Route path="class-view/:id" element={<ClassView />} />
         <Route path="subject" element={<Subject />} />
         <Route path="syllabus" element={<Syllabus />} />
+        <Route path="attendance" element={<AttendanceReportPrincipal />} />
         <Route path="timetable" element={<TimeTable />} />
         <Route path="fee-structure" element={<FeeStructure />} />
         <Route path="fee-collection" element={<FeeCollection />} />
@@ -118,7 +122,7 @@ const App = () => {
       <Route
         path="/teacher"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={["teacher_admin"]}>
             <AdminLayout />
           </ProtectedRoute>
         }

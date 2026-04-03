@@ -9,8 +9,8 @@ import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
 
-router.get("/classes", getTeacherClasses);
-router.get("/subjects", getSubjectsByClass);
+router.get("/classes", authMiddleware, getTeacherClasses);
+router.get("/subjects", authMiddleware, getSubjectsByClass);
 router.get("/chapters", authMiddleware, getChaptersBySubject);
 router.get("/topics", authMiddleware, getTopicsByChapter);
 

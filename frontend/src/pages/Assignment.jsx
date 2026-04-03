@@ -42,9 +42,8 @@ const Q_TYPES = ["short", "long", "mcq"];
 ───────────────────────────────────────────── */
 export default function Assignment() {
   const { user, loading } = useAuth();
-  const teacherId =
-    user?.teacher_id || user?._id || user?.id || user?.teacherId;
-  const schoolId = user?.school_id || user?.schoolId || user?.schoolID;
+  const teacherId = user?.teacher_id;
+  const schoolId = user?.school_id;
 
   const [editingAssignmentId, setEditingAssignmentId] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -111,7 +110,7 @@ export default function Assignment() {
     setError("");
     try {
       const res = await axios.get(`${API}/teacher-academic/classes`, {
-        params: { teacherId },
+        withCredentials: true,
       });
       const data = res.data.data || [];
       setClasses(data);
@@ -126,7 +125,7 @@ export default function Assignment() {
   const fetchAssignments = async () => {
     try {
       const res = await axios.get(`${API}/assignment/teacher`, {
-        params: { teacherId },
+        withCredentials: true,
       });
       setAssignments(res.data.data || []);
     } catch {
@@ -141,6 +140,7 @@ export default function Assignment() {
       const [subRes, chRes, topRes] = await Promise.all([
         axios.get(`${API}/teacher-academic/subjects`, {
           params: { classId: a.classId._id },
+          withCredentials: true,
         }),
         axios.get(`${API}/teacher-academic/chapters`, {
           params: {
@@ -205,6 +205,7 @@ export default function Assignment() {
     try {
       const res = await axios.get(`${API}/teacher-academic/subjects`, {
         params: { classId: cls._id },
+        withCredentials: true,
       });
       const data = res.data.data || [];
       setSubjects(data);
@@ -288,6 +289,7 @@ export default function Assignment() {
       const res = await axios.post(
         `${API}/assignment/generate-questions`,
         payload,
+        { withCredentials: true },
       );
       const qs = res.data.data || [];
       if (!qs.length)
@@ -372,17 +374,22 @@ export default function Assignment() {
     setConfirmSave(false);
     try {
       if (isEditMode) {
-        await axios.put(`${API}/assignment/${editingAssignmentId}`, {
-          ...details,
-          questions: approvedQuestions,
-          totalMarks,
-        });
+        await axios.put(
+          `${API}/assignment/${editingAssignmentId}`,
+          {
+            ...details,
+            questions: approvedQuestions,
+            totalMarks,
+          },
+          {
+            withCredentials: true,
+          },
+        );
         toast.success("Assignment updated!");
       } else {
         await axios.post(
           `${API}/assignment/create`,
           {
-            teacherId,
             classId: selectedClass._id,
             subjectId: selectedSubject._id,
             chapterId: selectedChapter._id,
@@ -436,7 +443,7 @@ export default function Assignment() {
   };
   const doDelete = async (id) => {
     try {
-      await axios.delete(`${API}/assignment/${id}`);
+      await axios.delete(`${API}/assignment/${id}`, { withCredentials: true });
       toast.success("Deleted");
       setConfirmDelete(null);
       fetchAssignments();
@@ -446,7 +453,9 @@ export default function Assignment() {
   };
   const togglePublish = async (a) => {
     try {
-      await axios.patch(`${API}/assignment/publish/${a._id}`);
+      await axios.patch(`${API}/assignment/publish/${a._id}`, {
+        withCredentials: true,
+      });
       toast.success(a.isPublished ? "Unpublished" : "Published ✓");
       fetchAssignments();
     } catch {
@@ -792,6 +801,7 @@ export default function Assignment() {
           icon="📚"
           emptyText="No subjects."
           onBack={() => setStep(STEP_CLASS)}
+          renderExtra={(item) => item.teacherName}
         />
       );
     if (step === STEP_CHAPTER)
@@ -1350,10 +1360,19 @@ function PendingQuestionCard({
 /* ─────────────────────────────────────────────
    SUB-COMPONENTS (unchanged)
 ───────────────────────────────────────────── */
-function CardGrid({ label, items, onPick, icon, emptyText, onBack }) {
+function CardGrid({
+  label,
+  items,
+  onPick,
+  icon,
+  emptyText,
+  onBack,
+  renderExtra,
+}) {
   return (
     <div>
       <StepHeader label={label} onBack={onBack} />
+
       {items.length === 0 ? (
         <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-xl mt-4">
           <p className="text-3xl mb-2">{icon}</p>
@@ -1368,9 +1387,16 @@ function CardGrid({ label, items, onPick, icon, emptyText, onBack }) {
               className="text-left border border-gray-100 rounded-xl p-3.5 hover:border-indigo-400 hover:bg-indigo-50/60 hover:shadow-sm transition-all group"
             >
               <span className="block text-xl mb-2">{icon}</span>
-              <span className="text-sm font-bold text-gray-700 group-hover:text-indigo-700 leading-snug block">
+
+              <span className="text-sm font-bold text-gray-700 group-hover:text-indigo-700 block">
                 {item.name}
               </span>
+
+              {renderExtra && (
+                <span className="text-xs text-gray-400 block mt-1">
+                  {renderExtra(item)}
+                </span>
+              )}
             </button>
           ))}
         </div>
