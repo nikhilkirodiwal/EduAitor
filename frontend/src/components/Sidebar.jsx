@@ -15,6 +15,7 @@ import {
   FaBookDead,
   FaCalendar,
   FaBookOpen,
+  FaUserAlt,
 } from "react-icons/fa";
 
 import {
@@ -146,7 +147,7 @@ const Sidebar = ({ closeSidebar }) => {
         { name: "Defaulters", path: "/school/defaulters" },
       ],
     },
-
+    { name: "Group", icon: <FaUserGroup />, path: "/school/group" },
     { name: "Events", icon: <FaCalendar />, path: "/school/event" },
     { name: "Notices", icon: <FaBell />, path: "/school/notice" },
     { name: "Calendar", icon: <FaCalendarAlt />, path: "/school/calendar" },
@@ -181,7 +182,7 @@ const Sidebar = ({ closeSidebar }) => {
 
     {
       name: "Attendance",
-      icon: <FiUsers />,
+      icon: <FaUserAlt />,
       path: "/teacher/attendance",
       children: [
         { name: "Mark Attendance", path: "/teacher/attendance/mark" },
@@ -194,7 +195,7 @@ const Sidebar = ({ closeSidebar }) => {
       icon: <HiAcademicCap />,
       path: "/teacher/classes",
     },
-    { name: "Syllabus", icon: <FaBookDead />, path: "/school/syllabus" },
+    { name: "Syllabus", icon: <FaBookDead />, path: "/teacher/syllabus" },
     {
       name: "Assignment",
       icon: <GiSchoolBag />,

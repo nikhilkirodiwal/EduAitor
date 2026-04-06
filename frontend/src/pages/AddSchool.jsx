@@ -186,7 +186,7 @@ const AddSchool = () => {
                 placeholder="123 Education Lane, Learning City, 10001"
                 value={form.address}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[90px] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-22.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
               />
             </div>
 

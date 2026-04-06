@@ -45,6 +45,8 @@ import Attendance from "./pages/Attendance";
 import AttendanceReportTeacher from "./pages/AttendanceReportTeacher";
 import AttendanceReportPrincipal from "./pages/AttendanceReportPrincipal";
 import AddSchool from "./pages/AddSchool";
+import Group from "./pages/Group";
+import Diary from "./pages/Diary";
 
 const App = () => {
   return (
@@ -105,6 +107,7 @@ const App = () => {
         <Route path="fee-collection" element={<FeeCollection />} />
         <Route path="fee-history" element={<FeeHistory />} />
         <Route path="defaulters" element={<Defaulters />} />
+        <Route path="group" element={<Group />} />
         <Route path="event" element={<Event />} />
         <Route path="event/:id" element={<EventView />} />
         <Route path="notice" element={<Notice />} />
@@ -131,6 +134,8 @@ const App = () => {
         <Route path="assignment" element={<Assignment />} />
         <Route path="attendance/mark" element={<Attendance />} />
         <Route path="attendance/report" element={<AttendanceReportTeacher />} />
+        <Route path="syllabus" element={<Syllabus />} />
+        <Route path="diary" element={<Diary />} />
 
         <Route path="*" element={<Navigate to="/teacher/dashboard" />} />
       </Route>

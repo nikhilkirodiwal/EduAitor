@@ -11,7 +11,6 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     if (loading) return;
 
     if (!user && !hasShownToast.current) {
-      toast.error("Please login to continue");
       hasShownToast.current = true;
     }
 
