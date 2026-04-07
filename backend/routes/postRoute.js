@@ -5,11 +5,12 @@ import {
   updatePost,
   deletePost,
   toggleLike,
-  addComment,
-  deleteComment,
+  // addComment,
+  // deleteComment,
   togglePin,
 } from "../controllers/postController.js";
 
+import upload from "../middlewares/upload.js";
 import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
@@ -19,29 +20,29 @@ router.use(authMiddleware);
 // ─── Post routes ──────────────────────────────────────────────────────────────
 
 // Create post (teacher / admin)
-router.post("/create", createPost);
+router.post("/", upload.array("attachments", 5), createPost);
 
 // Get posts in a group
 router.get("/group/:groupId", getGroupPosts);
 
 // Update post
-router.put("/:id", updatePost);
+router.put("/:id", upload.array("attachments", 5), updatePost);
 
 // Delete post
 router.delete("/:id", deletePost);
 
 // Like / unlike
-router.post("/:id/like", toggleLike);
+router.patch("/:id/like", toggleLike);
 
 // Pin / unpin (admin)
-router.post("/:id/pin", togglePin);
+router.patch("/:id/pin", togglePin);
 
 // ─── Comment routes ───────────────────────────────────────────────────────────
 
 // Add comment
-router.post("/:id/comment", addComment);
+// router.post("/:id/comment", addComment);
 
 // Delete comment
-router.delete("/:id/comment/:commentId", deleteComment);
+// router.delete("/:id/comment/:commentId", deleteComment);
 
 export default router;

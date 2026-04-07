@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const fileSchema = new mongoose.Schema({
   url: String,
   public_id: String,
+  type: String,
 });
 
 const studentSchema = new mongoose.Schema(

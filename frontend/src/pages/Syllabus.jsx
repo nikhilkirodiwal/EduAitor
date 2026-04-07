@@ -92,6 +92,8 @@ function Syllabus() {
 
   const fetchChapters = async () => {
     try {
+      if (!selectedClass || !selectedSubject || !selectedTerm) return;
+      
       setLoading(true);
       const res = await axios.get(`${API}/syllabus/chapters`, {
         params: {

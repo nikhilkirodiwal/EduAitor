@@ -47,6 +47,7 @@ const driverSchema = new mongoose.Schema(
     photo: {
       url: { type: String, default: "" },
       publicId: { type: String, default: "" },
+      type: { type: String, default: "" },
     },
   },
   { timestamps: true },

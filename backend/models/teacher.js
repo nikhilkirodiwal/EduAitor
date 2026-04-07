@@ -13,6 +13,7 @@ const teacherSchema = new mongoose.Schema(
     photo: {
       url: String,
       public_id: String,
+      type: String,
     },
 
     qualification: String,

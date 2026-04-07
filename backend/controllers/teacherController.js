@@ -35,6 +35,7 @@ export const createTeacher = async (req, res) => {
       photo = {
         url: uploaded.url,
         public_id: uploaded.public_id,
+        type: uploaded.type,
       };
     }
 
@@ -200,6 +201,7 @@ export const updateTeacher = async (req, res) => {
       photo = {
         url: uploaded.url,
         public_id: uploaded.public_id,
+        type: uploaded.type,
       };
     }
 

@@ -1,608 +1,616 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const API = import.meta.env.VITE_API_URL;
 
-const EMPTY_FORM = {
-  classId: "",
-  sectionId: "",
-  subjectId: "",
-  type: "homework",
-  content: "",
-  dueDate: "",
-};
+// ─── Constants ────────────────────────────────────────────────────────────────
 
 const TYPE_STYLES = {
   homework: {
     badge: "bg-amber-50 text-amber-700 border border-amber-200",
     accent: "border-l-amber-400",
+    dot: "bg-amber-400",
   },
   classwork: {
     badge: "bg-blue-50 text-blue-700 border border-blue-200",
     accent: "border-l-blue-400",
+    dot: "bg-blue-400",
   },
   remark: {
     badge: "bg-violet-50 text-violet-700 border border-violet-200",
     accent: "border-l-violet-400",
+    dot: "bg-violet-400",
   },
 };
 
-// ─── Validation ────────────────────────────────────────────────────────────────
-function validate(form) {
-  const errors = {};
-  if (!form.classId) errors.classId = "Please select a class";
-  if (!form.sectionId) errors.sectionId = "Please select a section";
-  if (!form.subjectId) errors.subjectId = "Please select a subject";
-  if (!form.content.trim()) errors.content = "Content is required";
-  if (form.type === "homework" && !form.dueDate)
-    errors.dueDate = "Due date is required for homework";
-  return errors;
-}
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
-// ─── Field wrapper ─────────────────────────────────────────────────────────────
-function Field({ label, error, children }) {
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - i);
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const fmtDate = (d) =>
+  d
+    ? new Date(d).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "";
+
+const fmtDay = (d) =>
+  new Date(d).toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+const initials = (name = "") =>
+  name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
+
+// ─── Stat Card ────────────────────────────────────────────────────────────────
+
+function StatCard({ label, value, color }) {
+  const colors = {
+    slate: "bg-slate-50 text-slate-700 border-slate-200",
+    amber: "bg-amber-50 text-amber-700 border-amber-200",
+    blue: "bg-blue-50 text-blue-700 border-blue-200",
+    violet: "bg-violet-50 text-violet-700 border-violet-200",
+  };
   return (
-    <div className="flex flex-col gap-1">
-      {label && (
-        <label className="text-xs font-medium text-slate-500">{label}</label>
-      )}
-      {children}
-      {error && <p className="text-xs text-red-500">{error}</p>}
+    <div
+      className={`rounded-xl border px-3 py-2.5 flex flex-col gap-0.5 ${colors[color]}`}
+    >
+      <span className="text-xl font-semibold">{value}</span>
+      <span className="text-xs font-medium opacity-60">{label}</span>
     </div>
   );
 }
 
-// ─── Select / Input shared style ───────────────────────────────────────────────
-const fieldCls = (err) =>
-  `w-full text-sm border rounded-xl px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-40 transition ${
-    err ? "border-red-300" : "border-slate-200"
-  }`;
+// ─── Diary Card ───────────────────────────────────────────────────────────────
 
-// ─── Edit Modal ────────────────────────────────────────────────────────────────
-function EditModal({ entry, classes, onClose, onSaved }) {
-  const [form, setForm] = useState({ ...EMPTY_FORM });
-  const [sections, setSections] = useState([]);
-  const [subjects, setSubjects] = useState([]);
-  const [errors, setErrors] = useState({});
-  const [saving, setSaving] = useState(false);
-
-  // Pre-fill form when entry loads
-  useEffect(() => {
-    if (!entry) return;
-    setForm({
-      classId: entry.classId?._id || entry.classId || "",
-      sectionId: entry.sectionId?._id || entry.sectionId || "",
-      subjectId: entry.subjectId?._id || entry.subjectId || "",
-      type: entry.type || "homework",
-      content: entry.content || "",
-      dueDate: entry.dueDate ? entry.dueDate.split("T")[0] : "",
-    });
-  }, [entry]);
-
-  // Populate sections when classId is set
-  useEffect(() => {
-    if (!form.classId) { setSections([]); setSubjects([]); return; }
-    const cls = classes.find((c) => c._id === form.classId);
-    setSections(cls?.details || []);
-  }, [form.classId, classes]);
-
-  // Populate subjects when sectionId is set
-  useEffect(() => {
-    if (!form.sectionId) { setSubjects([]); return; }
-    const sec = sections.find((s) => s._id === form.sectionId);
-    setSubjects(sec?.subjectTeachers || []);
-  }, [form.sectionId, sections]);
-
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-
-  const handleSave = async () => {
-    const errs = validate(form);
-    setErrors(errs);
-    if (Object.keys(errs).length) return;
-    setSaving(true);
-    try {
-      await axios.put(`${API}/diary/${entry._id}`, form, { withCredentials: true });
-      toast.success("Diary entry updated");
-      onSaved();
-      onClose();
-    } catch {
-      toast.error("Failed to update entry");
-    } finally {
-      setSaving(false);
-    }
-  };
+function DiaryCard({ entry }) {
+  const ts = TYPE_STYLES[entry.type] || TYPE_STYLES.remark;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <h2 className="text-sm font-semibold text-slate-800">Edit Diary Entry</h2>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 text-lg"
+    <div
+      className={`bg-white rounded-2xl border border-slate-200 border-l-4 ${ts.accent} p-4`}
+    >
+      {/* Top meta row */}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span
+            className={`text-xs font-medium px-2.5 py-0.5 rounded-full capitalize ${ts.badge}`}
           >
-            ×
-          </button>
-        </div>
+            {entry.type}
+          </span>
 
+          {entry.classId?.name && (
+            <span className="text-xs text-slate-400">
+              Class {entry.classId.name}
+              {entry.sectionName ? ` · Sec ${entry.sectionName}` : ""}
+              {entry.roomNumber ? ` (Rm ${entry.roomNumber})` : ""}
+            </span>
+          )}
 
-        {/* Body */}
-        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-3">
-          {/* Class */}
-          <Field label="Class" error={errors.classId}>
-            <select
-              className={fieldCls(errors.classId)}
-              value={form.classId}
-              onChange={(e) => {
-                set("classId", e.target.value);
-                set("sectionId", "");
-                set("subjectId", "");
-              }}
-            >
-              <option value="">Select class</option>
-              {classes.map((c) => (
-                <option key={c._id} value={c._id}>Class {c.name}</option>
-              ))}
-            </select>
-          </Field>
-
-          {/* Section */}
-          <Field label="Section" error={errors.sectionId}>
-            <select
-              className={fieldCls(errors.sectionId)}
-              value={form.sectionId}
-              disabled={!sections.length}
-              onChange={(e) => { set("sectionId", e.target.value); set("subjectId", ""); }}
-            >
-              <option value="">Select section</option>
-              {sections.map((s) => (
-                <option key={s._id} value={s._id}>
-                  {s.sectionId?.name} (Room {s.roomNumber})
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          {/* Subject */}
-          <Field label="Subject" error={errors.subjectId}>
-            <select
-              className={fieldCls(errors.subjectId)}
-              value={form.subjectId}
-              disabled={!subjects.length}
-              onChange={(e) => set("subjectId", e.target.value)}
-            >
-              <option value="">Select subject</option>
-              {subjects.map((s) => (
-                <option key={s.subjectId?._id} value={s.subjectId?._id}>
-                  {s.subjectId?.name || "Unknown"}
-                </option>
-              ))}
-            </select>
-          </Field>
-
-          {/* Type */}
-          <Field label="Entry type">
-            <div className="grid grid-cols-3 gap-2">
-              {["homework", "classwork", "remark"].map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => set("type", t)}
-                  className={`py-2 text-xs font-medium rounded-xl border capitalize transition-all ${
-                    form.type === t
-                      ? TYPE_STYLES[t].badge + " ring-2 ring-offset-1 ring-current/20"
-                      : "border-slate-200 text-slate-500 hover:bg-slate-50"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </Field>
-
-          {/* Content */}
-          <Field label="Content" error={errors.content}>
-            <textarea
-              rows={3}
-              placeholder="Describe the task…"
-              className={fieldCls(errors.content) + " resize-none"}
-              value={form.content}
-              onChange={(e) => set("content", e.target.value)}
-            />
-          </Field>
-
-          {/* Due Date */}
-          {form.type === "homework" && (
-            <Field label="Due date" error={errors.dueDate}>
-              <input
-                type="date"
-                className={fieldCls(errors.dueDate)}
-                value={form.dueDate}
-                onChange={(e) => set("dueDate", e.target.value)}
-              />
-            </Field>
+          {entry.subjectId?.name && (
+            <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+              {entry.subjectId.name}
+            </span>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="px-5 py-4 border-t border-slate-100 flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+        {/* Time */}
+        <span className="text-xs text-slate-300 whitespace-nowrap shrink-0">
+          {new Date(entry.date).toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+      </div>
+
+      {/* Content */}
+      <p className="text-sm text-slate-600 leading-relaxed">{entry.content}</p>
+
+      {/* Due date */}
+      {entry.type === "homework" && entry.dueDate && (
+        <div className="mt-2.5 flex items-center gap-1.5">
+          <svg
+            className="w-3.5 h-3.5 text-amber-500 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-slate-800 text-white hover:bg-slate-700 disabled:opacity-60 transition-colors"
-          >
-            {saving ? "Saving…" : "Save Changes"}
-          </button>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          <span className="text-xs text-amber-700 font-medium">
+            Due {fmtDate(entry.dueDate)}
+          </span>
         </div>
+      )}
+
+      {/* Teacher footer */}
+      {entry.teacherId && (
+        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2">
+          <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-xs font-semibold shrink-0">
+            {initials(entry.teacherId.name)}
+          </div>
+          <span className="text-xs text-slate-400">{entry.teacherId.name}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Filter Bar ───────────────────────────────────────────────────────────────
+
+function FilterBar({ filters, onChange, classes, onClear, hasFilters }) {
+  const selectedClass = classes.find((c) => c._id === filters.classId);
+  const sections = selectedClass?.details || [];
+
+  const selectedSection = sections.find(
+    (s) =>
+      s.sectionId?._id === filters.sectionId ||
+      s.sectionId === filters.sectionId,
+  );
+  const subjects =
+    selectedSection?.subjectTeachers?.filter((st) => st.subjectId) || [];
+
+  const selCls =
+    "text-xs border border-slate-200 rounded-xl px-3 py-2.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 w-full";
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+          Filters
+        </span>
+        {hasFilters && (
+          <button
+            onClick={onClear}
+            className="text-xs text-blue-600 font-medium hover:underline"
+          >
+            Clear all
+          </button>
+        )}
+      </div>
+
+      {/* Row 1: Class + Section + Subject */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <select
+          className={selCls}
+          value={filters.classId}
+          onChange={(e) =>
+            onChange({ classId: e.target.value, sectionId: "", subjectId: "" })
+          }
+        >
+          <option value="">All classes</option>
+          {classes.map((c) => (
+            <option key={c._id} value={c._id}>
+              Class {c.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className={selCls}
+          value={filters.sectionId}
+          disabled={!sections.length}
+          onChange={(e) =>
+            onChange({ sectionId: e.target.value, subjectId: "" })
+          }
+        >
+          <option value="">All sections</option>
+          {sections.map((s) => (
+            <option key={s._id} value={s.sectionId?._id || s.sectionId}>
+              Section {s.sectionId?.name} (Rm {s.roomNumber})
+            </option>
+          ))}
+        </select>
+
+        <select
+          className={selCls}
+          value={filters.subjectId}
+          disabled={!subjects.length}
+          onChange={(e) => onChange({ subjectId: e.target.value })}
+        >
+          <option value="">All subjects</option>
+          {subjects.map(({ subjectId: s }) => (
+            <option key={s._id} value={s._id}>
+              {s.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Row 2: Type + Month + Year + Date */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <select
+          className={selCls}
+          value={filters.type}
+          onChange={(e) => onChange({ type: e.target.value })}
+        >
+          <option value="">All types</option>
+          <option value="homework">Homework</option>
+          <option value="classwork">Classwork</option>
+          <option value="remark">Remark</option>
+        </select>
+
+        <select
+          className={selCls}
+          value={filters.month}
+          onChange={(e) => onChange({ month: e.target.value, date: "" })}
+        >
+          <option value="">All months</option>
+          {MONTHS.map((m, i) => (
+            <option key={m} value={i}>
+              {m}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className={selCls}
+          value={filters.year}
+          onChange={(e) => onChange({ year: e.target.value, date: "" })}
+        >
+          <option value="">All years</option>
+          {YEARS.map((y) => (
+            <option key={y} value={y}>
+              {y}
+            </option>
+          ))}
+        </select>
+
+        <input
+          type="date"
+          className={selCls + " col-span-2 sm:col-span-1"}
+          value={filters.date}
+          onChange={(e) =>
+            onChange({ date: e.target.value, month: "", year: "" })
+          }
+          placeholder="Pick date"
+        />
       </div>
     </div>
   );
 }
 
-// ─── Main Page ─────────────────────────────────────────────────────────────────
+// ─── Empty State ──────────────────────────────────────────────────────────────
+
+function EmptyState({ hasFilters }) {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 py-16 flex flex-col items-center gap-3 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
+        <svg
+          className="w-7 h-7 text-slate-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          />
+        </svg>
+      </div>
+      <div>
+        <p className="text-sm font-medium text-slate-600">
+          No diary entries found
+        </p>
+        <p className="text-xs text-slate-400 mt-1">
+          {hasFilters
+            ? "Try adjusting or clearing the filters"
+            : "No entries have been added yet"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
+function Skeleton() {
+  return (
+    <div className="space-y-3 animate-pulse">
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="bg-white rounded-2xl border border-slate-200 border-l-4 border-l-slate-200 p-4 space-y-2"
+        >
+          <div className="flex gap-2">
+            <div className="h-5 w-20 bg-slate-100 rounded-full" />
+            <div className="h-5 w-28 bg-slate-100 rounded-full" />
+          </div>
+          <div className="h-4 bg-slate-100 rounded w-full" />
+          <div className="h-4 bg-slate-100 rounded w-3/4" />
+          <div className="pt-2 border-t border-slate-100 flex gap-2 items-center">
+            <div className="w-6 h-6 bg-slate-100 rounded-full" />
+            <div className="h-3 w-24 bg-slate-100 rounded" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+const INIT_FILTERS = {
+  classId: "",
+  sectionId: "",
+  subjectId: "",
+  type: "",
+  month: "",
+  year: "",
+  date: "",
+};
+
 export default function Diary() {
-  // Shared state
   const [classes, setClasses] = useState([]);
-  const [diaryList, setDiaryList] = useState([]);
+  const [entries, setEntries] = useState([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    homework: 0,
+    classwork: 0,
+    remark: 0,
+  });
+  const [filters, setFilters] = useState(INIT_FILTERS);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({ total: 0, pages: 1 });
 
-  // Add form state
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [sections, setSections] = useState([]);
-  const [subjects, setSubjects] = useState([]);
-  const [errors, setErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
-
-  // List state
-  const [deleteId, setDeleteId] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const [editEntry, setEditEntry] = useState(null);
-
-  // ── Fetch ──────────────────────────────────────────────────────────────────
-  const fetchClasses = async () => {
-    try {
-      const res = await axios.get(`${API}/classes/all`, { withCredentials: true });
-      setClasses(res.data.classes);
-    } catch {
-      toast.error("Failed to load classes");
-    }
-  };
-
-  const fetchDiary = async () => {
-    try {
-      const res = await axios.get(`${API}/diary`, { withCredentials: true });
-      setDiaryList(res.data);
-    } catch {
-      toast.error("Failed to load diary entries");
-    }
-  };
-
+  // ── Fetch filter options ────────────────────────────────────────────────────
   useEffect(() => {
-    fetchClasses();
-    fetchDiary();
+    const fetchFilters = async () => {
+      try {
+        const res = await axios.get(`${API}/diary/principal/filters`, {
+          withCredentials: true,
+        });
+        console.log("Filter options:", res.data);
+        setClasses(res.data.classes || []);
+      } catch {
+        toast.error("Failed to load filter options");
+      }
+    };
+    fetchFilters();
   }, []);
 
-  // ── Form handlers ──────────────────────────────────────────────────────────
-  const handleClassChange = (classId) => {
-    setForm({ ...form, classId, sectionId: "", subjectId: "" });
-    setErrors((e) => ({ ...e, classId: undefined }));
-    const cls = classes.find((c) => c._id === classId);
-    setSections(cls?.details || []);
-    setSubjects([]);
-  };
-
-  const handleSectionChange = (sectionId) => {
-    setForm({ ...form, sectionId, subjectId: "" });
-    setErrors((e) => ({ ...e, sectionId: undefined }));
-    const sec = sections.find((s) => s._id === sectionId);
-    setSubjects(sec?.subjectTeachers || []);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const errs = validate(form);
-    setErrors(errs);
-    if (Object.keys(errs).length) {
-      toast.error("Please fix the errors before submitting");
-      return;
-    }
-    setSubmitting(true);
+  // ── Fetch diary entries ─────────────────────────────────────────────────────
+  const fetchEntries = useCallback(async (f, pg = 1) => {
+    setLoading(true);
     try {
-      await axios.post(`${API}/diary`, form, { withCredentials: true });
-      toast.success("Diary entry added successfully");
-      setForm(EMPTY_FORM);
-      setSections([]);
-      setSubjects([]);
-      setErrors({});
-      fetchDiary();
+      const params = new URLSearchParams();
+      Object.entries(f).forEach(([k, v]) => {
+        if (v !== "") params.append(k, v);
+      });
+      params.append("page", pg);
+      params.append("limit", 30);
+
+      const res = await axios.get(
+        `${API}/diary/principal?${params.toString()}`,
+        {
+          withCredentials: true,
+        },
+      );
+
+      setEntries(res.data.data || []);
+      setStats(
+        res.data.stats || { total: 0, homework: 0, classwork: 0, remark: 0 },
+      );
+      setPagination(res.data.pagination || { total: 0, pages: 1 });
     } catch {
-      toast.error("Failed to create diary entry");
+      toast.error("Failed to load diary entries");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
+  }, []);
+
+  // Re-fetch when filters or page change
+  useEffect(() => {
+    fetchEntries(filters, page);
+  }, [filters, page, fetchEntries]);
+
+  // ── Filter helpers ──────────────────────────────────────────────────────────
+  const handleFilterChange = (updates) => {
+    setFilters((f) => ({ ...f, ...updates }));
+    setPage(1);
   };
 
-  // ── Delete ─────────────────────────────────────────────────────────────────
-  const confirmDelete = async () => {
-    setDeleting(true);
-    try {
-      await axios.delete(`${API}/diary/${deleteId}`, { withCredentials: true });
-      toast.success("Entry deleted");
-      setDeleteId(null);
-      fetchDiary();
-    } catch {
-      toast.error("Failed to delete entry");
-    } finally {
-      setDeleting(false);
-    }
+  const clearFilters = () => {
+    setFilters(INIT_FILTERS);
+    setPage(1);
   };
 
-  // ── Format date ────────────────────────────────────────────────────────────
-  const fmtDate = (d) =>
-    d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "";
+  const hasFilters = Object.values(filters).some((v) => v !== "");
+
+  // ── Group entries by date ───────────────────────────────────────────────────
+  const grouped = entries.reduce((acc, entry) => {
+    const key = new Date(entry.date).toDateString();
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(entry);
+    return acc;
+  }, {});
+
+  const sortedDates = Object.keys(grouped).sort(
+    (a, b) => new Date(b) - new Date(a),
+  );
+
+  // ── Active filter label (for mobile pill) ───────────────────────────────────
+  const activeCount = Object.values(filters).filter((v) => v !== "").length;
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar closeOnClick pauseOnHover />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar
+        closeOnClick
+        pauseOnHover
+      />
 
-      {/* ── Header ───────────────────────────────────────────────────────────
+      {/* ── Sticky Header ────────────────────────────────────────────────────── */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <h1 className="text-base font-semibold text-slate-800">Class Diary</h1>
-          <p className="text-xs text-slate-400 mt-0.5">Homework · Classwork · Remarks</p>
-        </div>
-      </div> */}
-
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-
-        {/* ── Add Form ───────────────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100">
-            <h2 className="text-sm font-semibold text-slate-700">Add new entry</h2>
+        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+          <div>
+            <h1 className="text-base font-semibold text-slate-800 leading-tight">
+              School Diary
+            </h1>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Principal view · All classes
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-4">
-            {/* Type toggle */}
-            <div className="grid grid-cols-3 gap-2">
-              {["homework", "classwork", "remark"].map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setForm({ ...form, type: t, dueDate: "" })}
-                  className={`py-2.5 text-xs font-medium rounded-xl border capitalize transition-all ${
-                    form.type === t
-                      ? TYPE_STYLES[t].badge + " ring-2 ring-offset-1 ring-current/20"
-                      : "border-slate-200 text-slate-500 hover:bg-slate-50"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-
-            {/* Class + Section row */}
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Class" error={errors.classId}>
-                <select
-                  className={fieldCls(errors.classId)}
-                  value={form.classId}
-                  onChange={(e) => handleClassChange(e.target.value)}
-                >
-                  <option value="">Select class</option>
-                  {classes.map((c) => (
-                    <option key={c._id} value={c._id}>Class {c.name}</option>
-                  ))}
-                </select>
-              </Field>
-
-              <Field label="Section" error={errors.sectionId}>
-                <select
-                  className={fieldCls(errors.sectionId)}
-                  value={form.sectionId}
-                  disabled={!sections.length}
-                  onChange={(e) => handleSectionChange(e.target.value)}
-                >
-                  <option value="">Select section</option>
-                  {sections.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.sectionId?.name} (Room {s.roomNumber})
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            </div>
-
-            {/* Subject */}
-            <Field label="Subject" error={errors.subjectId}>
-              <select
-                className={fieldCls(errors.subjectId)}
-                value={form.subjectId}
-                disabled={!subjects.length}
-                onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
-              >
-                <option value="">Select subject</option>
-                {subjects.map((s) => (
-                  <option key={s.subjectId?._id} value={s.subjectId?._id}>
-                    {s.subjectId?.name || "Unknown"}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            {/* Content */}
-            <Field label="Content" error={errors.content}>
-              <textarea
-                rows={3}
-                placeholder="Describe the task or write a remark…"
-                className={fieldCls(errors.content) + " resize-none"}
-                value={form.content}
-                onChange={(e) => {
-                  setForm({ ...form, content: e.target.value });
-                  if (errors.content) setErrors((er) => ({ ...er, content: undefined }));
-                }}
-              />
-            </Field>
-
-            {/* Due Date — only for homework */}
-            {form.type === "homework" && (
-              <Field label="Due date" error={errors.dueDate}>
-                <input
-                  type="date"
-                  className={fieldCls(errors.dueDate)}
-                  value={form.dueDate}
-                  onChange={(e) => {
-                    setForm({ ...form, dueDate: e.target.value });
-                    if (errors.dueDate) setErrors((er) => ({ ...er, dueDate: undefined }));
-                  }}
-                />
-              </Field>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full py-3 rounded-xl text-sm font-medium bg-slate-800 text-white hover:bg-slate-700 active:scale-[0.98] disabled:opacity-60 transition-all"
-            >
-              {submitting ? "Adding…" : "Add Entry"}
-            </button>
-          </form>
-        </div>
-
-        {/* ── Diary List ────────────────────────────────────────────────────── */}
-        <div>
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3 px-1">
-            All entries
-          </h2>
-
-          {diaryList.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 py-12 text-center">
-              <p className="text-sm text-slate-400">No diary entries yet</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {diaryList.map((d) => {
-                const ts = TYPE_STYLES[d.type] || TYPE_STYLES.remark;
-                return (
-                  <div
-                    key={d._id}
-                    className={`bg-white rounded-2xl border border-slate-200 border-l-4 ${ts.accent} p-4`}
-                  >
-                    {/* Top row */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full capitalize ${ts.badge}`}>
-                          {d.type}
-                        </span>
-                        {d.classId?.name && (
-                          <span className="text-xs text-slate-400">
-                            Class {d.classId.name}
-                            {d.sectionId?.name ? ` · Sec ${d.sectionId.name}` : ""}
-                          </span>
-                        )}
-                        {d.subjectId?.name && (
-                          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
-                            {d.subjectId.name}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          onClick={() => setEditEntry(d)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                          title="Edit"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => setDeleteId(d._id)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                          title="Delete"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <p className="text-sm text-slate-600 leading-relaxed">{d.content}</p>
-
-                    {/* Footer */}
-                    {d.type === "homework" &&
-                    d.dueDate && (
-                      <div className="mt-2 flex items-center gap-1.5">
-                        <svg className="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span className="text-xs text-amber-700 font-medium">Due {fmtDate(d.dueDate)}</span>
-                      </div>
-                    )
-                }
-                  </div>
-                );
-              })}
-            </div>
+          {/* Active filter count pill (mobile) */}
+          {activeCount > 0 && (
+            <span className="sm:hidden text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full">
+              {activeCount} filter{activeCount > 1 ? "s" : ""}
+            </span>
           )}
         </div>
       </div>
 
-      {/* ── Edit Modal ──────────────────────────────────────────────────────── */}
-      {editEntry && (
-        <EditModal
-          entry={editEntry}
-          classes={classes}
-          onClose={() => setEditEntry(null)}
-          onSaved={fetchDiary}
-        />
-      )}
-
-      {/* ── Delete Confirm ──────────────────────────────────────────────────── */}
-      {deleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-xs">
-            <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mb-3">
-              <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <h3 className="text-sm font-semibold text-slate-800 mb-1">Delete entry?</h3>
-            <p className="text-xs text-slate-500 mb-5 leading-relaxed">
-              This will permanently remove the diary entry. Students and parents will no longer see it.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setDeleteId(null)}
-                disabled={deleting}
-                className="flex-1 py-2.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                disabled={deleting}
-                className="flex-1 py-2.5 rounded-xl text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
-              >
-                {deleting ? "Deleting…" : "Delete"}
-              </button>
-            </div>
-          </div>
+      <div className="max-w-3xl mx-auto px-4 py-5 space-y-5">
+        {/* ── Stat Cards ───────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-4 gap-2 sm:gap-3">
+          <StatCard label="Total" value={stats.total} color="slate" />
+          <StatCard label="Homework" value={stats.homework} color="amber" />
+          <StatCard label="Classwork" value={stats.classwork} color="blue" />
+          <StatCard label="Remarks" value={stats.remark} color="violet" />
         </div>
-      )}
+
+        {/* ── Filter Bar ───────────────────────────────────────────────────── */}
+        <FilterBar
+          filters={filters}
+          onChange={handleFilterChange}
+          classes={classes}
+          onClear={clearFilters}
+          hasFilters={hasFilters}
+        />
+
+        {/* ── Results summary ───────────────────────────────────────────────── */}
+        {!loading && (
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs text-slate-400">
+              {pagination.total} entr{pagination.total !== 1 ? "ies" : "y"}{" "}
+              found
+              {hasFilters ? " (filtered)" : ""}
+            </span>
+            {pagination.pages > 1 && (
+              <span className="text-xs text-slate-400">
+                Page {page} of {pagination.pages}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* ── Entry List ────────────────────────────────────────────────────── */}
+        {loading ? (
+          <Skeleton />
+        ) : sortedDates.length === 0 ? (
+          <EmptyState hasFilters={hasFilters} />
+        ) : (
+          <div className="space-y-6">
+            {sortedDates.map((dateKey) => (
+              <div key={dateKey}>
+                {/* Date header */}
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                    {fmtDay(dateKey)}
+                  </span>
+                  <div className="flex-1 h-px bg-slate-200" />
+                  <span className="text-xs text-slate-400 whitespace-nowrap">
+                    {grouped[dateKey].length} entr
+                    {grouped[dateKey].length > 1 ? "ies" : "y"}
+                  </span>
+                </div>
+
+                {/* Cards for the day */}
+                <div className="space-y-3">
+                  {grouped[dateKey].map((entry) => (
+                    <DiaryCard key={entry._id} entry={entry} />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── Pagination ───────────────────────────────────────────────────── */}
+        {pagination.pages > 1 && !loading && (
+          <div className="flex items-center justify-center gap-2 pt-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className="px-4 py-2 text-xs font-medium rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors"
+            >
+              ← Prev
+            </button>
+
+            {/* Page number pills */}
+            <div className="flex gap-1">
+              {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
+                const p =
+                  page <= 3
+                    ? i + 1
+                    : page >= pagination.pages - 2
+                      ? pagination.pages - 4 + i
+                      : page - 2 + i;
+                if (p < 1 || p > pagination.pages) return null;
+                return (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`w-8 h-8 text-xs font-medium rounded-xl transition-colors ${
+                      p === page
+                        ? "bg-slate-800 text-white"
+                        : "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
+              disabled={page === pagination.pages}
+              className="px-4 py-2 text-xs font-medium rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors"
+            >
+              Next →
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

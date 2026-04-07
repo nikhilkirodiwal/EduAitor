@@ -14,12 +14,13 @@ export const uploadToCloudinary = async (file, folder) => {
     {
       folder: `eduaitor/${folder}`,
       public_id: publicId,
-      resource_type: "image",
+      resource_type: "auto",
     },
   );
 
   return {
     url: result.secure_url,
     public_id: result.public_id,
+    type: file.mimetype,
   };
 };

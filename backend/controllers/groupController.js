@@ -1,45 +1,51 @@
 import Group from "../models/group.js";
 import Post from "../models/post.js";
 
+// ─── Auth normalizer ──────────────────────────────────────────────────────────
+// JWT payload shape: { role, school_id, teacher_id?, email, name? }
+// role values: "super_admin" | "school_admin" | "teacher_admin"
+
+const normalizeUser = (jwtUser) => {
+  const userType =
+    jwtUser.role === "teacher_admin"
+      ? "teacher"
+      : jwtUser.role === "school_admin"
+        ? "admin"
+        : null; // super_admin has no schoolId — block at route level
+
+  const userId = jwtUser.teacher_id || jwtUser.school_id;
+  const schoolId = jwtUser.school_id;
+
+  return { userId, userType, schoolId };
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const isMember = (group, userId) =>
   group.members.some((m) => m.userId.toString() === userId.toString());
 
-const canPost = (group, userType) =>
-  group.permissions.canPost.includes(userType);
-
 // ─── Group CRUD ───────────────────────────────────────────────────────────────
 
 /**
  * POST /groups/create
- * Body: { name, type, description?, classId?, sectionId?, subjectId?, permissions? }
- * Auth: admin or teacher
+ * Body: { name, type, description?, classId?, sectionId?, subjectId? }
+ * Auth: school_admin or teacher_admin
  */
 export const createGroup = async (req, res) => {
   try {
-    const { school_id, teacher_id, role } = req.user;
+    const { userId, userType, schoolId } = normalizeUser(req.user);
 
-    const userId = teacher_id || school_id;
-    const userType =
-      role === "teacher_admin"
-        ? "teacher"
-        : role === "school_admin"
-          ? "admin"
-          : role;
-
-    if (!["admin", "teacher"].includes(userType)) {
+    if (!schoolId || !["admin", "teacher"].includes(userType)) {
       return res.status(403).json({ success: false, message: "Not allowed" });
     }
 
-    const { name, type, description, classId, sectionId, subjectId } =
-      req.body;
+    const { name, type, description, classId, sectionId, subjectId } = req.body;
 
     const group = await Group.create({
       name,
       type,
       description,
-      schoolId: school_id,
+      schoolId,
       classId: classId || null,
       sectionId: sectionId || null,
       subjectId: subjectId || null,
@@ -55,18 +61,19 @@ export const createGroup = async (req, res) => {
 
 /**
  * GET /groups/my-groups
- * Returns all groups the current user is a member of (scoped to school)
  */
 export const getMyGroups = async (req, res) => {
   try {
-    const { schoolId, userId } = req.user;
+    const { userId, schoolId } = normalizeUser(req.user);
     const { type, status = "Active" } = req.query;
 
-    const filter = {
-      schoolId,
-      "members.userId": userId,
-      status,
-    };
+    if (!schoolId) {
+      return res
+        .status(403)
+        .json({ success: false, message: "School context required" });
+    }
+
+    const filter = { schoolId, "members.userId": userId, status };
     if (type) filter.type = type;
 
     const groups = await Group.find(filter)
@@ -83,19 +90,33 @@ export const getMyGroups = async (req, res) => {
 };
 
 /**
- * GET /groups/school-groups  (admin)
- * All groups for the school
+ * GET /groups/school-groups  (admin only)
  */
 export const getAllSchoolGroups = async (req, res) => {
   try {
-    const { schoolId } = req.user;
-    const { type, classId, status = "Active", page = 1, limit = 20 } = req.query;
+    const { userType, schoolId } = normalizeUser(req.user);
+
+    if (userType !== "admin") {
+      return res.status(403).json({ success: false, message: "Admin only" });
+    }
+
+    const {
+      type,
+      classId,
+      status = "Active",
+      page = 1,
+      limit = 20,
+    } = req.query;
 
     const filter = { schoolId, status };
     if (type) filter.type = type;
     if (classId) filter.classId = classId;
 
-    const skip = (page - 1) * limit;
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(50, parseInt(limit));
+
+    const skip = (pageNum - 1) * limitNum;
+    
     const [groups, total] = await Promise.all([
       Group.find(filter)
         .populate("classId", "name")
@@ -119,17 +140,23 @@ export const getAllSchoolGroups = async (req, res) => {
  */
 export const getGroupById = async (req, res) => {
   try {
-    const { schoolId, userId } = req.user;
+    const { userId, userType, schoolId } = normalizeUser(req.user);
+
     const group = await Group.findOne({ _id: req.params.id, schoolId })
       .populate("classId", "name")
       .populate("sectionId", "name")
       .populate("subjectId", "name");
 
-    if (!group) return res.status(404).json({ success: false, message: "Group not found" });
+    if (!group) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Group not found" });
+    }
 
-    // Only members (or admins) can view
-    if (!isMember(group, userId) && req.user.userType !== "admin") {
-      return res.status(403).json({ success: false, message: "Not a member of this group" });
+    if (!isMember(group, userId) && userType !== "admin") {
+      return res
+        .status(403)
+        .json({ success: false, message: "Not a member of this group" });
     }
 
     res.json({ success: true, data: group });
@@ -141,18 +168,26 @@ export const getGroupById = async (req, res) => {
 /**
  * PUT /groups/:id
  * Body: { name?, description?, permissions?, status? }
- * Auth: group admin or school admin
  */
 export const updateGroup = async (req, res) => {
   try {
-    const { schoolId, userId, userType } = req.user;
-    const group = await Group.findOne({ _id: req.params.id, schoolId });
-    if (!group) return res.status(404).json({ success: false, message: "Group not found" });
+    const { userId, userType, schoolId } = normalizeUser(req.user);
 
-    // Permission: school admin or group admin member
-    const memberRecord = group.members.find((m) => m.userId.toString() === userId.toString());
+    const group = await Group.findOne({ _id: req.params.id, schoolId });
+    if (!group) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Group not found" });
+    }
+
+    const memberRecord = group.members.find(
+      (m) => m.userId.toString() === userId.toString(),
+    );
+
     if (userType !== "admin" && memberRecord?.role !== "admin") {
-      return res.status(403).json({ success: false, message: "Insufficient permissions" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Insufficient permissions" });
     }
 
     const allowedFields = ["name", "description", "permissions", "status"];
@@ -168,12 +203,13 @@ export const updateGroup = async (req, res) => {
 };
 
 /**
- * DELETE /groups/:id  — actually archives the group
- * Auth: school admin only
+ * DELETE /groups/:id  — archives the group
+ * Auth: school_admin only
  */
 export const deleteGroup = async (req, res) => {
   try {
-    const { schoolId, userType } = req.user;
+    const { userType, schoolId } = normalizeUser(req.user);
+
     if (userType !== "admin") {
       return res.status(403).json({ success: false, message: "Admin only" });
     }
@@ -181,9 +217,14 @@ export const deleteGroup = async (req, res) => {
     const group = await Group.findOneAndUpdate(
       { _id: req.params.id, schoolId },
       { status: "Archived" },
-      { new: true }
+      { new: true },
     );
-    if (!group) return res.status(404).json({ success: false, message: "Group not found" });
+
+    if (!group) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Group not found" });
+    }
 
     res.json({ success: true, message: "Group archived", data: group });
   } catch (err) {
@@ -199,26 +240,44 @@ export const deleteGroup = async (req, res) => {
  */
 export const addMembers = async (req, res) => {
   try {
-    const { schoolId, userId, userType } = req.user;
-    const { members } = req.body; // [{ userId, userType }]
+    const { userId, userType, schoolId } = normalizeUser(req.user);
+    const { members } = req.body;
 
     const group = await Group.findOne({ _id: req.params.id, schoolId });
-    if (!group) return res.status(404).json({ success: false, message: "Group not found" });
-
-    // Only school admin or group admin/moderator can add members
-    const memberRecord = group.members.find((m) => m.userId.toString() === userId.toString());
-    if (userType !== "admin" && !["admin", "moderator"].includes(memberRecord?.role)) {
-      return res.status(403).json({ success: false, message: "Insufficient permissions" });
+    if (!group) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Group not found" });
     }
 
-    // Avoid duplicates
-    const existingIds = new Set(group.members.map((m) => m.userId.toString()));
-    const newMembers = members.filter((m) => !existingIds.has(m.userId.toString()));
+    const memberRecord = group.members.find(
+      (m) => m.userId.toString() === userId.toString(),
+    );
 
-    group.members.push(...newMembers.map((m) => ({ ...m, joinedAt: new Date() })));
+    if (
+      userType !== "admin" &&
+      !["admin", "moderator"].includes(memberRecord?.role)
+    ) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Insufficient permissions" });
+    }
+
+    const existingIds = new Set(group.members.map((m) => m.userId.toString()));
+    const newMembers = members.filter(
+      (m) => !existingIds.has(m.userId.toString()),
+    );
+
+    group.members.push(
+      ...newMembers.map((m) => ({ ...m, joinedAt: new Date() })),
+    );
     await group.save();
 
-    res.json({ success: true, message: `${newMembers.length} members added`, data: group });
+    res.json({
+      success: true,
+      message: `${newMembers.length} members added`,
+      data: group,
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -230,19 +289,31 @@ export const addMembers = async (req, res) => {
  */
 export const removeMembers = async (req, res) => {
   try {
-    const { schoolId, userId, userType } = req.user;
+    const { userId, userType, schoolId } = normalizeUser(req.user);
     const { memberIds } = req.body;
 
     const group = await Group.findOne({ _id: req.params.id, schoolId });
-    if (!group) return res.status(404).json({ success: false, message: "Group not found" });
+    if (!group) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Group not found" });
+    }
 
-    const memberRecord = group.members.find((m) => m.userId.toString() === userId.toString());
-    if (userType !== "admin" && !["admin", "moderator"].includes(memberRecord?.role)) {
-      return res.status(403).json({ success: false, message: "Insufficient permissions" });
+    const memberRecord = group.members.find(
+      (m) => m.userId.toString() === userId.toString(),
+    );
+
+    if (
+      userType !== "admin" &&
+      !["admin", "moderator"].includes(memberRecord?.role)
+    ) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Insufficient permissions" });
     }
 
     group.members = group.members.filter(
-      (m) => !memberIds.map(String).includes(m.userId.toString())
+      (m) => !memberIds.map(String).includes(m.userId.toString()),
     );
     await group.save();
 
@@ -253,63 +324,57 @@ export const removeMembers = async (req, res) => {
 };
 
 // ─── Auto-Create Groups ───────────────────────────────────────────────────────
-/**
- * Utility: called after a class/section is created to auto-provision groups
- * e.g. from a class creation hook or admin endpoint
- */
-export const autoCreateClassGroups = async ({
-  schoolId,
-  classId,
-  className,
-  sectionId,
-  sectionName,
-  subjectIds = [],
-  teacherMembers = [],
-  studentMembers = [],
-  createdBy,
-}) => {
-  const toCreate = [];
 
-  // Class-wide group
-  toCreate.push({
-    name: `${className} - Class Group`,
-    type: "class",
-    schoolId,
-    classId,
-    createdBy,
-    isAutoCreated: true,
-    members: [...teacherMembers, ...studentMembers],
-  });
+// export const autoCreateClassGroups = async ({
+//   schoolId,
+//   classId,
+//   className,
+//   sectionId,
+//   sectionName,
+//   subjectIds = [],
+//   teacherMembers = [],
+//   studentMembers = [],
+//   createdBy,
+// }) => {
+//   const toCreate = [];
 
-  // Section group (if section provided)
-  if (sectionId) {
-    toCreate.push({
-      name: `${className} ${sectionName} - Section`,
-      type: "section",
-      schoolId,
-      classId,
-      sectionId,
-      createdBy,
-      isAutoCreated: true,
-      members: [...teacherMembers, ...studentMembers],
-    });
-  }
+//   toCreate.push({
+//     name: `${className} - Class Group`,
+//     type: "class",
+//     schoolId,
+//     classId,
+//     createdBy,
+//     isAutoCreated: true,
+//     members: [...teacherMembers, ...studentMembers],
+//   });
 
-  // Subject groups
-  for (const subjectId of subjectIds) {
-    toCreate.push({
-      name: `${className} - Subject Group`,
-      type: "subject",
-      schoolId,
-      classId,
-      sectionId: sectionId || null,
-      subjectId,
-      createdBy,
-      isAutoCreated: true,
-      members: teacherMembers,
-    });
-  }
+//   if (sectionId) {
+//     toCreate.push({
+//       name: `${className} ${sectionName} - Section`,
+//       type: "section",
+//       schoolId,
+//       classId,
+//       sectionId,
+//       createdBy,
+//       isAutoCreated: true,
+//       members: [...teacherMembers, ...studentMembers],
+//     });
+//   }
 
-  const groups = await Group.insertMany(toCreate, { ordered: false });
-  return groups;
-};
+//   for (const subjectId of subjectIds) {
+//     toCreate.push({
+//       name: `${className} - Subject Group`,
+//       type: "subject",
+//       schoolId,
+//       classId,
+//       sectionId: sectionId || null,
+//       subjectId,
+//       createdBy,
+//       isAutoCreated: true,
+//       members: teacherMembers,
+//     });
+//   }
+
+//   const groups = await Group.insertMany(toCreate, { ordered: false });
+//   return groups;
+// };

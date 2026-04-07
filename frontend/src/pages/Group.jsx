@@ -1,2022 +1,2167 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import {
+  FiUsers,
+  FiPlus,
+  FiSearch,
+  FiMoreVertical,
+  FiSend,
+  FiPaperclip,
+  FiHeart,
+  FiMessageCircle,
+  FiTrash2,
+  FiEdit2,
+  FiX,
+  FiChevronLeft,
+  FiUserPlus,
+  FiUserMinus,
+  FiArchive,
+  FiLoader,
+  FiImage,
+  FiFile,
+  FiDownload,
+  FiClock,
+  FiHash,
+} from "react-icons/fi";
+import {
+  MdOutlineClass,
+  MdOutlineGroups,
+  MdAnnouncement,
+  MdEventNote,
+  MdSubject,
+  MdPin,
+} from "react-icons/md";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── API BASE ─────────────────────────────────────────────────────────────────
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  withCredentials: true,
+});
 
-const API = import.meta.env.VITE_API_URL || "";
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const GROUP_TYPE_META = {
+  class: { label: "Class", icon: MdOutlineClass, color: "#6366f1" },
+  section: { label: "Section", icon: FiHash, color: "#8b5cf6" },
+  subject: { label: "Subject", icon: MdSubject, color: "#0ea5e9" },
+  teacher: { label: "Teacher", icon: FiUsers, color: "#10b981" },
+  event: { label: "Event", icon: MdEventNote, color: "#f59e0b" },
+  announcement: {
+    label: "Announcement",
+    icon: MdAnnouncement,
+    color: "#ef4444",
+  },
+  custom: { label: "Custom", icon: MdOutlineGroups, color: "#64748b" },
+};
 
-const GROUP_TYPES = [
-  { value: "all", label: "All", icon: "⊞" },
-  { value: "class", label: "Class", icon: "⊙" },
-  { value: "section", label: "Section", icon: "⊚" },
-  { value: "subject", label: "Subject", icon: "⊛" },
-  { value: "teacher", label: "Teachers", icon: "⊿" },
-  { value: "event", label: "Event", icon: "◈" },
-  { value: "announcement", label: "Notice", icon: "⊡" },
-  { value: "custom", label: "Custom", icon: "⊕" },
+const AVATAR_COLORS = [
+  "#6366f1",
+  "#8b5cf6",
+  "#0ea5e9",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#ec4899",
+  "#14b8a6",
 ];
 
-const TYPE_PALETTE = {
-  class: { light: "#EFF6FF", mid: "#BFDBFE", dark: "#1D4ED8", text: "#1E3A8A" },
-  section: {
-    light: "#F0FDF4",
-    mid: "#BBF7D0",
-    dark: "#16A34A",
-    text: "#14532D",
-  },
-  subject: {
-    light: "#FAF5FF",
-    mid: "#DDD6FE",
-    dark: "#7C3AED",
-    text: "#4C1D95",
-  },
-  teacher: {
-    light: "#FFFBEB",
-    mid: "#FDE68A",
-    dark: "#D97706",
-    text: "#78350F",
-  },
-  event: { light: "#FFF1F2", mid: "#FECDD3", dark: "#E11D48", text: "#881337" },
-  announcement: {
-    light: "#FFF7ED",
-    mid: "#FED7AA",
-    dark: "#EA580C",
-    text: "#7C2D12",
-  },
-  custom: {
-    light: "#F8FAFC",
-    mid: "#E2E8F0",
-    dark: "#64748B",
-    text: "#1E293B",
-  },
-};
-
-const ROLE_PALETTE = {
-  school_admin: { bg: "#FFF1F2", text: "#9F1239", border: "#FECDD3" },
-  teacher_admin: { bg: "#FFFBEB", text: "#92400E", border: "#FDE68A" },
-  student: { bg: "#F0FDF4", text: "#166534", border: "#BBF7D0" },
-  admin: { bg: "#FFF1F2", text: "#9F1239", border: "#FECDD3" },
-  teacher: { bg: "#FFFBEB", text: "#92400E", border: "#FDE68A" },
-};
-
-// ─── API helpers ──────────────────────────────────────────────────────────────
-
-const apiFetch = async (path, opts = {}) => {
-  const res = await fetch(`${API}${path}`, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...(opts.headers || {}) },
-    ...opts,
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Request failed");
-  return data;
-};
-
-// ─── Tiny reusable atoms ──────────────────────────────────────────────────────
-
-function Avatar({ initials, size = 36, palette }) {
-  const p = palette || { bg: "#EFF6FF", text: "#1E3A8A" };
-  return (
-    <div
-      style={{
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        flexShrink: 0,
-        background: p.bg || p.light,
-        color: p.text,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: Math.round(size * 0.36),
-        fontWeight: 600,
-        letterSpacing: "-0.5px",
-        fontFamily: "'DM Sans', sans-serif",
-      }}
-    >
-      {initials}
-    </div>
-  );
+function getAvatarColor(name = "") {
+  const idx = name.charCodeAt(0) % AVATAR_COLORS.length;
+  return AVATAR_COLORS[idx];
 }
 
-function TypeBadge({ type }) {
-  const p = TYPE_PALETTE[type] || TYPE_PALETTE.custom;
-  const t = GROUP_TYPES.find((g) => g.value === type);
-  return (
-    <span
-      style={{
-        fontSize: 10,
-        fontWeight: 600,
-        letterSpacing: "0.4px",
-        textTransform: "uppercase",
-        padding: "2px 7px",
-        borderRadius: 20,
-        background: p.light,
-        color: p.text,
-        border: `1px solid ${p.mid}`,
-      }}
-    >
-      {t?.label || type}
-    </span>
-  );
+function timeAgo(date) {
+  const diff = (Date.now() - new Date(date)) / 1000;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
 }
 
-function Spinner() {
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 40,
-      }}
-    >
-      <div
-        style={{
-          width: 22,
-          height: 22,
-          borderRadius: "50%",
-          border: "2px solid #E2E8F0",
-          borderTopColor: "#3B82F6",
-          animation: "spin 0.7s linear infinite",
-        }}
-      />
-    </div>
-  );
-}
-
-// ─── Sidebar group card ───────────────────────────────────────────────────────
-
-function GroupCard({ group, active, onClick }) {
-  const p = TYPE_PALETTE[group.type] || TYPE_PALETTE.custom;
-  const t = GROUP_TYPES.find((g) => g.value === group.type);
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        width: "100%",
-        textAlign: "left",
-        background: active ? p.light : "transparent",
-        border: "none",
-        borderRadius: 10,
-        padding: "10px 12px",
-        cursor: "pointer",
-        transition: "background 0.15s",
-        marginBottom: 2,
-        outline: active ? `1.5px solid ${p.mid}` : "none",
-      }}
-      onMouseEnter={(e) =>
-        !active && (e.currentTarget.style.background = "#F8FAFC")
-      }
-      onMouseLeave={(e) =>
-        !active && (e.currentTarget.style.background = "transparent")
-      }
-    >
-      <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-        <div
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: 9,
-            background: p.light,
-            border: `1px solid ${p.mid}`,
-            color: p.dark,
-            flexShrink: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 16,
-          }}
-        >
-          {t?.icon}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 4,
-            }}
-          >
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#0F172A",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                fontFamily: "'DM Sans', sans-serif",
-              }}
-            >
-              {group.name}
-            </span>
-            <TypeBadge type={group.type} />
-          </div>
-          <div style={{ display: "flex", gap: 10, marginTop: 3 }}>
-            <span style={{ fontSize: 11, color: "#64748B" }}>
-              {group.members?.length || 0} members
-            </span>
-            <span style={{ fontSize: 11, color: "#94A3B8" }}>
-              {new Date(group.updatedAt).toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "short",
-              })}
-            </span>
-          </div>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-// ─── Post card ────────────────────────────────────────────────────────────────
-
-function PostCard({ post, currentUser, onLike, onComment, onDelete, onPin }) {
-  const [showCommentBox, setShowCommentBox] = useState(false);
-  const [commentText, setCommentText] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const liked = post.likes?.includes(currentUser?.userId || currentUser?._id);
-  const isOwner =
-    post.postedBy?.userId === (currentUser?.userId || currentUser?._id);
-  const canDelete = isOwner || currentUser?.role === "school_admin";
-  const canPin = currentUser?.role === "school_admin";
-
-  const handleComment = async () => {
-    if (!commentText.trim()) return;
-    setSubmitting(true);
-    await onComment(post._id, commentText);
-    setCommentText("");
-    setSubmitting(false);
-    setShowCommentBox(false);
-  };
-
-  const authorInitials = (post.authorName || "U")
+// ─── AVATAR ───────────────────────────────────────────────────────────────────
+function Avatar({ name = "", size = 36, url, className = "" }) {
+  const bg = getAvatarColor(name);
+  const initials = name
     .split(" ")
     .map((w) => w[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
-  const rp = ROLE_PALETTE[post.postedBy?.userType] || ROLE_PALETTE.teacher;
+  return (
+    <div
+      className={`avatar-circle ${className}`}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        background: url ? "transparent" : bg,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: size * 0.38,
+        fontWeight: 700,
+        color: "#fff",
+        flexShrink: 0,
+        overflow: "hidden",
+        fontFamily: "'DM Sans', sans-serif",
+      }}
+    >
+      {url ? (
+        <img
+          src={url}
+          alt={name}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        initials
+      )}
+    </div>
+  );
+}
+
+// ─── TYPE BADGE ───────────────────────────────────────────────────────────────
+function TypeBadge({ type }) {
+  const meta = GROUP_TYPE_META[type] || GROUP_TYPE_META.custom;
+  const Icon = meta.icon;
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        padding: "2px 8px",
+        borderRadius: 20,
+        background: meta.color + "18",
+        color: meta.color,
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: 0.3,
+      }}
+    >
+      <Icon size={11} /> {meta.label}
+    </span>
+  );
+}
+
+// ─── SKELETON ─────────────────────────────────────────────────────────────────
+function Skeleton({ w = "100%", h = 16, radius = 6, style = {} }) {
+  return (
+    <div
+      style={{
+        width: w,
+        height: h,
+        borderRadius: radius,
+        background: "var(--skeleton)",
+        animation: "shimmer 1.4s ease-in-out infinite",
+        ...style,
+      }}
+    />
+  );
+}
+
+// ─── GROUP CARD ───────────────────────────────────────────────────────────────
+function GroupCard({ group, isActive, onClick, userType }) {
+  const meta = GROUP_TYPE_META[group.type] || GROUP_TYPE_META.custom;
+  const Icon = meta.icon;
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        padding: "12px 14px",
+        borderRadius: 12,
+        cursor: "pointer",
+        background: isActive ? "var(--accent-soft)" : "transparent",
+        borderLeft: isActive
+          ? `3px solid var(--accent)`
+          : "3px solid transparent",
+        transition: "all 0.15s ease",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+      }}
+      className="group-card-hover"
+    >
+      <div
+        style={{
+          width: 42,
+          height: 42,
+          borderRadius: 10,
+          background: meta.color + "20",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Icon size={20} color={meta.color} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontWeight: 600,
+            fontSize: 14,
+            color: "var(--text-primary)",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {group.name}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            marginTop: 2,
+          }}
+        >
+          <TypeBadge type={group.type} />
+          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+            {group.members?.length || 0} members
+          </span>
+        </div>
+      </div>
+      {group.status === "Archived" && (
+        <FiArchive size={14} color="var(--text-muted)" />
+      )}
+    </div>
+  );
+}
+
+// ─── CREATE GROUP MODAL ───────────────────────────────────────────────────────
+function CreateGroupModal({ onClose, onCreated }) {
+  const [form, setForm] = useState({
+    name: "",
+    type: "custom",
+    description: "",
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handle = async () => {
+    if (!form.name.trim()) return toast.error("Group name is required");
+    setLoading(true);
+    try {
+      const { data } = await api.post("/groups", form);
+      if (data.success) {
+        toast.success("Group created!");
+        onCreated(data.data);
+        onClose();
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Failed to create group");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ModalOverlay onClose={onClose}>
+      <div style={{ padding: "28px 28px 24px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 22,
+          }}
+        >
+          <h3
+            style={{
+              margin: 0,
+              fontSize: 18,
+              fontWeight: 700,
+              color: "var(--text-primary)",
+            }}
+          >
+            Create New Group
+          </h3>
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--text-muted)",
+            }}
+          >
+            <FiX size={20} />
+          </button>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <FormField label="Group Name *">
+            <input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="e.g. Grade 10 - Mathematics"
+              style={inputStyle}
+            />
+          </FormField>
+          <FormField label="Type">
+            <select
+              value={form.type}
+              onChange={(e) => setForm({ ...form, type: e.target.value })}
+              style={inputStyle}
+            >
+              {Object.entries(GROUP_TYPE_META).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v.label}
+                </option>
+              ))}
+            </select>
+          </FormField>
+          <FormField label="Description">
+            <textarea
+              value={form.description}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
+              placeholder="Optional description..."
+              rows={3}
+              style={{ ...inputStyle, resize: "vertical" }}
+            />
+          </FormField>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              justifyContent: "flex-end",
+              marginTop: 6,
+            }}
+          >
+            <button onClick={onClose} style={secondaryBtnStyle}>
+              Cancel
+            </button>
+            <button onClick={handle} disabled={loading} style={primaryBtnStyle}>
+              {loading ? (
+                <FiLoader size={14} className="spin" />
+              ) : (
+                <FiPlus size={14} />
+              )}
+              {loading ? "Creating..." : "Create Group"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </ModalOverlay>
+  );
+}
+
+// ─── ADD MEMBERS MODAL ────────────────────────────────────────────────────────
+function AddMembersModal({ groupId, onClose, onAdded }) {
+  const [userId, setUserId] = useState("");
+  const [userType, setUserType] = useState("teacher");
+  const [loading, setLoading] = useState(false);
+
+  const handle = async () => {
+    if (!userId.trim()) return toast.error("User ID is required");
+    setLoading(true);
+    try {
+      const { data } = await api.post(`/groups/${groupId}/members`, {
+        members: [{ userId, userType }],
+      });
+      if (data.success) {
+        toast.success("Member added!");
+        onAdded();
+        onClose();
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Failed to add member");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ModalOverlay onClose={onClose}>
+      <div style={{ padding: "28px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 22,
+          }}
+        >
+          <h3
+            style={{
+              margin: 0,
+              fontSize: 18,
+              fontWeight: 700,
+              color: "var(--text-primary)",
+            }}
+          >
+            Add Members
+          </h3>
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--text-muted)",
+            }}
+          >
+            <FiX size={20} />
+          </button>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <FormField label="User ID *">
+            <input
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              placeholder="MongoDB ObjectId"
+              style={inputStyle}
+            />
+          </FormField>
+          <FormField label="User Type">
+            <select
+              value={userType}
+              onChange={(e) => setUserType(e.target.value)}
+              style={inputStyle}
+            >
+              <option value="teacher">Teacher</option>
+              <option value="student">Student</option>
+              <option value="admin">Admin</option>
+              <option value="staff">Staff</option>
+            </select>
+          </FormField>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              justifyContent: "flex-end",
+              marginTop: 6,
+            }}
+          >
+            <button onClick={onClose} style={secondaryBtnStyle}>
+              Cancel
+            </button>
+            <button onClick={handle} disabled={loading} style={primaryBtnStyle}>
+              {loading ? (
+                <FiLoader size={14} className="spin" />
+              ) : (
+                <FiUserPlus size={14} />
+              )}
+              Add Member
+            </button>
+          </div>
+        </div>
+      </div>
+    </ModalOverlay>
+  );
+}
+
+// ─── POST CARD ────────────────────────────────────────────────────────────────
+function PostCard({ post, currentUser, onLike, onPin, onDelete, onUpdate }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editContent, setEditContent] = useState(post.content || "");
+  const [saving, setSaving] = useState(false);
+  const menuRef = useRef(null);
+
+  const isOwner =
+    post.postedBy?.userId?._id === currentUser?.id ||
+    post.postedBy?.userId?.toString() === currentUser?.id;
+  const isAdmin = currentUser?.role === "school_admin";
+  const liked = post.likes?.some((l) => l?.toString() === currentUser?.id);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target))
+        setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const saveEdit = async () => {
+    if (!editContent.trim()) return;
+    setSaving(true);
+    try {
+      const { data } = await api.put(`/posts/${post._id}`, {
+        content: editContent,
+      });
+      if (data.success) {
+        onUpdate(data.data);
+        setEditing(false);
+        toast.success("Post updated");
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Update failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const posterName = post.postedBy?.userId?.name || "Unknown";
 
   return (
     <div
       style={{
-        background: "#FFFFFF",
-        borderRadius: 12,
-        border: "1px solid #E2E8F0",
-        padding: "16px 18px",
-        marginBottom: 12,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+        background: "var(--card-bg)",
+        border: "1px solid var(--border)",
+        borderRadius: 14,
+        overflow: "hidden",
+        transition: "box-shadow 0.2s ease",
       }}
+      className="post-card-hover"
     >
+      {/* Pinned Banner */}
       {post.isPinned && (
         <div
           style={{
-            display: "inline-flex",
+            background: "linear-gradient(90deg, #f59e0b15, #f59e0b08)",
+            borderBottom: "1px solid #f59e0b30",
+            padding: "6px 16px",
+            display: "flex",
             alignItems: "center",
-            gap: 5,
+            gap: 6,
             fontSize: 11,
+            color: "#f59e0b",
             fontWeight: 600,
-            color: "#92400E",
-            background: "#FFFBEB",
-            border: "1px solid #FDE68A",
-            padding: "3px 9px",
-            borderRadius: 6,
-            marginBottom: 12,
-            letterSpacing: "0.3px",
-            textTransform: "uppercase",
           }}
         >
-          ↑ Pinned
+          <MdPin size={11} /> Pinned Post
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
-        <Avatar
-          initials={authorInitials}
-          size={38}
-          palette={{ bg: rp.bg, text: rp.text }}
-        />
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#0F172A",
-                fontFamily: "'DM Sans', sans-serif",
-              }}
-            >
-              {post.authorName || "Unknown"}
-            </span>
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                padding: "1px 6px",
-                borderRadius: 20,
-                background: rp.bg,
-                color: rp.text,
-                border: `1px solid ${rp.border}`,
-                textTransform: "uppercase",
-                letterSpacing: "0.3px",
-              }}
-            >
-              {post.postedBy?.userType?.replace("_admin", "") || "teacher"}
-            </span>
-            <span
-              style={{ fontSize: 11, color: "#94A3B8", marginLeft: "auto" }}
-            >
-              {new Date(post.createdAt).toLocaleString("en-IN", {
-                day: "numeric",
-                month: "short",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
+      <div style={{ padding: "16px 18px" }}>
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            marginBottom: 12,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Avatar
+              name={posterName}
+              size={38}
+              url={post.postedBy?.userId?.photo}
+            />
+            <div>
+              <div
+                style={{
+                  fontWeight: 600,
+                  fontSize: 14,
+                  color: "var(--text-primary)",
+                }}
+              >
+                {posterName}
+              </div>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "var(--text-muted)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                }}
+              >
+                <FiClock size={10} /> {timeAgo(post.createdAt)}
+                <span
+                  style={{
+                    marginLeft: 4,
+                    padding: "1px 6px",
+                    borderRadius: 8,
+                    background: "var(--accent-soft)",
+                    color: "var(--accent)",
+                    fontSize: 10,
+                    fontWeight: 600,
+                  }}
+                >
+                  {post.postedBy?.userType}
+                </span>
+              </div>
+            </div>
           </div>
 
-          <p
+          {/* Action Menu */}
+          {(isOwner || isAdmin) && (
+            <div style={{ position: "relative" }} ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--text-muted)",
+                  padding: 4,
+                  borderRadius: 6,
+                }}
+              >
+                <FiMoreVertical size={16} />
+              </button>
+              {menuOpen && (
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 0,
+                    top: 28,
+                    zIndex: 100,
+                    background: "var(--card-bg)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 10,
+                    padding: "4px 0",
+                    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                    minWidth: 160,
+                  }}
+                >
+                  {isOwner && (
+                    <MenuItem
+                      icon={<FiEdit2 size={13} />}
+                      label="Edit Post"
+                      onClick={() => {
+                        setEditing(true);
+                        setMenuOpen(false);
+                      }}
+                    />
+                  )}
+                  {isAdmin && (
+                    <MenuItem
+                      icon={<FiPin size={13} />}
+                      label={post.isPinned ? "Unpin Post" : "Pin Post"}
+                      onClick={() => {
+                        onPin(post._id);
+                        setMenuOpen(false);
+                      }}
+                    />
+                  )}
+                  {(isOwner || isAdmin) && (
+                    <MenuItem
+                      icon={<FiTrash2 size={13} />}
+                      label="Delete Post"
+                      danger
+                      onClick={() => {
+                        onDelete(post._id);
+                        setMenuOpen(false);
+                      }}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        {editing ? (
+          <div style={{ marginBottom: 12 }}>
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              rows={4}
+              style={{
+                ...inputStyle,
+                width: "100%",
+                boxSizing: "border-box",
+                resize: "vertical",
+              }}
+            />
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                marginTop: 8,
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                onClick={() => setEditing(false)}
+                style={secondaryBtnStyle}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveEdit}
+                disabled={saving}
+                style={primaryBtnStyle}
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          post.content && (
+            <p
+              style={{
+                margin: "0 0 12px",
+                fontSize: 14,
+                color: "var(--text-primary)",
+                lineHeight: 1.65,
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {post.content}
+            </p>
+          )
+        )}
+
+        {/* Attachments */}
+        {post.attachments?.length > 0 && (
+          <div
             style={{
-              margin: "9px 0 0",
-              fontSize: 14,
-              color: "#1E293B",
-              lineHeight: 1.65,
+              display: "grid",
+              gridTemplateColumns:
+                post.attachments.length === 1 ? "1fr" : "repeat(2, 1fr)",
+              gap: 8,
+              marginBottom: 12,
             }}
           >
-            {post.content}
-          </p>
+            {post.attachments.map((att, i) => (
+              <AttachmentPreview key={i} attachment={att} />
+            ))}
+          </div>
+        )}
 
-          {post.attachments?.length > 0 && (
+        {/* Footer */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            paddingTop: 12,
+            borderTop: "1px solid var(--border)",
+          }}
+        >
+          <button
+            onClick={() => onLike(post._id)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: liked ? "#ef4444" : "var(--text-muted)",
+              fontSize: 13,
+              fontWeight: 500,
+              padding: "4px 0",
+              transition: "color 0.15s ease",
+            }}
+          >
+            <FiHeart size={15} fill={liked ? "#ef4444" : "none"} />
+            {post.likes?.length || 0}{" "}
+            {post.likes?.length === 1 ? "Like" : "Likes"}
+          </button>
+          <span
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              color: "var(--text-muted)",
+              fontSize: 13,
+            }}
+          >
+            <FiMessageCircle size={15} />
+            {post.comments?.length || 0} Comments
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── ATTACHMENT PREVIEW ───────────────────────────────────────────────────────
+function AttachmentPreview({ attachment }) {
+  const isImage =
+    attachment.fileType === "image" || attachment.type === "image";
+  const isPdf = attachment.fileType === "pdf" || attachment.type === "pdf";
+
+  if (isImage) {
+    return (
+      <div
+        style={{
+          borderRadius: 10,
+          overflow: "hidden",
+          border: "1px solid var(--border)",
+          background: "var(--hover)",
+        }}
+      >
+        <img
+          src={attachment.url}
+          alt={attachment.name || "attachment"}
+          style={{
+            width: "100%",
+            height: 180,
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <a
+      href={attachment.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "10px 12px",
+        borderRadius: 10,
+        border: "1px solid var(--border)",
+        background: "var(--hover)",
+        textDecoration: "none",
+        color: "var(--text-primary)",
+      }}
+    >
+      {isPdf ? (
+        <FiFile size={18} color="#ef4444" />
+      ) : (
+        <FiFile size={18} color="var(--accent)" />
+      )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 500,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {attachment.name || "File"}
+        </div>
+        {attachment.size && (
+          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+            {(attachment.size / 1024).toFixed(1)} KB
+          </div>
+        )}
+      </div>
+      <FiDownload size={14} color="var(--text-muted)" />
+    </a>
+  );
+}
+
+// ─── CREATE POST ──────────────────────────────────────────────────────────────
+function CreatePost({ groupId, currentUser, onPosted }) {
+  const [content, setContent] = useState("");
+  const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const fileRef = useRef(null);
+
+  const submit = async () => {
+    if (!content.trim() && files.length === 0) return;
+    setLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append("groupId", groupId);
+      fd.append("content", content);
+      files.forEach((f) => fd.append("attachments", f));
+
+      const { data } = await api.post("/posts", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      if (data.success) {
+        setContent("");
+        setFiles([]);
+        onPosted(data.data);
+        toast.success("Post created!");
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Failed to create post");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        background: "var(--card-bg)",
+        border: "1px solid var(--border)",
+        borderRadius: 14,
+        padding: "16px 18px",
+        marginBottom: 16,
+      }}
+    >
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <Avatar name={currentUser?.name || "You"} size={36} />
+        <div style={{ flex: 1 }}>
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Share something with this group..."
+            rows={3}
+            style={{
+              ...inputStyle,
+              width: "100%",
+              boxSizing: "border-box",
+              resize: "none",
+              fontSize: 14,
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();
+            }}
+          />
+
+          {/* File previews */}
+          {files.length > 0 && (
             <div
               style={{
                 display: "flex",
                 flexWrap: "wrap",
                 gap: 6,
-                marginTop: 10,
+                marginTop: 8,
               }}
             >
-              {post.attachments.map((att, i) => (
-                <a
+              {files.map((f, i) => (
+                <div
                   key={i}
-                  href={att.url}
-                  target="_blank"
-                  rel="noreferrer"
                   style={{
-                    display: "inline-flex",
+                    display: "flex",
                     alignItems: "center",
-                    gap: 5,
-                    fontSize: 12,
-                    color: "#3B82F6",
-                    background: "#EFF6FF",
+                    gap: 6,
                     padding: "4px 10px",
-                    borderRadius: 6,
-                    border: "1px solid #BFDBFE",
-                    textDecoration: "none",
-                  }}
-                >
-                  {att.type === "pdf"
-                    ? "📄"
-                    : att.type === "image"
-                      ? "🖼"
-                      : "📎"}{" "}
-                  {att.name || "Attachment"}
-                </a>
-              ))}
-            </div>
-          )}
-
-          {/* Actions bar */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              marginTop: 12,
-              paddingTop: 10,
-              borderTop: "1px solid #F1F5F9",
-            }}
-          >
-            <button
-              onClick={() => onLike(post._id)}
-              style={{
-                background: liked ? "#EFF6FF" : "transparent",
-                border: `1px solid ${liked ? "#BFDBFE" : "#E2E8F0"}`,
-                borderRadius: 7,
-                padding: "4px 10px",
-                cursor: "pointer",
-                fontSize: 12,
-                color: liked ? "#1D4ED8" : "#64748B",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                fontWeight: liked ? 600 : 400,
-              }}
-            >
-              {liked ? "♥" : "♡"} {post.likes?.length || 0}
-            </button>
-            <button
-              onClick={() => setShowCommentBox(!showCommentBox)}
-              style={{
-                background: "transparent",
-                border: "1px solid #E2E8F0",
-                borderRadius: 7,
-                padding: "4px 10px",
-                cursor: "pointer",
-                fontSize: 12,
-                color: "#64748B",
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              ◎ {post.comments?.length || 0}
-            </button>
-            {canPin && (
-              <button
-                onClick={() => onPin(post._id)}
-                style={{
-                  marginLeft: "auto",
-                  background: "transparent",
-                  border: "1px solid #E2E8F0",
-                  borderRadius: 7,
-                  padding: "4px 10px",
-                  cursor: "pointer",
-                  fontSize: 11,
-                  color: "#94A3B8",
-                }}
-              >
-                {post.isPinned ? "Unpin" : "Pin"}
-              </button>
-            )}
-            {canDelete && (
-              <button
-                onClick={() => onDelete(post._id)}
-                style={{
-                  background: "transparent",
-                  border: "1px solid #FEE2E2",
-                  borderRadius: 7,
-                  padding: "4px 10px",
-                  cursor: "pointer",
-                  fontSize: 11,
-                  color: "#EF4444",
-                  marginLeft: canPin ? 4 : "auto",
-                }}
-              >
-                Delete
-              </button>
-            )}
-          </div>
-
-          {/* Comments */}
-          {post.comments?.length > 0 && (
-            <div style={{ marginTop: 10 }}>
-              {post.comments.slice(-3).map((c, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    gap: 8,
-                    alignItems: "flex-start",
-                    marginBottom: 6,
-                    paddingLeft: 4,
-                  }}
-                >
-                  <Avatar
-                    initials={(c.authorName || "U")[0]}
-                    size={26}
-                    palette={{ bg: "#F8FAFC", text: "#475569" }}
-                  />
-                  <div
-                    style={{
-                      background: "#F8FAFC",
-                      borderRadius: 8,
-                      padding: "6px 10px",
-                      flex: 1,
-                      border: "1px solid #E2E8F0",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "#334155",
-                      }}
-                    >
-                      {c.authorName || "User"}{" "}
-                    </span>
-                    <span style={{ fontSize: 12, color: "#475569" }}>
-                      {c.text}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {showCommentBox && (
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                marginTop: 10,
-                alignItems: "center",
-              }}
-            >
-              <Avatar
-                initials={(currentUser?.name || "Y")[0]}
-                size={28}
-                palette={{ bg: "#EFF6FF", text: "#1D4ED8" }}
-              />
-              <input
-                autoFocus
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && !e.shiftKey && handleComment()
-                }
-                placeholder="Write a comment..."
-                style={{
-                  flex: 1,
-                  fontSize: 13,
-                  padding: "7px 12px",
-                  borderRadius: 20,
-                  border: "1px solid #CBD5E1",
-                  background: "#F8FAFC",
-                  outline: "none",
-                  color: "#0F172A",
-                }}
-              />
-              <button
-                onClick={handleComment}
-                disabled={submitting || !commentText.trim()}
-                style={{
-                  background: "#3B82F6",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "7px 14px",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  opacity: commentText.trim() ? 1 : 0.5,
-                }}
-              >
-                {submitting ? "..." : "Send"}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Create Group Modal ───────────────────────────────────────────────────────
-
-function CreateGroupModal({ onClose, onCreated, currentUser }) {
-  const [form, setForm] = useState({
-    name: "",
-    type: "class",
-    description: "",
-    permissions: {
-      canPost: ["teacher", "admin"],
-      canComment: ["teacher", "admin", "student"],
-    },
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const submit = async () => {
-    if (!form.name.trim()) return setError("Group name is required");
-    setLoading(true);
-    setError("");
-    try {
-      const data = await apiFetch("/api/groups/create", {
-        method: "POST",
-        body: JSON.stringify(form),
-      });
-      onCreated(data.data);
-      onClose();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(15,23,42,0.35)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 200,
-        backdropFilter: "blur(2px)",
-      }}
-    >
-      <div
-        style={{
-          background: "#FFFFFF",
-          borderRadius: 16,
-          padding: "24px 28px",
-          width: 480,
-          maxWidth: "95vw",
-          maxHeight: "90vh",
-          overflowY: "auto",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
-          border: "1px solid #E2E8F0",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 20,
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: 18,
-              fontWeight: 700,
-              color: "#0F172A",
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-          >
-            Create new group
-          </h2>
-          <button
-            onClick={onClose}
-            style={{
-              background: "#F1F5F9",
-              border: "none",
-              borderRadius: 8,
-              width: 30,
-              height: 30,
-              cursor: "pointer",
-              fontSize: 16,
-              color: "#64748B",
-            }}
-          >
-            ×
-          </button>
-        </div>
-
-        {error && (
-          <div
-            style={{
-              background: "#FFF1F2",
-              border: "1px solid #FECDD3",
-              borderRadius: 8,
-              padding: "8px 12px",
-              marginBottom: 14,
-              fontSize: 13,
-              color: "#BE123C",
-            }}
-          >
-            {error}
-          </div>
-        )}
-
-        <label style={labelStyle}>Group name *</label>
-        <input
-          value={form.name}
-          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-          placeholder="e.g. Class 10-A Group"
-          style={inputStyle}
-        />
-
-        <label style={labelStyle}>Group type</label>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr 1fr",
-            gap: 8,
-            marginBottom: 16,
-          }}
-        >
-          {GROUP_TYPES.filter((t) => t.value !== "all").map((t) => {
-            const p = TYPE_PALETTE[t.value];
-            const active = form.type === t.value;
-            return (
-              <button
-                key={t.value}
-                onClick={() => setForm((f) => ({ ...f, type: t.value }))}
-                style={{
-                  padding: "9px 4px",
-                  borderRadius: 9,
-                  cursor: "pointer",
-                  border: `${active ? "1.5px" : "1px"} solid ${active ? p.dark : "#E2E8F0"}`,
-                  background: active ? p.light : "#FAFAFA",
-                  color: active ? p.text : "#64748B",
-                  fontSize: 11,
-                  fontWeight: active ? 700 : 400,
-                  textAlign: "center",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 3,
-                }}
-              >
-                <span style={{ fontSize: 16 }}>{t.icon}</span>
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <label style={labelStyle}>Description</label>
-        <textarea
-          value={form.description}
-          onChange={(e) =>
-            setForm((f) => ({ ...f, description: e.target.value }))
-          }
-          placeholder="Optional — what is this group for?"
-          rows={2}
-          style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
-        />
-
-        <label style={labelStyle}>Who can post?</label>
-        <div
-          style={{
-            display: "flex",
-            gap: 6,
-            flexWrap: "wrap",
-            marginBottom: 20,
-          }}
-        >
-          {["teacher", "admin", "student", "staff"].map((role) => {
-            const active = form.permissions.canPost.includes(role);
-            return (
-              <button
-                key={role}
-                onClick={() =>
-                  setForm((f) => ({
-                    ...f,
-                    permissions: {
-                      ...f.permissions,
-                      canPost: active
-                        ? f.permissions.canPost.filter((r) => r !== role)
-                        : [...f.permissions.canPost, role],
-                    },
-                  }))
-                }
-                style={{
-                  padding: "5px 13px",
-                  borderRadius: 20,
-                  cursor: "pointer",
-                  border: `1px solid ${active ? "#3B82F6" : "#E2E8F0"}`,
-                  background: active ? "#EFF6FF" : "#FAFAFA",
-                  color: active ? "#1D4ED8" : "#64748B",
-                  fontSize: 12,
-                  fontWeight: active ? 600 : 400,
-                }}
-              >
-                {role}
-              </button>
-            );
-          })}
-        </div>
-
-        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: "9px 18px",
-              borderRadius: 9,
-              border: "1px solid #E2E8F0",
-              background: "#F8FAFC",
-              color: "#64748B",
-              cursor: "pointer",
-              fontSize: 13,
-              fontWeight: 500,
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={submit}
-            disabled={loading}
-            style={{
-              padding: "9px 20px",
-              borderRadius: 9,
-              border: "none",
-              background: "#3B82F6",
-              color: "#fff",
-              cursor: "pointer",
-              fontSize: 13,
-              fontWeight: 700,
-              opacity: loading ? 0.7 : 1,
-            }}
-          >
-            {loading ? "Creating..." : "Create group"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const labelStyle = {
-  display: "block",
-  fontSize: 12,
-  fontWeight: 600,
-  color: "#475569",
-  marginBottom: 6,
-  textTransform: "uppercase",
-  letterSpacing: "0.5px",
-};
-const inputStyle = {
-  display: "block",
-  width: "100%",
-  boxSizing: "border-box",
-  padding: "9px 12px",
-  borderRadius: 9,
-  border: "1px solid #CBD5E1",
-  background: "#F8FAFC",
-  color: "#0F172A",
-  fontSize: 13,
-  marginBottom: 14,
-  outline: "none",
-};
-
-// ─── Add Members Modal ────────────────────────────────────────────────────────
-
-function AddMembersModal({ groupId, onClose, onAdded }) {
-  const [members, setMembers] = useState([{ userId: "", userType: "student" }]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const submit = async () => {
-    const valid = members.filter((m) => m.userId.trim());
-    if (!valid.length) return setError("Add at least one member ID");
-    setLoading(true);
-    setError("");
-    try {
-      await apiFetch(`/api/groups/${groupId}/add-members`, {
-        method: "POST",
-        body: JSON.stringify({ members: valid }),
-      });
-      onAdded();
-      onClose();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(15,23,42,0.35)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 200,
-      }}
-    >
-      <div
-        style={{
-          background: "#FFF",
-          borderRadius: 16,
-          padding: "24px 28px",
-          width: 440,
-          maxWidth: "95vw",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 20,
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: 17,
-              fontWeight: 700,
-              color: "#0F172A",
-              fontFamily: "'DM Sans', sans-serif",
-            }}
-          >
-            Add members
-          </h2>
-          <button
-            onClick={onClose}
-            style={{
-              background: "#F1F5F9",
-              border: "none",
-              borderRadius: 8,
-              width: 30,
-              height: 30,
-              cursor: "pointer",
-              fontSize: 16,
-              color: "#64748B",
-            }}
-          >
-            ×
-          </button>
-        </div>
-        {error && (
-          <div
-            style={{
-              background: "#FFF1F2",
-              border: "1px solid #FECDD3",
-              borderRadius: 8,
-              padding: "8px 12px",
-              marginBottom: 12,
-              fontSize: 13,
-              color: "#BE123C",
-            }}
-          >
-            {error}
-          </div>
-        )}
-        {members.map((m, i) => (
-          <div
-            key={i}
-            style={{
-              display: "flex",
-              gap: 8,
-              marginBottom: 10,
-              alignItems: "center",
-            }}
-          >
-            <input
-              value={m.userId}
-              placeholder="User ID (MongoDB ObjectId)"
-              onChange={(e) =>
-                setMembers((prev) =>
-                  prev.map((x, j) =>
-                    j === i ? { ...x, userId: e.target.value } : x,
-                  ),
-                )
-              }
-              style={{ ...inputStyle, flex: 2, margin: 0 }}
-            />
-            <select
-              value={m.userType}
-              onChange={(e) =>
-                setMembers((prev) =>
-                  prev.map((x, j) =>
-                    j === i ? { ...x, userType: e.target.value } : x,
-                  ),
-                )
-              }
-              style={{ ...inputStyle, flex: 1, margin: 0 }}
-            >
-              {["teacher", "student", "admin", "staff"].map((r) => (
-                <option key={r}>{r}</option>
-              ))}
-            </select>
-            {members.length > 1 && (
-              <button
-                onClick={() =>
-                  setMembers((prev) => prev.filter((_, j) => j !== i))
-                }
-                style={{
-                  background: "#FFF1F2",
-                  border: "1px solid #FECDD3",
-                  borderRadius: 8,
-                  padding: "7px 10px",
-                  cursor: "pointer",
-                  color: "#EF4444",
-                  fontSize: 14,
-                }}
-              >
-                ×
-              </button>
-            )}
-          </div>
-        ))}
-        <button
-          onClick={() =>
-            setMembers((prev) => [...prev, { userId: "", userType: "student" }])
-          }
-          style={{
-            background: "transparent",
-            border: "1px dashed #CBD5E1",
-            borderRadius: 8,
-            padding: "7px 14px",
-            cursor: "pointer",
-            color: "#64748B",
-            fontSize: 12,
-            marginBottom: 18,
-            width: "100%",
-          }}
-        >
-          + Add another
-        </button>
-        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: "9px 18px",
-              borderRadius: 9,
-              border: "1px solid #E2E8F0",
-              background: "#F8FAFC",
-              color: "#64748B",
-              cursor: "pointer",
-              fontSize: 13,
-            }}
-          >
-            Cancel
-          </button>
-          <button
-            onClick={submit}
-            disabled={loading}
-            style={{
-              padding: "9px 20px",
-              borderRadius: 9,
-              border: "none",
-              background: "#3B82F6",
-              color: "#fff",
-              cursor: "pointer",
-              fontSize: 13,
-              fontWeight: 700,
-            }}
-          >
-            {loading ? "Adding..." : "Add members"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Groups page ─────────────────────────────────────────────────────────
-
-export default function GroupsPage() {
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
-
-  const [groups, setGroups] = useState([]);
-  const [groupsLoading, setGroupsLoading] = useState(false);
-  const [activeFilter, setActiveFilter] = useState("all");
-  const [search, setSearch] = useState("");
-  const [selectedGroup, setSelectedGroup] = useState(null);
-
-  const [posts, setPosts] = useState([]);
-  const [postsLoading, setPostsLoading] = useState(false);
-  const [newPost, setNewPost] = useState("");
-  const [postLoading, setPostLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("posts");
-
-  const [showCreate, setShowCreate] = useState(false);
-  const [showAddMembers, setShowAddMembers] = useState(false);
-
-  // ── Auth check ───────────────────────────────────────────────────────────────
-  useEffect(() => {
-    apiFetch("/api/auth/me")
-      .then((d) => {
-        // Normalise the user object so we always have userId
-        const u = d.user;
-        setUser({
-          ...u,
-          userId: u.teacher_id || u.school_id || "super",
-          name: u.name || u.email,
-          userType:
-            u.role === "teacher_admin"
-              ? "teacher"
-              : u.role === "school_admin"
-                ? "admin"
-                : "admin",
-        });
-      })
-      .catch(() => setUser(null))
-      .finally(() => setAuthLoading(false));
-  }, []);
-
-  // ── Fetch groups ─────────────────────────────────────────────────────────────
-  const fetchGroups = useCallback(async () => {
-    if (!user) return;
-    setGroupsLoading(true);
-    try {
-      const endpoint =
-        user.role === "school_admin"
-          ? "/api/groups/school-groups"
-          : "/api/groups/my-groups";
-      const data = await apiFetch(endpoint);
-      setGroups(data.data || []);
-      if (!selectedGroup && data.data?.length) setSelectedGroup(data.data[0]);
-    } catch (_) {
-      setGroups([]);
-    } finally {
-      setGroupsLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    fetchGroups();
-  }, [fetchGroups]);
-
-  // ── Fetch posts ──────────────────────────────────────────────────────────────
-  const fetchPosts = useCallback(async () => {
-    if (!selectedGroup) return;
-    setPostsLoading(true);
-    try {
-      const data = await apiFetch(`/api/posts/group/${selectedGroup._id}`);
-      setPosts(data.data || []);
-    } catch (_) {
-      setPosts([]);
-    } finally {
-      setPostsLoading(false);
-    }
-  }, [selectedGroup]);
-
-  useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
-
-  // ── Post actions ─────────────────────────────────────────────────────────────
-  const submitPost = async () => {
-    if (!newPost.trim()) return;
-    setPostLoading(true);
-    try {
-      await apiFetch("/api/posts/create", {
-        method: "POST",
-        body: JSON.stringify({ groupId: selectedGroup._id, content: newPost }),
-      });
-      setNewPost("");
-      fetchPosts();
-    } catch (_) {
-    } finally {
-      setPostLoading(false);
-    }
-  };
-
-  const handleLike = async (postId) => {
-    await apiFetch(`/api/posts/${postId}/like`, { method: "POST" });
-    fetchPosts();
-  };
-
-  const handleComment = async (postId, text) => {
-    await apiFetch(`/api/posts/${postId}/comment`, {
-      method: "POST",
-      body: JSON.stringify({ text }),
-    });
-    fetchPosts();
-  };
-
-  const handleDelete = async (postId) => {
-    await apiFetch(`/api/posts/${postId}`, { method: "DELETE" });
-    fetchPosts();
-  };
-
-  const handlePin = async (postId) => {
-    await apiFetch(`/api/posts/${postId}/pin`, { method: "POST" });
-    fetchPosts();
-  };
-
-  // ── Filtered groups ──────────────────────────────────────────────────────────
-  const filtered = groups.filter((g) => {
-    const mt = activeFilter === "all" || g.type === activeFilter;
-    const ms = g.name.toLowerCase().includes(search.toLowerCase());
-    return mt && ms;
-  });
-
-  const selP = TYPE_PALETTE[selectedGroup?.type] || TYPE_PALETTE.custom;
-  const selIcon = GROUP_TYPES.find(
-    (t) => t.value === selectedGroup?.type,
-  )?.icon;
-
-  const canPost =
-    selectedGroup?.permissions?.canPost?.includes(user?.userType) ||
-    user?.role === "school_admin";
-
-  // ── Auth gate ────────────────────────────────────────────────────────────────
-  if (authLoading)
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-          background: "#F8FAFC",
-        }}
-      >
-        <Spinner />
-      </div>
-    );
-
-  if (!user)
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-          background: "#F8FAFC",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 14, color: "#64748B" }}>
-            Please log in to access groups.
-          </div>
-        </div>
-      </div>
-    );
-
-  // ── Render ────────────────────────────────────────────────────────────────────
-  return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #F1F5F9; font-family: 'DM Sans', sans-serif; }
-        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
-        input:focus, textarea:focus { border-color: #93C5FD !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-      `}</style>
-
-      {showCreate && (
-        <CreateGroupModal
-          currentUser={user}
-          onClose={() => setShowCreate(false)}
-          onCreated={(g) => {
-            setGroups((prev) => [g, ...prev]);
-            setSelectedGroup(g);
-          }}
-        />
-      )}
-      {showAddMembers && selectedGroup && (
-        <AddMembersModal
-          groupId={selectedGroup._id}
-          onClose={() => setShowAddMembers(false)}
-          onAdded={() => fetchGroups()}
-        />
-      )}
-
-      <div style={{ display: "flex", height: "100vh", background: "#F1F5F9" }}>
-        {/* ── Left Sidebar ── */}
-        <div
-          style={{
-            width: 288,
-            flexShrink: 0,
-            background: "#FFFFFF",
-            borderRight: "1px solid #E2E8F0",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-          }}
-        >
-          {/* Top bar */}
-          <div
-            style={{
-              padding: "16px 14px 10px",
-              borderBottom: "1px solid #F1F5F9",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 12,
-              }}
-            >
-              <span style={{ fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
-                Groups
-              </span>
-              {(user.role === "school_admin" ||
-                user.role === "teacher_admin") && (
-                <button
-                  onClick={() => setShowCreate(true)}
-                  style={{
-                    background: "#3B82F6",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 8,
-                    padding: "5px 12px",
-                    fontSize: 12,
-                    cursor: "pointer",
-                    fontWeight: 700,
-                  }}
-                >
-                  + New
-                </button>
-              )}
-            </div>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search groups..."
-              style={{
-                width: "100%",
-                padding: "8px 11px",
-                borderRadius: 9,
-                border: "1px solid #E2E8F0",
-                background: "#F8FAFC",
-                fontSize: 13,
-                color: "#0F172A",
-                outline: "none",
-              }}
-            />
-          </div>
-
-          {/* Type filters */}
-          <div
-            style={{
-              padding: "8px 12px 6px",
-              display: "flex",
-              gap: 4,
-              flexWrap: "wrap",
-              borderBottom: "1px solid #F1F5F9",
-            }}
-          >
-            {GROUP_TYPES.map((t) => {
-              const p = TYPE_PALETTE[t.value];
-              const active = activeFilter === t.value;
-              return (
-                <button
-                  key={t.value}
-                  onClick={() => setActiveFilter(t.value)}
-                  style={{
-                    padding: "3px 9px",
                     borderRadius: 20,
-                    fontSize: 11,
-                    cursor: "pointer",
-                    fontWeight: active ? 700 : 400,
-                    border: `1px solid ${active && p ? p.mid : "#E2E8F0"}`,
-                    background: active && p ? p.light : "transparent",
-                    color: active && p ? p.text : "#64748B",
+                    background: "var(--accent-soft)",
+                    color: "var(--accent)",
+                    fontSize: 12,
+                    fontWeight: 500,
                   }}
                 >
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Group list */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "8px 10px" }}>
-            {groupsLoading ? (
-              <Spinner />
-            ) : filtered.length === 0 ? (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "40px 0",
-                  color: "#94A3B8",
-                  fontSize: 13,
-                }}
-              >
-                No groups found
-              </div>
-            ) : (
-              filtered.map((g) => (
-                <GroupCard
-                  key={g._id}
-                  group={g}
-                  active={selectedGroup?._id === g._id}
-                  onClick={() => {
-                    setSelectedGroup(g);
-                    setActiveTab("posts");
-                  }}
-                />
-              ))
-            )}
-          </div>
-
-          {/* User info strip */}
-          <div
-            style={{
-              borderTop: "1px solid #F1F5F9",
-              padding: "10px 14px",
-              display: "flex",
-              alignItems: "center",
-              gap: 9,
-            }}
-          >
-            <Avatar
-              initials={(user.name || "U")[0].toUpperCase()}
-              size={32}
-              palette={
-                ROLE_PALETTE[user.role] || { bg: "#EFF6FF", text: "#1E3A8A" }
-              }
-            />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "#0F172A",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {user.name}
-              </div>
-              <div style={{ fontSize: 11, color: "#94A3B8" }}>
-                {user.role?.replace("_", " ")}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Main panel ── */}
-        {selectedGroup ? (
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-            }}
-          >
-            {/* Group header */}
-            <div
-              style={{
-                background: "#FFFFFF",
-                borderBottom: "1px solid #E2E8F0",
-                padding: "14px 24px 0",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 13,
-                  marginBottom: 14,
-                }}
-              >
-                <div
-                  style={{
-                    width: 46,
-                    height: 46,
-                    borderRadius: 12,
-                    background: selP.light,
-                    border: `1px solid ${selP.mid}`,
-                    color: selP.dark,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 22,
-                    flexShrink: 0,
-                  }}
-                >
-                  {selIcon}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 9 }}
-                  >
-                    <h2
-                      style={{
-                        margin: 0,
-                        fontSize: 17,
-                        fontWeight: 700,
-                        color: "#0F172A",
-                      }}
-                    >
-                      {selectedGroup.name}
-                    </h2>
-                    <TypeBadge type={selectedGroup.type} />
-                    {selectedGroup.status === "Archived" && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          padding: "2px 7px",
-                          borderRadius: 20,
-                          background: "#FEF2F2",
-                          color: "#B91C1C",
-                          border: "1px solid #FECACA",
-                          fontWeight: 600,
-                        }}
-                      >
-                        Archived
-                      </span>
-                    )}
-                  </div>
-                  <p
-                    style={{
-                      margin: "3px 0 0",
-                      fontSize: 12,
-                      color: "#64748B",
-                    }}
-                  >
-                    {selectedGroup.members?.length || 0} members ·{" "}
-                    {posts.length} posts
-                    {selectedGroup.description
-                      ? ` · ${selectedGroup.description}`
-                      : ""}
-                  </p>
-                </div>
-                {user.role === "school_admin" && (
+                  {f.type.startsWith("image/") ? (
+                    <FiImage size={11} />
+                  ) : (
+                    <FiFile size={11} />
+                  )}
+                  {f.name}
                   <button
-                    onClick={() => setShowAddMembers(true)}
-                    style={{
-                      padding: "7px 14px",
-                      borderRadius: 9,
-                      border: "1px solid #E2E8F0",
-                      background: "#F8FAFC",
-                      color: "#374151",
-                      cursor: "pointer",
-                      fontSize: 12,
-                      fontWeight: 600,
-                    }}
-                  >
-                    + Members
-                  </button>
-                )}
-              </div>
-
-              {/* Tabs */}
-              <div style={{ display: "flex", gap: 0 }}>
-                {["posts", "members", "about"].map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
+                    onClick={() => setFiles(files.filter((_, j) => j !== i))}
                     style={{
                       background: "none",
                       border: "none",
                       cursor: "pointer",
-                      padding: "7px 16px",
-                      fontSize: 13,
-                      color: activeTab === tab ? selP.text : "#64748B",
-                      fontWeight: activeTab === tab ? 700 : 500,
-                      borderBottom:
-                        activeTab === tab
-                          ? `2px solid ${selP.dark}`
-                          : "2px solid transparent",
-                      textTransform: "capitalize",
-                      transition: "color 0.1s",
+                      color: "var(--accent)",
+                      padding: 0,
+                      lineHeight: 1,
                     }}
                   >
-                    {tab}
+                    <FiX size={11} />
                   </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: 10,
+            }}
+          >
+            <button
+              onClick={() => fileRef.current?.click()}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "var(--text-muted)",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 13,
+                padding: "6px 10px",
+                borderRadius: 8,
+                transition: "background 0.15s ease",
+              }}
+              className="attach-btn"
+            >
+              <FiPaperclip size={15} /> Attach
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              accept="image/*,.pdf,.doc,.docx"
+              style={{ display: "none" }}
+              onChange={(e) =>
+                setFiles([...files, ...Array.from(e.target.files)])
+              }
+            />
+            <button
+              onClick={submit}
+              disabled={loading || (!content.trim() && files.length === 0)}
+              style={{
+                ...primaryBtnStyle,
+                opacity: !content.trim() && files.length === 0 ? 0.5 : 1,
+              }}
+            >
+              {loading ? (
+                <FiLoader size={14} className="spin" />
+              ) : (
+                <FiSend size={14} />
+              )}
+              {loading ? "Posting..." : "Post"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── GROUP DETAIL PANEL ───────────────────────────────────────────────────────
+function GroupDetail({ group, currentUser, onGroupUpdated }) {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [activeTab, setActiveTab] = useState("posts");
+  const [showAddMember, setShowAddMember] = useState(false);
+  const isAdmin = currentUser?.role === "school_admin";
+
+  const fetchPosts = useCallback(
+    async (pg = 1) => {
+      setLoading(true);
+      try {
+        const { data } = await api.get(`/posts/group/${group._id}`, {
+          params: { page: pg, limit: 10 },
+        });
+        if (data.success) {
+          setPosts(pg === 1 ? data.data : (prev) => [...prev, ...data.data]);
+          setTotalPages(data.totalPages);
+          setPage(pg);
+        }
+      } catch (e) {
+        toast.error("Failed to load posts");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [group._id],
+  );
+
+  useEffect(() => {
+    fetchPosts(1);
+    setActiveTab("posts");
+  }, [group._id, fetchPosts]);
+
+  const handleLike = async (postId) => {
+    try {
+      const { data } = await api.patch(`/posts/${postId}/like`);
+      if (data.success) {
+        setPosts((prev) =>
+          prev.map((p) => {
+            if (p._id !== postId) return p;
+            const userId = currentUser?.id;
+            const alreadyLiked = p.likes?.some((l) => l?.toString() === userId);
+            return {
+              ...p,
+              likes: alreadyLiked
+                ? p.likes.filter((l) => l?.toString() !== userId)
+                : [...(p.likes || []), userId],
+            };
+          }),
+        );
+      }
+    } catch (e) {
+      toast.error("Action failed");
+    }
+  };
+
+  const handlePin = async (postId) => {
+    try {
+      const { data } = await api.patch(`/posts/${postId}/pin`);
+      if (data.success) {
+        fetchPosts(1);
+        toast.success(data.isPinned ? "Post pinned" : "Post unpinned");
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Action failed");
+    }
+  };
+
+  const handleDelete = async (postId) => {
+    if (!confirm("Delete this post?")) return;
+    try {
+      const { data } = await api.delete(`/posts/${postId}`);
+      if (data.success) {
+        setPosts((prev) => prev.filter((p) => p._id !== postId));
+        toast.success("Post deleted");
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Delete failed");
+    }
+  };
+
+  const handleRemoveMember = async (memberId) => {
+    if (!confirm("Remove this member?")) return;
+    try {
+      const { data } = await api.delete(`/groups/${group._id}/members`, {
+        data: { memberIds: [memberId] },
+      });
+      if (data.success) {
+        onGroupUpdated(data.data);
+        toast.success("Member removed");
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Failed to remove member");
+    }
+  };
+
+  const meta = GROUP_TYPE_META[group.type] || GROUP_TYPE_META.custom;
+  const Icon = meta.icon;
+
+  // Separate pinned
+  const pinnedPosts = posts.filter((p) => p.isPinned);
+  const regularPosts = posts.filter((p) => !p.isPinned);
+
+  const canPost = group.permissions?.canPost?.includes(
+    currentUser?.role === "school_admin" ? "admin" : "teacher",
+  );
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      {/* Group Header */}
+      <div
+        style={{
+          padding: "20px 24px 0",
+          borderBottom: "1px solid var(--border)",
+          background: "var(--card-bg)",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 14,
+            marginBottom: 16,
+          }}
+        >
+          <div
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 14,
+              background: meta.color + "20",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Icon size={26} color={meta.color} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
+              }}
+            >
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: "var(--text-primary)",
+                }}
+              >
+                {group.name}
+              </h2>
+              <TypeBadge type={group.type} />
+              {group.status === "Archived" && (
+                <span
+                  style={{
+                    fontSize: 11,
+                    padding: "2px 8px",
+                    borderRadius: 20,
+                    background: "#64748b20",
+                    color: "#64748b",
+                    fontWeight: 600,
+                  }}
+                >
+                  Archived
+                </span>
+              )}
+            </div>
+            {group.description && (
+              <p
+                style={{
+                  margin: "4px 0 0",
+                  fontSize: 13,
+                  color: "var(--text-muted)",
+                  lineHeight: 1.5,
+                }}
+              >
+                {group.description}
+              </p>
+            )}
+            <div
+              style={{
+                display: "flex",
+                gap: 16,
+                marginTop: 6,
+                fontSize: 12,
+                color: "var(--text-muted)",
+              }}
+            >
+              <span>
+                <FiUsers size={12} style={{ marginRight: 4 }} />
+                {group.members?.length || 0} members
+              </span>
+              {group.classId && (
+                <span>
+                  <MdOutlineClass size={12} style={{ marginRight: 4 }} />
+                  {group.classId.name}
+                </span>
+              )}
+              {group.sectionId && (
+                <span>
+                  <FiHash size={12} style={{ marginRight: 4 }} />
+                  {group.sectionId.name}
+                </span>
+              )}
+              {group.subjectId && (
+                <span>
+                  <MdSubject size={12} style={{ marginRight: 4 }} />
+                  {group.subjectId.name}
+                </span>
+              )}
+            </div>
+          </div>
+          {isAdmin && (
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={() => setShowAddMember(true)}
+                style={{
+                  ...secondaryBtnStyle,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  fontSize: 12,
+                }}
+              >
+                <FiUserPlus size={13} /> Add
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: "flex", gap: 4 }}>
+          {["posts", "members"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              style={{
+                padding: "8px 16px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 600,
+                color:
+                  activeTab === tab ? "var(--accent)" : "var(--text-muted)",
+                borderBottom:
+                  activeTab === tab
+                    ? "2px solid var(--accent)"
+                    : "2px solid transparent",
+                marginBottom: -1,
+                transition: "all 0.15s ease",
+                textTransform: "capitalize",
+              }}
+            >
+              {tab === "posts"
+                ? `Posts (${posts.length})`
+                : `Members (${group.members?.length || 0})`}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tab Content */}
+      <div style={{ flex: 1, overflow: "auto", padding: "20px 24px" }}>
+        {activeTab === "posts" && (
+          <div>
+            {/* Create Post */}
+            {canPost && (
+              <CreatePost
+                groupId={group._id}
+                currentUser={currentUser}
+                onPosted={(post) => setPosts((prev) => [post, ...prev])}
+              />
+            )}
+
+            {/* Pinned Posts */}
+            {pinnedPosts.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: "#f59e0b",
+                    textTransform: "uppercase",
+                    letterSpacing: 1,
+                    marginBottom: 8,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 5,
+                  }}
+                >
+                  <FiPin size={11} /> Pinned
+                </div>
+                {pinnedPosts.map((p) => (
+                  <PostCard
+                    key={p._id}
+                    post={p}
+                    currentUser={currentUser}
+                    onLike={handleLike}
+                    onPin={handlePin}
+                    onDelete={handleDelete}
+                    onUpdate={(updated) =>
+                      setPosts((prev) =>
+                        prev.map((x) => (x._id === updated._id ? updated : x)),
+                      )
+                    }
+                  />
                 ))}
               </div>
-            </div>
+            )}
 
-            {/* Tab content */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
-              {/* Posts tab */}
-              {activeTab === "posts" && (
-                <div style={{ maxWidth: 720 }}>
-                  {/* Compose box */}
-                  {canPost && (
-                    <div
-                      style={{
-                        background: "#FFFFFF",
-                        borderRadius: 12,
-                        border: "1px solid #E2E8F0",
-                        padding: "14px 16px",
-                        marginBottom: 16,
-                        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: 10,
-                          alignItems: "flex-start",
-                        }}
-                      >
-                        <Avatar
-                          initials={(user.name || "Y")[0].toUpperCase()}
-                          size={36}
-                          palette={
-                            ROLE_PALETTE[user.role] || {
-                              bg: "#EFF6FF",
-                              text: "#1E3A8A",
-                            }
-                          }
-                        />
-                        <textarea
-                          value={newPost}
-                          onChange={(e) => setNewPost(e.target.value)}
-                          placeholder={`Share something with ${selectedGroup.name}...`}
-                          rows={2}
-                          style={{
-                            flex: 1,
-                            resize: "none",
-                            border: "1px solid #E2E8F0",
-                            borderRadius: 9,
-                            padding: "9px 12px",
-                            fontSize: 13,
-                            background: "#F8FAFC",
-                            color: "#0F172A",
-                            outline: "none",
-                            fontFamily: "inherit",
-                            lineHeight: 1.5,
-                          }}
-                          onFocus={(e) =>
-                            (e.target.style.borderColor = "#93C5FD")
-                          }
-                          onBlur={(e) =>
-                            (e.target.style.borderColor = "#E2E8F0")
-                          }
-                        />
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "flex-end",
-                          marginTop: 10,
-                        }}
-                      >
-                        <button
-                          onClick={submitPost}
-                          disabled={!newPost.trim() || postLoading}
-                          style={{
-                            background: newPost.trim() ? "#3B82F6" : "#E2E8F0",
-                            color: newPost.trim() ? "#fff" : "#94A3B8",
-                            border: "none",
-                            borderRadius: 9,
-                            padding: "8px 18px",
-                            cursor: newPost.trim() ? "pointer" : "default",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            transition: "all 0.15s",
-                          }}
-                        >
-                          {postLoading ? "Posting..." : "Post"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Posts feed */}
-                  {postsLoading ? (
-                    <Spinner />
-                  ) : posts.length === 0 ? (
-                    <div
-                      style={{
-                        textAlign: "center",
-                        padding: "60px 0",
-                        color: "#94A3B8",
-                        animation: "fadeIn 0.3s ease",
-                      }}
-                    >
-                      <div style={{ fontSize: 36, marginBottom: 10 }}>◎</div>
-                      <p
-                        style={{
-                          fontSize: 15,
-                          fontWeight: 600,
-                          color: "#64748B",
-                        }}
-                      >
-                        No posts yet
-                      </p>
-                      <p style={{ fontSize: 13, marginTop: 4 }}>
-                        Be the first to post in this group
-                      </p>
-                    </div>
-                  ) : (
-                    posts.map((post) => (
-                      <div
-                        key={post._id}
-                        style={{ animation: "fadeIn 0.2s ease" }}
-                      >
-                        <PostCard
-                          post={post}
-                          currentUser={user}
-                          onLike={handleLike}
-                          onComment={handleComment}
-                          onDelete={handleDelete}
-                          onPin={handlePin}
-                        />
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {/* Members tab */}
-              {activeTab === "members" && (
-                <div style={{ maxWidth: 640 }}>
+            {/* Regular Posts */}
+            {loading && posts.length === 0 ? (
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 12 }}
+              >
+                {[1, 2, 3].map((i) => (
                   <div
+                    key={i}
                     style={{
-                      background: "#FFF",
-                      borderRadius: 12,
-                      border: "1px solid #E2E8F0",
-                      overflow: "hidden",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                      background: "var(--card-bg)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 14,
+                      padding: 18,
                     }}
                   >
+                    <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                      <Skeleton w={38} h={38} radius={19} />
+                      <div style={{ flex: 1 }}>
+                        <Skeleton h={14} style={{ marginBottom: 6 }} />
+                        <Skeleton h={12} w="60%" />
+                      </div>
+                    </div>
+                    <Skeleton h={14} style={{ marginBottom: 6 }} />
+                    <Skeleton h={14} w="80%" />
+                  </div>
+                ))}
+              </div>
+            ) : regularPosts.length === 0 && pinnedPosts.length === 0 ? (
+              <EmptyState
+                icon={<FiMessageCircle size={36} />}
+                title="No posts yet"
+                subtitle={
+                  canPost
+                    ? "Be the first to share something!"
+                    : "Nothing has been posted here yet."
+                }
+              />
+            ) : (
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 14 }}
+              >
+                {regularPosts.map((p) => (
+                  <PostCard
+                    key={p._id}
+                    post={p}
+                    currentUser={currentUser}
+                    onLike={handleLike}
+                    onPin={handlePin}
+                    onDelete={handleDelete}
+                    onUpdate={(updated) =>
+                      setPosts((prev) =>
+                        prev.map((x) => (x._id === updated._id ? updated : x)),
+                      )
+                    }
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Load More */}
+            {page < totalPages && (
+              <div style={{ textAlign: "center", marginTop: 20 }}>
+                <button
+                  onClick={() => fetchPosts(page + 1)}
+                  disabled={loading}
+                  style={secondaryBtnStyle}
+                >
+                  {loading ? <FiLoader size={14} className="spin" /> : null}
+                  Load more
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "members" && (
+          <div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {group.members?.map((member, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "10px 14px",
+                    borderRadius: 10,
+                    background: "var(--card-bg)",
+                    border: "1px solid var(--border)",
+                  }}
+                >
+                  <Avatar
+                    name={
+                      member.userId?.name || member.userId?.toString() || "?"
+                    }
+                    size={36}
+                  />
+                  <div style={{ flex: 1 }}>
                     <div
                       style={{
-                        padding: "13px 18px",
-                        borderBottom: "1px solid #F1F5F9",
+                        fontWeight: 600,
+                        fontSize: 13,
+                        color: "var(--text-primary)",
+                      }}
+                    >
+                      {member.userId?.name || member.userId?.toString()}
+                    </div>
+                    <div
+                      style={{
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "space-between",
+                        gap: 6,
+                        marginTop: 2,
                       }}
                     >
                       <span
                         style={{
-                          fontSize: 13,
-                          fontWeight: 700,
-                          color: "#0F172A",
+                          fontSize: 11,
+                          padding: "1px 7px",
+                          borderRadius: 10,
+                          background: "var(--hover)",
+                          color: "var(--text-muted)",
+                          fontWeight: 500,
                         }}
                       >
-                        {selectedGroup.members?.length || 0} members
+                        {member.userType}
                       </span>
+                      {member.role && member.role !== "member" && (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            padding: "1px 7px",
+                            borderRadius: 10,
+                            background: "var(--accent-soft)",
+                            color: "var(--accent)",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {member.role}
+                        </span>
+                      )}
                     </div>
-                    {(selectedGroup.members || []).map((m, i) => {
-                      const rp = ROLE_PALETTE[m.userType] || {
-                        bg: "#F8FAFC",
-                        text: "#374151",
-                        border: "#E2E8F0",
-                      };
-                      return (
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                    Joined {new Date(member.joinedAt).toLocaleDateString()}
+                  </div>
+                  {isAdmin && (
+                    <button
+                      onClick={() =>
+                        handleRemoveMember(
+                          member.userId?.toString() || member.userId,
+                        )
+                      }
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "var(--text-muted)",
+                        padding: 6,
+                        borderRadius: 6,
+                        transition: "color 0.15s ease",
+                      }}
+                      title="Remove member"
+                    >
+                      <FiUserMinus size={15} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              {(!group.members || group.members.length === 0) && (
+                <EmptyState
+                  icon={<FiUsers size={36} />}
+                  title="No members"
+                  subtitle="Add members to this group"
+                />
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {showAddMember && (
+        <AddMembersModal
+          groupId={group._id}
+          onClose={() => setShowAddMember(false)}
+          onAdded={async () => {
+            const { data } = await api.get(`/groups/${group._id}`);
+            if (data.success) onGroupUpdated(data.data);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── SHARED UI HELPERS ────────────────────────────────────────────────────────
+function ModalOverlay({ onClose, children }) {
+  return (
+    <div
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        background: "rgba(0,0,0,0.45)",
+        backdropFilter: "blur(4px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 16,
+      }}
+    >
+      <div
+        style={{
+          background: "var(--card-bg)",
+          borderRadius: 16,
+          width: "100%",
+          maxWidth: 480,
+          boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+          animation: "modalIn 0.2s ease",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function FormField({ label, children }) {
+  return (
+    <div>
+      <label
+        style={{
+          display: "block",
+          fontSize: 12,
+          fontWeight: 600,
+          color: "var(--text-muted)",
+          marginBottom: 5,
+        }}
+      >
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function MenuItem({ icon, label, onClick, danger = false }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: "100%",
+        padding: "9px 14px",
+        display: "flex",
+        alignItems: "center",
+        gap: 9,
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        fontSize: 13,
+        fontWeight: 500,
+        textAlign: "left",
+        color: danger ? "#ef4444" : "var(--text-primary)",
+        transition: "background 0.1s ease",
+      }}
+      className="menu-item-hover"
+    >
+      {icon} {label}
+    </button>
+  );
+}
+
+function EmptyState({ icon, title, subtitle }) {
+  return (
+    <div
+      style={{
+        textAlign: "center",
+        padding: "48px 24px",
+        color: "var(--text-muted)",
+      }}
+    >
+      <div style={{ marginBottom: 12, opacity: 0.4 }}>{icon}</div>
+      <div
+        style={{
+          fontWeight: 600,
+          fontSize: 15,
+          color: "var(--text-primary)",
+          marginBottom: 4,
+        }}
+      >
+        {title}
+      </div>
+      <div style={{ fontSize: 13 }}>{subtitle}</div>
+    </div>
+  );
+}
+
+// ─── STYLE CONSTANTS ──────────────────────────────────────────────────────────
+const inputStyle = {
+  width: "100%",
+  padding: "9px 12px",
+  borderRadius: 8,
+  border: "1px solid var(--border)",
+  background: "var(--input-bg)",
+  color: "var(--text-primary)",
+  fontSize: 13,
+  outline: "none",
+  fontFamily: "'DM Sans', sans-serif",
+  transition: "border-color 0.15s ease",
+};
+
+const primaryBtnStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  padding: "8px 16px",
+  borderRadius: 8,
+  background: "var(--accent)",
+  color: "#fff",
+  border: "none",
+  cursor: "pointer",
+  fontSize: 13,
+  fontWeight: 600,
+  transition: "opacity 0.15s ease",
+  fontFamily: "'DM Sans', sans-serif",
+};
+
+const secondaryBtnStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  padding: "8px 14px",
+  borderRadius: 8,
+  background: "var(--hover)",
+  color: "var(--text-primary)",
+  border: "1px solid var(--border)",
+  cursor: "pointer",
+  fontSize: 13,
+  fontWeight: 500,
+  transition: "background 0.15s ease",
+  fontFamily: "'DM Sans', sans-serif",
+};
+
+// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+export default function Groups() {
+  const [groups, setGroups] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState("all");
+  const [showCreate, setShowCreate] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [viewMode, setViewMode] = useState("split"); // split | list
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [theme, setTheme] = useState("light");
+
+  // Fetch current user
+  useEffect(() => {
+    api
+      .get("/auth/me")
+      .then(({ data }) => {
+        if (data.success) {
+          setCurrentUser({
+            ...data.user,
+            id: data.user.school_id || data.user.teacher_id,
+          });
+        }
+      })
+      .catch(() => {});
+
+    // detect OS theme
+    // const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    // setTheme(mq.matches ? "dark" : "light");
+    // const handler = (e) => setTheme(e.matches ? "dark" : "light");
+    // mq.addEventListener("change", handler);
+    // return () => mq.removeEventListener("change", handler);
+    setTheme("light");
+  }, []);
+
+  // Fetch groups
+  const fetchGroups = useCallback(async () => {
+    setLoading(true);
+    try {
+      const endpoint =
+        currentUser?.role === "school_admin"
+          ? "/groups/school-groups"
+          : "/groups/my-groups";
+      const { data } = await api.get(endpoint, { params: { limit: 50 } });
+      if (data.success) {
+        setGroups(data.data || []);
+        if (data.data?.length > 0 && !selectedGroup) {
+          setSelectedGroup(data.data[0]);
+        }
+      }
+    } catch (e) {
+      toast.error("Failed to load groups");
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser?.role]);
+
+  useEffect(() => {
+    if (currentUser) fetchGroups();
+  }, [currentUser, fetchGroups]);
+
+  // Filtered groups
+  const filteredGroups = groups.filter((g) => {
+    const matchSearch = g.name.toLowerCase().includes(search.toLowerCase());
+    const matchType = filterType === "all" || g.type === filterType;
+    return matchSearch && matchType;
+  });
+
+  const isDark = false;
+
+  return (
+    <>
+      {/* Google Fonts */}
+      <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+        rel="stylesheet"
+      />
+
+      <style>{`
+        :root {
+          --accent: ${isDark ? "#6366f1" : "#4f46e5"};
+          --accent-soft: ${isDark ? "#6366f115" : "#4f46e510"};
+          --bg: ${isDark ? "#0f1117" : "#f8f9fc"};
+          --card-bg: ${isDark ? "#161b27" : "#ffffff"};
+          --border: ${isDark ? "#1e2738" : "#e8ebf0"};
+          --text-primary: ${isDark ? "#e2e8f0" : "#1a202c"};
+          --text-muted: ${isDark ? "#64748b" : "#8896a5"};
+          --hover: ${isDark ? "#1e2535" : "#f1f5f9"};
+          --input-bg: ${isDark ? "#1e2535" : "#f8fafc"};
+          --skeleton: ${isDark ? "#1e2535" : "#f0f3f7"};
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; }
+        @keyframes shimmer {
+          0% { opacity: 1 } 50% { opacity: 0.5 } 100% { opacity: 1 }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg) } to { transform: rotate(360deg) }
+        }
+        @keyframes modalIn {
+          from { opacity: 0; transform: translateY(12px) scale(0.98) }
+          to { opacity: 1; transform: translateY(0) scale(1) }
+        }
+        .spin { animation: spin 0.8s linear infinite; }
+        .group-card-hover:hover { background: var(--hover) !important; }
+        .post-card-hover:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+        .menu-item-hover:hover { background: var(--hover); }
+        .attach-btn:hover { background: var(--hover); }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        input:focus, textarea:focus, select:focus {
+          border-color: var(--accent) !important;
+          box-shadow: 0 0 0 3px var(--accent-soft);
+        }
+      `}</style>
+
+      <div
+        style={{
+          fontFamily: "'DM Sans', sans-serif",
+          background: "var(--bg)",
+          minHeight: "80vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {/* Top Bar */}
+        <div
+          style={{
+            background: "var(--card-bg)",
+            borderBottom: "1px solid var(--border)",
+            padding: "12px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: "var(--accent)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <MdOutlineGroups size={18} color="#fff" />
+            </div>
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: 16,
+                color: "var(--text-primary)",
+              }}
+            >
+              Groups
+            </span>
+            <span
+              style={{
+                fontSize: 12,
+                padding: "2px 8px",
+                borderRadius: 10,
+                background: "var(--accent-soft)",
+                color: "var(--accent)",
+                fontWeight: 600,
+              }}
+            >
+              {groups.length}
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {/* <button
+              onClick={() => setTheme(isDark ? "light" : "dark")}
+              style={{
+                ...secondaryBtnStyle,
+                padding: "6px 10px",
+                fontSize: 16,
+              }}
+              title="Toggle theme"
+            >
+              {isDark ? "☀️" : "🌙"}
+            </button> */}
+            {(currentUser?.role === "school_admin" ||
+              currentUser?.role === "teacher_admin") && (
+              <button
+                onClick={() => setShowCreate(true)}
+                style={primaryBtnStyle}
+              >
+                <FiPlus size={14} /> New Group
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Main Layout */}
+        <div
+          style={{
+            display: "flex",
+            flex: 1,
+            overflow: "hidden",
+            height: "calc(100vh - 57px)",
+          }}
+        >
+          {/* Sidebar */}
+          <div
+            style={{
+              width: sidebarCollapsed ? 0 : 280,
+              flexShrink: 0,
+              borderRight: "1px solid var(--border)",
+              background: "var(--card-bg)",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              transition: "width 0.25s ease",
+            }}
+          >
+            {!sidebarCollapsed && (
+              <>
+                {/* Search + Filter */}
+                <div style={{ padding: "14px 14px 10px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "7px 10px",
+                      borderRadius: 8,
+                      background: "var(--input-bg)",
+                      border: "1px solid var(--border)",
+                      marginBottom: 10,
+                    }}
+                  >
+                    <FiSearch size={14} color="var(--text-muted)" />
+                    <input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search groups..."
+                      style={{
+                        background: "none",
+                        border: "none",
+                        outline: "none",
+                        fontSize: 13,
+                        color: "var(--text-primary)",
+                        flex: 1,
+                        fontFamily: "'DM Sans', sans-serif",
+                      }}
+                    />
+                    {search && (
+                      <button
+                        onClick={() => setSearch("")}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "var(--text-muted)",
+                          padding: 0,
+                        }}
+                      >
+                        <FiX size={12} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Type filter chips */}
+                  <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                    <TypeChip
+                      label="All"
+                      value="all"
+                      active={filterType === "all"}
+                      onClick={() => setFilterType("all")}
+                    />
+                    {Object.entries(GROUP_TYPE_META).map(([k, v]) => (
+                      <TypeChip
+                        key={k}
+                        label={v.label}
+                        value={k}
+                        active={filterType === k}
+                        onClick={() => setFilterType(k)}
+                        color={v.color}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Group List */}
+                <div
+                  style={{ flex: 1, overflow: "auto", padding: "0 8px 12px" }}
+                >
+                  {loading ? (
+                    <div
+                      style={{
+                        padding: "8px 6px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                      }}
+                    >
+                      {[1, 2, 3, 4, 5].map((i) => (
                         <div
                           key={i}
                           style={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 12,
-                            padding: "11px 18px",
-                            borderBottom:
-                              i < selectedGroup.members.length - 1
-                                ? "1px solid #F8FAFC"
-                                : "none",
+                            gap: 10,
+                            padding: "8px 6px",
                           }}
                         >
-                          <Avatar
-                            initials={(m.userId?.toString() ||
-                              "U")[0].toUpperCase()}
-                            size={36}
-                            palette={{ bg: rp.bg, text: rp.text }}
-                          />
+                          <Skeleton w={42} h={42} radius={10} />
                           <div style={{ flex: 1 }}>
-                            <div
-                              style={{
-                                fontSize: 13,
-                                fontWeight: 600,
-                                color: "#0F172A",
-                              }}
-                            >
-                              {m.userId?.toString()}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: 11,
-                                color: "#64748B",
-                                marginTop: 1,
-                              }}
-                            >
-                              {m.userType}
-                            </div>
+                            <Skeleton h={13} style={{ marginBottom: 6 }} />
+                            <Skeleton h={11} w="60%" />
                           </div>
-                          <span
-                            style={{
-                              fontSize: 10,
-                              padding: "2px 8px",
-                              borderRadius: 20,
-                              background: rp.bg,
-                              color: rp.text,
-                              border: `1px solid ${rp.border}`,
-                              fontWeight: 600,
-                              textTransform: "uppercase",
-                              letterSpacing: "0.3px",
-                            }}
-                          >
-                            {m.role || "member"}
-                          </span>
-                          {user.role === "school_admin" && (
-                            <button
-                              style={{
-                                background: "transparent",
-                                border: "1px solid #FEE2E2",
-                                borderRadius: 7,
-                                padding: "3px 9px",
-                                cursor: "pointer",
-                                fontSize: 11,
-                                color: "#EF4444",
-                              }}
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* About tab */}
-              {activeTab === "about" && (
-                <div style={{ maxWidth: 560 }}>
-                  <div
-                    style={{
-                      background: "#FFF",
-                      borderRadius: 12,
-                      border: "1px solid #E2E8F0",
-                      padding: "20px 22px",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-                    }}
-                  >
-                    <div style={{ marginBottom: 20 }}>
-                      <p
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "#94A3B8",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          marginBottom: 6,
-                        }}
-                      >
-                        Description
-                      </p>
-                      <p
-                        style={{
-                          fontSize: 14,
-                          color: "#374151",
-                          lineHeight: 1.7,
-                        }}
-                      >
-                        {selectedGroup.description || "No description added."}
-                      </p>
-                    </div>
-                    <div
-                      style={{
-                        paddingTop: 18,
-                        borderTop: "1px solid #F1F5F9",
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: 14,
-                      }}
-                    >
-                      {[
-                        { label: "Type", value: selectedGroup.type },
-                        {
-                          label: "Status",
-                          value: selectedGroup.status || "Active",
-                        },
-                        {
-                          label: "Auto-created",
-                          value: selectedGroup.isAutoCreated ? "Yes" : "No",
-                        },
-                        {
-                          label: "Created",
-                          value: new Date(
-                            selectedGroup.createdAt,
-                          ).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          }),
-                        },
-                      ].map((item) => (
-                        <div key={item.label}>
-                          <p
-                            style={{
-                              fontSize: 11,
-                              fontWeight: 700,
-                              color: "#94A3B8",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.5px",
-                              marginBottom: 4,
-                            }}
-                          >
-                            {item.label}
-                          </p>
-                          <p
-                            style={{
-                              fontSize: 14,
-                              fontWeight: 600,
-                              color: "#0F172A",
-                            }}
-                          >
-                            {item.value}
-                          </p>
                         </div>
                       ))}
                     </div>
+                  ) : filteredGroups.length === 0 ? (
                     <div
                       style={{
-                        paddingTop: 18,
-                        marginTop: 18,
-                        borderTop: "1px solid #F1F5F9",
+                        textAlign: "center",
+                        padding: "32px 16px",
+                        color: "var(--text-muted)",
+                        fontSize: 13,
                       }}
                     >
-                      <p
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "#94A3B8",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.5px",
-                          marginBottom: 10,
-                        }}
-                      >
-                        Permissions
-                      </p>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "1fr 1fr",
-                          gap: 10,
-                        }}
-                      >
-                        {[
-                          {
-                            label: "Can post",
-                            roles: selectedGroup.permissions?.canPost || [],
-                          },
-                          {
-                            label: "Can comment",
-                            roles: selectedGroup.permissions?.canComment || [],
-                          },
-                        ].map((perm) => (
-                          <div
-                            key={perm.label}
-                            style={{
-                              background: "#F8FAFC",
-                              borderRadius: 9,
-                              padding: "10px 13px",
-                              border: "1px solid #E2E8F0",
-                            }}
-                          >
-                            <p
-                              style={{
-                                fontSize: 11,
-                                color: "#64748B",
-                                fontWeight: 600,
-                                marginBottom: 7,
-                              }}
-                            >
-                              {perm.label}
-                            </p>
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: 5,
-                                flexWrap: "wrap",
-                              }}
-                            >
-                              {perm.roles.map((r) => (
-                                <span
-                                  key={r}
-                                  style={{
-                                    fontSize: 11,
-                                    padding: "2px 8px",
-                                    borderRadius: 20,
-                                    background:
-                                      ROLE_PALETTE[r]?.bg || "#F1F5F9",
-                                    color: ROLE_PALETTE[r]?.text || "#374151",
-                                    border: `1px solid ${ROLE_PALETTE[r]?.border || "#E2E8F0"}`,
-                                    fontWeight: 600,
-                                  }}
-                                >
-                                  {r}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                      {search ? "No groups found" : "No groups yet"}
                     </div>
-                  </div>
+                  ) : (
+                    filteredGroups.map((g) => (
+                      <GroupCard
+                        key={g._id}
+                        group={g}
+                        isActive={selectedGroup?._id === g._id}
+                        onClick={() => setSelectedGroup(g)}
+                        userType={currentUser?.role}
+                      />
+                    ))
+                  )}
                 </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
-        ) : (
-          <div
+
+          {/* Toggle Sidebar Button */}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             style={{
-              flex: 1,
+              position: "absolute",
+              left: sidebarCollapsed ? 0 : 274,
+              top: "50%",
+              transform: "translateY(-50%)",
+              zIndex: 10,
+              width: 20,
+              height: 44,
+              background: "var(--card-bg)",
+              border: "1px solid var(--border)",
+              borderLeft: sidebarCollapsed ? "1px solid var(--border)" : "none",
+              borderRadius: sidebarCollapsed ? "0 6px 6px 0" : "0 6px 6px 0",
+              cursor: "pointer",
+              color: "var(--text-muted)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#94A3B8",
+              transition: "left 0.25s ease",
+              boxShadow: "2px 0 8px rgba(0,0,0,0.06)",
             }}
           >
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 44, marginBottom: 12, opacity: 0.4 }}>
-                ⊞
+            <FiChevronLeft
+              size={12}
+              style={{
+                transform: sidebarCollapsed ? "rotate(180deg)" : "none",
+                transition: "transform 0.25s ease",
+              }}
+            />
+          </button>
+
+          {/* Detail Panel */}
+          <div
+            style={{
+              flex: 1,
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {selectedGroup ? (
+              <GroupDetail
+                key={selectedGroup._id}
+                group={selectedGroup}
+                currentUser={currentUser}
+                onGroupUpdated={(updated) => {
+                  setGroups((prev) =>
+                    prev.map((g) => (g._id === updated._id ? updated : g)),
+                  );
+                  setSelectedGroup(updated);
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
+                  gap: 12,
+                  color: "var(--text-muted)",
+                }}
+              >
+                <div style={{ opacity: 0.3 }}>
+                  <MdOutlineGroups size={64} />
+                </div>
+                <div
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 16,
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  Select a group
+                </div>
+                <div style={{ fontSize: 13 }}>
+                  Choose a group from the sidebar to see posts and members
+                </div>
+                {(currentUser?.role === "school_admin" ||
+                  currentUser?.role === "teacher_admin") && (
+                  <button
+                    onClick={() => setShowCreate(true)}
+                    style={{ ...primaryBtnStyle, marginTop: 8 }}
+                  >
+                    <FiPlus size={14} /> Create your first group
+                  </button>
+                )}
               </div>
-              <p style={{ fontSize: 15, fontWeight: 600, color: "#64748B" }}>
-                Select a group
-              </p>
-              <p style={{ fontSize: 13, marginTop: 4 }}>
-                Choose from the sidebar to view posts and members
-              </p>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
+
+      {/* Modals */}
+      {showCreate && (
+        <CreateGroupModal
+          onClose={() => setShowCreate(false)}
+          onCreated={(group) => {
+            setGroups((prev) => [group, ...prev]);
+            setSelectedGroup(group);
+          }}
+        />
+      )}
+
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        theme={isDark ? "dark" : "light"}
+        toastStyle={{
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: 13,
+          borderRadius: 10,
+        }}
+      />
     </>
+  );
+}
+
+// ─── TYPE CHIP ────────────────────────────────────────────────────────────────
+function TypeChip({ label, value, active, onClick, color }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: "3px 9px",
+        borderRadius: 20,
+        background: active ? (color || "var(--accent)") + "20" : "transparent",
+        border: `1px solid ${active ? (color || "var(--accent)") + "50" : "var(--border)"}`,
+        color: active ? color || "var(--accent)" : "var(--text-muted)",
+        fontSize: 11,
+        fontWeight: 600,
+        cursor: "pointer",
+        transition: "all 0.15s ease",
+        fontFamily: "'DM Sans', sans-serif",
+      }}
+    >
+      {label}
+    </button>
   );
 }

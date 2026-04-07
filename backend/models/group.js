@@ -89,6 +89,7 @@ const groupSchema = new mongoose.Schema(
     avatar: {
       url: String,
       public_id: String,
+      type: String,
     },
 
     isAutoCreated: {

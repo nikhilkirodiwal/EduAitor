@@ -57,6 +57,8 @@ import termRoute from "./routes/termRoute.js";
 import attendanceRoute from "./routes/attendanceRoute.js";
 import calendarRoute from "./routes/caledarRoute.js";
 import diaryRoute from "./routes/diaryRoute.js";
+import postRoute from "./routes/postRoute.js";
+import groupRoute from "./routes/groupRoute.js";
 
 import { authMiddleware } from "./auth/auth.js";
 
@@ -136,7 +138,9 @@ app.use("/api/assignment", assignmentRoute);
 app.use("/api/terms", termRoute);
 app.use("/api/attendance", attendanceRoute);
 app.use("/api/calendar", calendarRoute);
-app.use("/api/diary",diaryRoute);
+app.use("/api/diary", diaryRoute);
+app.use("/api/posts", postRoute);
+app.use("/api/groups", groupRoute);
 
 // Error middleware
 app.use(errorHandler);

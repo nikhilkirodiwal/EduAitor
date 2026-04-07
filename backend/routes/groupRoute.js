@@ -20,7 +20,7 @@ router.use(authMiddleware);
 // ─── Group routes ─────────────────────────────────────────────────────────────
 
 // Create a new group (admin or teacher)
-router.post("/create", createGroup);
+router.post("/", createGroup);
 
 // My groups (all authenticated users)
 router.get("/my-groups", getMyGroups);
@@ -40,9 +40,9 @@ router.delete("/:id", deleteGroup);
 // ─── Member management ────────────────────────────────────────────────────────
 
 // Add members
-router.post("/:id/add-members", addMembers);
+router.post("/:id/members", addMembers);
 
 // Remove members
-router.post("/:id/remove-members", removeMembers);
+router.delete("/:id/members", removeMembers);
 
 export default router;

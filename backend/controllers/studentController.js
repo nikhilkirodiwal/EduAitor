@@ -40,6 +40,7 @@ export const createStudent = async (req, res) => {
         documents[field] = {
           url: uploaded.url,
           public_id: uploaded.public_id,
+          type: uploaded.type,
         };
       } catch (err) {
         console.error(`Upload failed for ${field}`, err);
@@ -200,6 +201,7 @@ export const updateStudent = async (req, res) => {
         documents[field] = {
           url: uploaded.url,
           public_id: uploaded.public_id,
+          type: uploaded.type,
         };
       }
     };
