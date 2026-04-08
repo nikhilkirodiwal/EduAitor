@@ -76,6 +76,7 @@ const App = () => {
         <Route path="school-detail" element={<SchoolDetail />} />
         <Route path="subscription-plan" element={<SchoolSubscription />} />
         <Route path="school-view/:id" element={<SchoolView />} />
+        
 
         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
       </Route>
