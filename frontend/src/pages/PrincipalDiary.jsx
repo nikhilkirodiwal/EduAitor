@@ -26,8 +26,18 @@ const TYPE_STYLES = {
 };
 
 const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -63,13 +73,15 @@ const initials = (name = "") =>
 
 function StatCard({ label, value, color }) {
   const colors = {
-    slate:  "bg-slate-50 text-slate-700 border-slate-200",
-    amber:  "bg-amber-50 text-amber-700 border-amber-200",
-    blue:   "bg-blue-50 text-blue-700 border-blue-200",
+    slate: "bg-slate-50 text-slate-700 border-slate-200",
+    amber: "bg-amber-50 text-amber-700 border-amber-200",
+    blue: "bg-blue-50 text-blue-700 border-blue-200",
     violet: "bg-violet-50 text-violet-700 border-violet-200",
   };
   return (
-    <div className={`rounded-xl border px-3 py-2.5 flex flex-col gap-0.5 ${colors[color]}`}>
+    <div
+      className={`rounded-xl border px-3 py-2.5 flex flex-col gap-0.5 ${colors[color]}`}
+    >
       <span className="text-xl font-semibold">{value}</span>
       <span className="text-xs font-medium opacity-60">{label}</span>
     </div>
@@ -82,11 +94,15 @@ function DiaryCard({ entry }) {
   const ts = TYPE_STYLES[entry.type] || TYPE_STYLES.remark;
 
   return (
-    <div className={`bg-white rounded-2xl border border-slate-200 border-l-4 ${ts.accent} p-4`}>
+    <div
+      className={`bg-white rounded-2xl border border-slate-200 border-l-4 ${ts.accent} p-4`}
+    >
       {/* Top meta row */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full capitalize ${ts.badge}`}>
+          <span
+            className={`text-xs font-medium px-2.5 py-0.5 rounded-full capitalize ${ts.badge}`}
+          >
             {entry.type}
           </span>
 
@@ -94,7 +110,7 @@ function DiaryCard({ entry }) {
             <span className="text-xs text-slate-400">
               Class {entry.classId.name}
               {entry.sectionName ? ` · Sec ${entry.sectionName}` : ""}
-              {entry.roomNumber  ? ` (Rm ${entry.roomNumber})`   : ""}
+              {entry.roomNumber ? ` (Rm ${entry.roomNumber})` : ""}
             </span>
           )}
 
@@ -119,11 +135,22 @@ function DiaryCard({ entry }) {
       {/* Due date */}
       {entry.type === "homework" && entry.dueDate && (
         <div className="mt-2.5 flex items-center gap-1.5">
-          <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          <svg
+            className="w-3.5 h-3.5 text-amber-500 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
           </svg>
-          <span className="text-xs text-amber-700 font-medium">Due {fmtDate(entry.dueDate)}</span>
+          <span className="text-xs text-amber-700 font-medium">
+            Due {fmtDate(entry.dueDate)}
+          </span>
         </div>
       )}
 
@@ -149,7 +176,7 @@ function FilterBar({ filters, onChange, classes, onClear, hasFilters }) {
   // sectionId stored in Diary = sectionDetail subdocument's own _id (s._id),
   // NOT the referenced Section collection document's id (s.sectionId._id).
   const selectedSection = sections.find(
-    (s) => s._id?.toString() === filters.sectionId
+    (s) => s._id?.toString() === filters.sectionId,
   );
 
   // ✅ FIX: subjects now resolve because the backend populates subjectTeachers.subjectId
@@ -166,7 +193,10 @@ function FilterBar({ filters, onChange, classes, onClear, hasFilters }) {
           Filters
         </span>
         {hasFilters && (
-          <button onClick={onClear} className="text-xs text-blue-600 font-medium hover:underline">
+          <button
+            onClick={onClear}
+            className="text-xs text-blue-600 font-medium hover:underline"
+          >
             Clear all
           </button>
         )}
@@ -193,7 +223,9 @@ function FilterBar({ filters, onChange, classes, onClear, hasFilters }) {
           className={selCls}
           value={filters.sectionId}
           disabled={!sections.length}
-          onChange={(e) => onChange({ sectionId: e.target.value, subjectId: "" })}
+          onChange={(e) =>
+            onChange({ sectionId: e.target.value, subjectId: "" })
+          }
         >
           <option value="">All sections</option>
           {sections.map((s) => (
@@ -264,7 +296,9 @@ function FilterBar({ filters, onChange, classes, onClear, hasFilters }) {
           type="date"
           className={`${selCls} col-span-2 sm:col-span-1`}
           value={filters.date}
-          onChange={(e) => onChange({ date: e.target.value, month: "", year: "" })}
+          onChange={(e) =>
+            onChange({ date: e.target.value, month: "", year: "" })
+          }
         />
       </div>
     </div>
@@ -277,15 +311,28 @@ function EmptyState({ hasFilters }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 py-16 flex flex-col items-center gap-3 text-center">
       <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
-        <svg className="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        <svg
+          className="w-7 h-7 text-slate-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          />
         </svg>
       </div>
       <div>
-        <p className="text-sm font-medium text-slate-600">No diary entries found</p>
+        <p className="text-sm font-medium text-slate-600">
+          No diary entries found
+        </p>
         <p className="text-xs text-slate-400 mt-1">
-          {hasFilters ? "Try adjusting or clearing the filters" : "No entries have been added yet"}
+          {hasFilters
+            ? "Try adjusting or clearing the filters"
+            : "No entries have been added yet"}
         </p>
       </div>
     </div>
@@ -298,7 +345,10 @@ function Skeleton() {
   return (
     <div className="space-y-3 animate-pulse">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-white rounded-2xl border border-slate-200 border-l-4 border-l-slate-200 p-4 space-y-2">
+        <div
+          key={i}
+          className="bg-white rounded-2xl border border-slate-200 border-l-4 border-l-slate-200 p-4 space-y-2"
+        >
           <div className="flex gap-2">
             <div className="h-5 w-20 bg-slate-100 rounded-full" />
             <div className="h-5 w-28 bg-slate-100 rounded-full" />
@@ -318,22 +368,27 @@ function Skeleton() {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const INIT_FILTERS = {
-  classId:   "",
+  classId: "",
   sectionId: "",
   subjectId: "",
-  type:      "",
-  month:     "",
-  year:      "",
-  date:      "",
+  type: "",
+  month: "",
+  year: "",
+  date: "",
 };
 
 export default function PrincipalDiary() {
-  const [classes,    setClasses]    = useState([]);
-  const [entries,    setEntries]    = useState([]);
-  const [stats,      setStats]      = useState({ total: 0, homework: 0, classwork: 0, remark: 0 });
-  const [filters,    setFilters]    = useState(INIT_FILTERS);
-  const [loading,    setLoading]    = useState(false);
-  const [page,       setPage]       = useState(1);
+  const [classes, setClasses] = useState([]);
+  const [entries, setEntries] = useState([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    homework: 0,
+    classwork: 0,
+    remark: 0,
+  });
+  const [filters, setFilters] = useState(INIT_FILTERS);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, pages: 1 });
 
   // ── Fetch filter options ────────────────────────────────────────────────────
@@ -359,15 +414,20 @@ export default function PrincipalDiary() {
       Object.entries(f).forEach(([k, v]) => {
         if (v !== "") params.append(k, v);
       });
-      params.append("page",  pg);
+      params.append("page", pg);
       params.append("limit", 30);
 
-      const res = await axios.get(`${API}/diary/principal?${params.toString()}`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `${API}/diary/principal?${params.toString()}`,
+        {
+          withCredentials: true,
+        },
+      );
 
       setEntries(res.data.data || []);
-      setStats(res.data.stats || { total: 0, homework: 0, classwork: 0, remark: 0 });
+      setStats(
+        res.data.stats || { total: 0, homework: 0, classwork: 0, remark: 0 },
+      );
       setPagination(res.data.pagination || { total: 0, pages: 1 });
     } catch {
       toast.error("Failed to load diary entries");
@@ -401,19 +461,31 @@ export default function PrincipalDiary() {
     return acc;
   }, {});
 
-  const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+  const sortedDates = Object.keys(grouped).sort(
+    (a, b) => new Date(b) - new Date(a),
+  );
   const activeCount = Object.values(filters).filter((v) => v !== "").length;
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar closeOnClick pauseOnHover />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar
+        closeOnClick
+        pauseOnHover
+      />
 
       {/* ── Sticky Header ────────────────────────────────────────────────────── */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-20">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
           <div>
-            <h1 className="text-base font-semibold text-slate-800 leading-tight">School Diary</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Principal view · All classes</p>
+            <h1 className="text-base font-semibold text-slate-800 leading-tight">
+              School Diary
+            </h1>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Principal view · All classes
+            </p>
           </div>
           {activeCount > 0 && (
             <span className="sm:hidden text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full">
@@ -424,14 +496,13 @@ export default function PrincipalDiary() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 py-5 space-y-5">
-
         {/* ── Stat Cards ───────────────────────────────────────────────────── */}
         {/* ✅ FIX: each card now uses its own stat field, not total for all */}
         <div className="grid grid-cols-4 gap-2 sm:gap-3">
-          <StatCard label="Total"     value={stats.total}     color="slate"  />
-          <StatCard label="Homework"  value={stats.homework}  color="amber"  />
-          <StatCard label="Classwork" value={stats.classwork} color="blue"   />
-          <StatCard label="Remarks"   value={stats.remark}    color="violet" />
+          <StatCard label="Total" value={stats.total} color="slate" />
+          <StatCard label="Homework" value={stats.homework} color="amber" />
+          <StatCard label="Classwork" value={stats.classwork} color="blue" />
+          <StatCard label="Remarks" value={stats.remark} color="violet" />
         </div>
 
         {/* ── Filter Bar ───────────────────────────────────────────────────── */}
@@ -447,7 +518,8 @@ export default function PrincipalDiary() {
         {!loading && (
           <div className="flex items-center justify-between px-1">
             <span className="text-xs text-slate-400">
-              {pagination.total} entr{pagination.total !== 1 ? "ies" : "y"} found
+              {pagination.total} entr{pagination.total !== 1 ? "ies" : "y"}{" "}
+              found
               {hasFilters ? " (filtered)" : ""}
             </span>
             {pagination.pages > 1 && (
@@ -473,7 +545,8 @@ export default function PrincipalDiary() {
                   </span>
                   <div className="flex-1 h-px bg-slate-200" />
                   <span className="text-xs text-slate-400 whitespace-nowrap">
-                    {grouped[dateKey].length} entr{grouped[dateKey].length > 1 ? "ies" : "y"}
+                    {grouped[dateKey].length} entr
+                    {grouped[dateKey].length > 1 ? "ies" : "y"}
                   </span>
                 </div>
                 <div className="space-y-3">
@@ -503,8 +576,8 @@ export default function PrincipalDiary() {
                   page <= 3
                     ? i + 1
                     : page >= pagination.pages - 2
-                    ? pagination.pages - 4 + i
-                    : page - 2 + i;
+                      ? pagination.pages - 4 + i
+                      : page - 2 + i;
                 if (p < 1 || p > pagination.pages) return null;
                 return (
                   <button
