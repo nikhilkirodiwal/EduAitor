@@ -97,6 +97,16 @@ const groupSchema = new mongoose.Schema(
       default: false,
     },
 
+    isManuallyRemoved: {
+      type: Boolean,
+      default: false,
+    },
+
+    lastMessage: {
+      type: String,
+      default: "",
+    },
+
     status: {
       type: String,
       enum: ["Active", "Archived"],
@@ -106,8 +116,7 @@ const groupSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-groupSchema.index({ schoolId: 1, type: 1 });
-groupSchema.index({ schoolId: 1, classId: 1 });
+groupSchema.index({ schoolId: 1, type: 1, classId: 1, sectionId: 1 });
 groupSchema.index({ "members.userId": 1 });
 
 export default mongoose.model("Group", groupSchema);

@@ -51,7 +51,7 @@ export const deleteDiary = async (req, res) => {
   }
 };
 
-/// principal controller -
+// ─── GET /api/diary/principal ──────────────────────────────────────────────────
 export const getPrincipalDiary = async (req, res) => {
   try {
     const {
@@ -68,9 +68,9 @@ export const getPrincipalDiary = async (req, res) => {
     } = req.query;
     console.log("Filters:", req.query);
 
-    // schoolId should come from authenticated principal session
     const schoolId = req.user?.school_id || req.query.schoolId;
 
+    // ── Build filter for Mongoose .find() (auto-casts strings → ObjectId) ────
     const filter = { schoolId };
 
     if (classId) filter.classId = classId;
@@ -79,7 +79,7 @@ export const getPrincipalDiary = async (req, res) => {
     if (teacherId) filter.teacherId = teacherId;
     if (type) filter.type = type;
 
-    // Single date filter — match the full day
+    // Single date filter
     if (date) {
       const d = new Date(date);
       const next = new Date(d);
@@ -87,17 +87,14 @@ export const getPrincipalDiary = async (req, res) => {
       filter.date = { $gte: d, $lt: next };
     }
 
-    // Month + year filter (if date not set)
-    if (!date && (month || year)) {
+    // Month + year filter (only when date not set)
+    if (!date && ((month !== undefined && month !== "") || year)) {
       const y = parseInt(year) || new Date().getFullYear();
-      const m = month !== undefined ? parseInt(month) : null; // 0-indexed from frontend
+      const m = month !== undefined && month !== "" ? parseInt(month) : null;
 
       if (m !== null) {
-        const start = new Date(y, m, 1);
-        const end = new Date(y, m + 1, 1);
-        filter.date = { $gte: start, $lt: end };
+        filter.date = { $gte: new Date(y, m, 1), $lt: new Date(y, m + 1, 1) };
       } else {
-        // Only year filter
         filter.date = { $gte: new Date(y, 0, 1), $lt: new Date(y + 1, 0, 1) };
       }
     }
@@ -116,31 +113,42 @@ export const getPrincipalDiary = async (req, res) => {
       Diary.countDocuments(filter),
     ]);
 
-    // Resolve section name from class.details since sectionId has no ref
+    // Resolve section name + room from class.details
     const enriched = entries.map((entry) => {
       const classDetails = entry.classId?.details || [];
+      // Diary.sectionId holds the sectionDetail subdocument's _id, so match on d._id
       const sectionDetail = classDetails.find(
-        (d) => d.sectionId?.toString() === entry.sectionId?.toString(),
+        (d) => d._id?.toString() === entry.sectionId?.toString(),
       );
       return {
         ...entry,
         sectionName: sectionDetail?.sectionId?.name || null,
         roomNumber: sectionDetail?.roomNumber || null,
-        // strip bulky details array from response
         classId: entry.classId
           ? { _id: entry.classId._id, name: entry.classId.name }
           : null,
       };
     });
 
-    // Aggregate stats for the current filter
-    const stats = await Diary.aggregate([
-      { $match: filter },
+    // ── Aggregate stats — must cast strings to ObjectId; aggregate() does NOT ──
+    //    auto-cast the way find() does.
+    const toOid = (id) => new mongoose.Types.ObjectId(id);
+
+    const aggFilter = { schoolId: toOid(schoolId) };
+    if (classId) aggFilter.classId = toOid(classId);
+    if (sectionId) aggFilter.sectionId = toOid(sectionId);
+    if (subjectId) aggFilter.subjectId = toOid(subjectId);
+    if (teacherId) aggFilter.teacherId = toOid(teacherId);
+    if (type) aggFilter.type = type;
+    if (filter.date) aggFilter.date = filter.date; // already a $gte/$lt object
+
+    const statsAgg = await Diary.aggregate([
+      { $match: aggFilter },
       { $group: { _id: "$type", count: { $sum: 1 } } },
     ]);
 
     const typeCounts = { homework: 0, classwork: 0, remark: 0 };
-    stats.forEach(({ _id, count }) => {
+    statsAgg.forEach(({ _id, count }) => {
       if (_id in typeCounts) typeCounts[_id] = count;
     });
 
@@ -164,7 +172,6 @@ export const getPrincipalDiary = async (req, res) => {
 };
 
 // ─── GET /api/diary/principal/filters ─────────────────────────────────────────
-// Returns distinct classes, teachers for filter dropdowns
 export const getPrincipalDiaryFilters = async (req, res) => {
   try {
     const schoolId = req.user?.school_id || req.query.schoolId;
@@ -173,13 +180,17 @@ export const getPrincipalDiaryFilters = async (req, res) => {
       Class.find({ schoolId, status: "Active" })
         .select("name details")
         .populate("details.sectionId", "name")
+        // ✅ FIX: populate subjects inside each section so the frontend
+        //    can build the subject dropdown from class data alone.
+        .populate("details.subjectTeachers.subjectId", "name code")
         .lean(),
+
       Diary.distinct("teacherId", { schoolId }).then((ids) =>
         ids.length
           ? mongoose
               .model("Teacher")
               .find({ _id: { $in: ids } })
-              .select("fullName")
+              .select("fullName name")
               .lean()
           : [],
       ),

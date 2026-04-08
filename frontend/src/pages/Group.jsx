@@ -3,85 +3,148 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
-  FiUsers,
   FiPlus,
   FiSearch,
-  FiMoreVertical,
+  FiX,
   FiSend,
   FiPaperclip,
-  FiHeart,
-  FiMessageCircle,
   FiTrash2,
-  FiEdit2,
-  FiX,
-  FiChevronLeft,
-  FiUserPlus,
-  FiUserMinus,
-  FiArchive,
   FiLoader,
   FiImage,
   FiFile,
   FiDownload,
-  FiClock,
+  FiArrowLeft,
+  FiUserPlus,
+  FiUserMinus,
+  FiUsers,
   FiHash,
+  FiLock,
+  FiChevronDown,
+  FiCheck,
 } from "react-icons/fi";
 import {
-  MdOutlineClass,
   MdOutlineGroups,
   MdAnnouncement,
   MdEventNote,
   MdSubject,
+  MdOutlineClass,
+  MdAdminPanelSettings,
   MdPin,
+  MdGroupAdd,
 } from "react-icons/md";
+import {
+  BsThreeDotsVertical,
+  BsFileEarmarkPdf,
+  BsPlayCircleFill,
+  BsCameraVideo,
+} from "react-icons/bs";
 
-// ─── API BASE ─────────────────────────────────────────────────────────────────
+// ─── API ──────────────────────────────────────────────────────────────────────
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   withCredentials: true,
 });
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
 const GROUP_TYPE_META = {
-  class: { label: "Class", icon: MdOutlineClass, color: "#6366f1" },
-  section: { label: "Section", icon: FiHash, color: "#8b5cf6" },
-  subject: { label: "Subject", icon: MdSubject, color: "#0ea5e9" },
-  teacher: { label: "Teacher", icon: FiUsers, color: "#10b981" },
-  event: { label: "Event", icon: MdEventNote, color: "#f59e0b" },
-  announcement: {
-    label: "Announcement",
-    icon: MdAnnouncement,
-    color: "#ef4444",
+  class: {
+    label: "Class",
+    Icon: MdOutlineClass,
+    bg: "bg-indigo-500",
+    soft: "bg-indigo-50",
+    text: "text-indigo-600",
   },
-  custom: { label: "Custom", icon: MdOutlineGroups, color: "#64748b" },
+  section: {
+    label: "Section",
+    Icon: FiHash,
+    bg: "bg-violet-500",
+    soft: "bg-violet-50",
+    text: "text-violet-600",
+  },
+  subject: {
+    label: "Subject",
+    Icon: MdSubject,
+    bg: "bg-sky-500",
+    soft: "bg-sky-50",
+    text: "text-sky-600",
+  },
+  teacher: {
+    label: "Teacher",
+    Icon: FiUsers,
+    bg: "bg-emerald-500",
+    soft: "bg-emerald-50",
+    text: "text-emerald-600",
+  },
+  event: {
+    label: "Event",
+    Icon: MdEventNote,
+    bg: "bg-amber-500",
+    soft: "bg-amber-50",
+    text: "text-amber-600",
+  },
+  announcement: {
+    label: "Announce",
+    Icon: MdAnnouncement,
+    bg: "bg-rose-500",
+    soft: "bg-rose-50",
+    text: "text-rose-600",
+  },
+  custom: {
+    label: "Custom",
+    Icon: MdOutlineGroups,
+    bg: "bg-slate-500",
+    soft: "bg-slate-50",
+    text: "text-slate-600",
+  },
 };
 
-const AVATAR_COLORS = [
-  "#6366f1",
-  "#8b5cf6",
-  "#0ea5e9",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#ec4899",
-  "#14b8a6",
+const AVATAR_BGS = [
+  "bg-indigo-500",
+  "bg-violet-500",
+  "bg-sky-500",
+  "bg-emerald-500",
+  "bg-amber-500",
+  "bg-rose-500",
+  "bg-pink-500",
+  "bg-teal-500",
 ];
+const avatarBg = (n = "") =>
+  AVATAR_BGS[n.charCodeAt(0) % AVATAR_BGS.length] || "bg-slate-400";
 
-function getAvatarColor(name = "") {
-  const idx = name.charCodeAt(0) % AVATAR_COLORS.length;
-  return AVATAR_COLORS[idx];
+function timeAgo(d) {
+  const diff = (Date.now() - new Date(d)) / 1000;
+  if (diff < 60) return "now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  return new Date(d).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
-
-function timeAgo(date) {
-  const diff = (Date.now() - new Date(date)) / 1000;
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
+function fmt(d) {
+  return new Date(d).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+function fmtDate(d) {
+  const today = new Date(),
+    dt = new Date(d);
+  if (dt.toDateString() === today.toDateString()) return "Today";
+  const y = new Date(today);
+  y.setDate(y.getDate() - 1);
+  if (dt.toDateString() === y.toDateString()) return "Yesterday";
+  return dt.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 // ─── AVATAR ───────────────────────────────────────────────────────────────────
-function Avatar({ name = "", size = 36, url, className = "" }) {
-  const bg = getAvatarColor(name);
+function Avatar({ name = "", size = "w-10 h-10", fs = "text-sm", url }) {
   const initials = name
     .split(" ")
     .map((w) => w[0])
@@ -90,29 +153,10 @@ function Avatar({ name = "", size = 36, url, className = "" }) {
     .toUpperCase();
   return (
     <div
-      className={`avatar-circle ${className}`}
-      style={{
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        background: url ? "transparent" : bg,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: size * 0.38,
-        fontWeight: 700,
-        color: "#fff",
-        flexShrink: 0,
-        overflow: "hidden",
-        fontFamily: "'DM Sans', sans-serif",
-      }}
+      className={`${size} rounded-full ${avatarBg(name)} flex items-center justify-center ${fs} font-bold text-white shrink-0 overflow-hidden`}
     >
       {url ? (
-        <img
-          src={url}
-          alt={name}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
+        <img src={url} alt={name} className="w-full h-full object-cover" />
       ) : (
         initials
       )}
@@ -120,115 +164,37 @@ function Avatar({ name = "", size = 36, url, className = "" }) {
   );
 }
 
-// ─── TYPE BADGE ───────────────────────────────────────────────────────────────
-function TypeBadge({ type }) {
-  const meta = GROUP_TYPE_META[type] || GROUP_TYPE_META.custom;
-  const Icon = meta.icon;
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        padding: "2px 8px",
-        borderRadius: 20,
-        background: meta.color + "18",
-        color: meta.color,
-        fontSize: 11,
-        fontWeight: 600,
-        letterSpacing: 0.3,
-      }}
-    >
-      <Icon size={11} /> {meta.label}
-    </span>
-  );
+function Skel({ cls = "" }) {
+  return <div className={`animate-pulse bg-gray-200 rounded-xl ${cls}`} />;
 }
 
-// ─── SKELETON ─────────────────────────────────────────────────────────────────
-function Skeleton({ w = "100%", h = 16, radius = 6, style = {} }) {
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function Modal({ onClose, title, children, wide = false }) {
   return (
     <div
-      style={{
-        width: w,
-        height: h,
-        borderRadius: radius,
-        background: "var(--skeleton)",
-        animation: "shimmer 1.4s ease-in-out infinite",
-        ...style,
-      }}
-    />
-  );
-}
-
-// ─── GROUP CARD ───────────────────────────────────────────────────────────────
-function GroupCard({ group, isActive, onClick, userType }) {
-  const meta = GROUP_TYPE_META[group.type] || GROUP_TYPE_META.custom;
-  const Icon = meta.icon;
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        padding: "12px 14px",
-        borderRadius: 12,
-        cursor: "pointer",
-        background: isActive ? "var(--accent-soft)" : "transparent",
-        borderLeft: isActive
-          ? `3px solid var(--accent)`
-          : "3px solid transparent",
-        transition: "all 0.15s ease",
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-      }}
-      className="group-card-hover"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
     >
       <div
-        style={{
-          width: 42,
-          height: 42,
-          borderRadius: 10,
-          background: meta.color + "20",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
+        className={`bg-white w-full ${wide ? "sm:max-w-2xl" : "sm:max-w-md"} sm:rounded-2xl rounded-t-2xl shadow-2xl max-h-[90vh] flex flex-col`}
       >
-        <Icon size={20} color={meta.color} />
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontWeight: 600,
-            fontSize: 14,
-            color: "var(--text-primary)",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {group.name}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 shrink-0">
+          <h3 className="text-sm font-bold text-gray-900">{title}</h3>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <FiX size={16} />
+          </button>
         </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            marginTop: 2,
-          }}
-        >
-          <TypeBadge type={group.type} />
-          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-            {group.members?.length || 0} members
-          </span>
-        </div>
+        <div className="overflow-y-auto flex-1">{children}</div>
       </div>
-      {group.status === "Archived" && (
-        <FiArchive size={14} color="var(--text-muted)" />
-      )}
     </div>
   );
 }
+
+const inp =
+  "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all";
 
 // ─── CREATE GROUP MODAL ───────────────────────────────────────────────────────
 function CreateGroupModal({ onClose, onCreated }) {
@@ -237,11 +203,11 @@ function CreateGroupModal({ onClose, onCreated }) {
     type: "custom",
     description: "",
   });
-  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  const handle = async () => {
-    if (!form.name.trim()) return toast.error("Group name is required");
-    setLoading(true);
+  const submit = async () => {
+    if (!form.name.trim()) return toast.error("Group name required");
+    setBusy(true);
     try {
       const { data } = await api.post("/groups", form);
       if (data.success) {
@@ -250,791 +216,778 @@ function CreateGroupModal({ onClose, onCreated }) {
         onClose();
       }
     } catch (e) {
-      toast.error(e.response?.data?.message || "Failed to create group");
+      toast.error(e.response?.data?.message || "Failed");
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   };
 
   return (
-    <ModalOverlay onClose={onClose}>
-      <div style={{ padding: "28px 28px 24px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 22,
-          }}
-        >
-          <h3
-            style={{
-              margin: 0,
-              fontSize: 18,
-              fontWeight: 700,
-              color: "var(--text-primary)",
-            }}
+    <Modal onClose={onClose} title="Create New Group">
+      <div className="p-5 flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Group Name *
+          </label>
+          <input
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="e.g. Grade 10 – Mathematics"
+            className={inp}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Type
+          </label>
+          <select
+            value={form.type}
+            onChange={(e) => setForm({ ...form, type: e.target.value })}
+            className={inp}
           >
-            Create New Group
-          </h3>
+            {Object.entries(GROUP_TYPE_META).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            Description
+          </label>
+          <textarea
+            value={form.description}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder="Optional…"
+            rows={3}
+            className={`${inp} resize-none`}
+          />
+        </div>
+        <div className="flex gap-2 justify-end">
           <button
             onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--text-muted)",
-            }}
+            className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
           >
-            <FiX size={20} />
+            Cancel
+          </button>
+          <button
+            onClick={submit}
+            disabled={busy}
+            className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-60 transition-colors shadow-sm"
+          >
+            {busy ? (
+              <FiLoader size={13} className="animate-spin" />
+            ) : (
+              <FiPlus size={13} />
+            )}
+            {busy ? "Creating…" : "Create"}
           </button>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <FormField label="Group Name *">
-            <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="e.g. Grade 10 - Mathematics"
-              style={inputStyle}
-            />
-          </FormField>
-          <FormField label="Type">
-            <select
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value })}
-              style={inputStyle}
-            >
-              {Object.entries(GROUP_TYPE_META).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v.label}
-                </option>
-              ))}
-            </select>
-          </FormField>
-          <FormField label="Description">
-            <textarea
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
-              placeholder="Optional description..."
-              rows={3}
-              style={{ ...inputStyle, resize: "vertical" }}
-            />
-          </FormField>
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              justifyContent: "flex-end",
-              marginTop: 6,
-            }}
-          >
-            <button onClick={onClose} style={secondaryBtnStyle}>
-              Cancel
-            </button>
-            <button onClick={handle} disabled={loading} style={primaryBtnStyle}>
-              {loading ? (
-                <FiLoader size={14} className="spin" />
-              ) : (
-                <FiPlus size={14} />
-              )}
-              {loading ? "Creating..." : "Create Group"}
-            </button>
-          </div>
-        </div>
       </div>
-    </ModalOverlay>
+    </Modal>
   );
 }
 
-// ─── ADD MEMBERS MODAL ────────────────────────────────────────────────────────
-function AddMembersModal({ groupId, onClose, onAdded }) {
-  const [userId, setUserId] = useState("");
-  const [userType, setUserType] = useState("teacher");
-  const [loading, setLoading] = useState(false);
+// ─── ADD MEMBER MODAL ─────────────────────────────────────────────────────────
+function AddMemberModal({ group, onClose, onAdded }) {
+  const [tab, setTab] = useState("search"); // "search" | "class"
+  const [userType, setUserType] = useState("student");
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [selected, setSelected] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [classId, setClassId] = useState("");
+  const [classPeople, setClassPeople] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [fetching, setFetching] = useState(false);
 
-  const handle = async () => {
-    if (!userId.trim()) return toast.error("User ID is required");
-    setLoading(true);
+  // Load flat classes for picker
+  useEffect(() => {
+    api
+      .get("/classes/flat")
+      .then(({ data }) => {
+        if (data.success) setClasses(data.classes);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Search tab debounce
+  useEffect(() => {
+    if (tab !== "search" || query.length < 2) {
+      setResults([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      setFetching(true);
+      try {
+        const { data } = await api.get(
+          userType === "student" ? "/students" : "/teachers",
+        );
+        if (data.success) {
+          const q = query.toLowerCase();
+          setResults(
+            (data.data || [])
+              .filter((p) => {
+                const name =
+                  p.fullName || `${p.firstName || ""} ${p.lastName || ""}`;
+                return name.toLowerCase().includes(q);
+              })
+              .slice(0, 25),
+          );
+        }
+      } catch {
+      } finally {
+        setFetching(false);
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [query, userType, tab]);
+
+  // Class tab: fetch by classId
+  useEffect(() => {
+    if (!classId || tab !== "class") {
+      setClassPeople([]);
+      return;
+    }
+    const parts = classId.split("_");
+    const cId = parts[0];
+    setFetching(true);
+    api
+      .get(userType === "student" ? "/students" : "/teachers")
+      .then(({ data }) => {
+        if (data.success) {
+          const all = data.data || [];
+          const filtered =
+            userType === "student"
+              ? all.filter(
+                  (p) => (p.classId?._id || p.classId)?.toString() === cId,
+                )
+              : all.filter((p) =>
+                  p.assignedClasses?.some(
+                    (c) => (c._id || c)?.toString() === cId,
+                  ),
+                );
+          setClassPeople(filtered);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setFetching(false));
+  }, [classId, userType, tab]);
+
+  const toggle = (id) =>
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  const getName = (p) =>
+    (p.fullName || `${p.firstName || ""} ${p.lastName || ""}`).trim();
+  const isAlreadyMember = (id) =>
+    group.members?.some(
+      (m) => (m.userId?._id || m.userId)?.toString() === id?.toString(),
+    );
+
+  const doAdd = async (people) => {
+    const toAdd = people.filter((p) => !isAlreadyMember(p._id));
+    if (toAdd.length === 0)
+      return toast.info("All selected are already members");
+    setBusy(true);
     try {
-      const { data } = await api.post(`/groups/${groupId}/members`, {
-        members: [{ userId, userType }],
+      const members = toAdd.map((p) => ({ userId: p._id, userType }));
+      const { data } = await api.post(`/groups/${group._id}/members`, {
+        members,
       });
       if (data.success) {
-        toast.success("Member added!");
-        onAdded();
+        toast.success(`${toAdd.length} member(s) added`);
+        onAdded(data.data);
         onClose();
       }
     } catch (e) {
-      toast.error(e.response?.data?.message || "Failed to add member");
+      toast.error(e.response?.data?.message || "Failed");
     } finally {
-      setLoading(false);
+      setBusy(false);
     }
   };
 
+  const people = tab === "class" ? classPeople : results;
+  const chosen = people.filter((p) => selected.includes(p._id));
+
   return (
-    <ModalOverlay onClose={onClose}>
-      <div style={{ padding: "28px" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 22,
-          }}
-        >
-          <h3
-            style={{
-              margin: 0,
-              fontSize: 18,
-              fontWeight: 700,
-              color: "var(--text-primary)",
-            }}
-          >
-            Add Members
-          </h3>
-          <button
-            onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--text-muted)",
-            }}
-          >
-            <FiX size={20} />
-          </button>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <FormField label="User ID *">
-            <input
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              placeholder="MongoDB ObjectId"
-              style={inputStyle}
-            />
-          </FormField>
-          <FormField label="User Type">
-            <select
-              value={userType}
-              onChange={(e) => setUserType(e.target.value)}
-              style={inputStyle}
+    <Modal onClose={onClose} title="Add Members" wide>
+      <div className="flex flex-col">
+        {/* Tabs */}
+        <div className="flex border-b border-gray-100 px-5 gap-1">
+          {[
+            ["search", "🔍 Search"],
+            ["class", "🏫 By Class"],
+          ].map(([v, l]) => (
+            <button
+              key={v}
+              onClick={() => {
+                setTab(v);
+                setSelected([]);
+                setQuery("");
+              }}
+              className={`px-4 py-2.5 text-xs font-semibold transition-colors ${tab === v ? "text-indigo-600 border-b-2 border-indigo-600" : "text-gray-400 hover:text-gray-600"}`}
             >
-              <option value="teacher">Teacher</option>
-              <option value="student">Student</option>
-              <option value="admin">Admin</option>
-              <option value="staff">Staff</option>
-            </select>
-          </FormField>
-          <div
-            style={{
-              display: "flex",
-              gap: 10,
-              justifyContent: "flex-end",
-              marginTop: 6,
-            }}
-          >
-            <button onClick={onClose} style={secondaryBtnStyle}>
-              Cancel
+              {l}
             </button>
-            <button onClick={handle} disabled={loading} style={primaryBtnStyle}>
-              {loading ? (
-                <FiLoader size={14} className="spin" />
-              ) : (
-                <FiUserPlus size={14} />
-              )}
-              Add Member
-            </button>
-          </div>
+          ))}
         </div>
-      </div>
-    </ModalOverlay>
-  );
-}
 
-// ─── POST CARD ────────────────────────────────────────────────────────────────
-function PostCard({ post, currentUser, onLike, onPin, onDelete, onUpdate }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [editContent, setEditContent] = useState(post.content || "");
-  const [saving, setSaving] = useState(false);
-  const menuRef = useRef(null);
-
-  const isOwner =
-    post.postedBy?.userId?._id === currentUser?.id ||
-    post.postedBy?.userId?.toString() === currentUser?.id;
-  const isAdmin = currentUser?.role === "school_admin";
-  const liked = post.likes?.some((l) => l?.toString() === currentUser?.id);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target))
-        setMenuOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const saveEdit = async () => {
-    if (!editContent.trim()) return;
-    setSaving(true);
-    try {
-      const { data } = await api.put(`/posts/${post._id}`, {
-        content: editContent,
-      });
-      if (data.success) {
-        onUpdate(data.data);
-        setEditing(false);
-        toast.success("Post updated");
-      }
-    } catch (e) {
-      toast.error(e.response?.data?.message || "Update failed");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const posterName = post.postedBy?.userId?.name || "Unknown";
-
-  return (
-    <div
-      style={{
-        background: "var(--card-bg)",
-        border: "1px solid var(--border)",
-        borderRadius: 14,
-        overflow: "hidden",
-        transition: "box-shadow 0.2s ease",
-      }}
-      className="post-card-hover"
-    >
-      {/* Pinned Banner */}
-      {post.isPinned && (
-        <div
-          style={{
-            background: "linear-gradient(90deg, #f59e0b15, #f59e0b08)",
-            borderBottom: "1px solid #f59e0b30",
-            padding: "6px 16px",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: 11,
-            color: "#f59e0b",
-            fontWeight: 600,
-          }}
-        >
-          <MdPin size={11} /> Pinned Post
-        </div>
-      )}
-
-      <div style={{ padding: "16px 18px" }}>
-        {/* Header */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            marginBottom: 12,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <Avatar
-              name={posterName}
-              size={38}
-              url={post.postedBy?.userId?.photo}
-            />
-            <div>
-              <div
-                style={{
-                  fontWeight: 600,
-                  fontSize: 14,
-                  color: "var(--text-primary)",
-                }}
-              >
-                {posterName}
-              </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "var(--text-muted)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                }}
-              >
-                <FiClock size={10} /> {timeAgo(post.createdAt)}
-                <span
-                  style={{
-                    marginLeft: 4,
-                    padding: "1px 6px",
-                    borderRadius: 8,
-                    background: "var(--accent-soft)",
-                    color: "var(--accent)",
-                    fontSize: 10,
-                    fontWeight: 600,
-                  }}
-                >
-                  {post.postedBy?.userType}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Menu */}
-          {(isOwner || isAdmin) && (
-            <div style={{ position: "relative" }} ref={menuRef}>
+        <div className="p-4 flex flex-col gap-3">
+          {/* User type toggle */}
+          <div className="flex gap-1.5 bg-gray-100 p-1 rounded-xl w-fit">
+            {["student", "teacher"].map((t) => (
               <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "var(--text-muted)",
-                  padding: 4,
-                  borderRadius: 6,
+                key={t}
+                onClick={() => {
+                  setUserType(t);
+                  setResults([]);
+                  setClassPeople([]);
+                  setSelected([]);
                 }}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all capitalize ${userType === t ? "bg-white text-indigo-600 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
               >
-                <FiMoreVertical size={16} />
+                {t}s
               </button>
-              {menuOpen && (
-                <div
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    top: 28,
-                    zIndex: 100,
-                    background: "var(--card-bg)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 10,
-                    padding: "4px 0",
-                    boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-                    minWidth: 160,
-                  }}
-                >
-                  {isOwner && (
-                    <MenuItem
-                      icon={<FiEdit2 size={13} />}
-                      label="Edit Post"
-                      onClick={() => {
-                        setEditing(true);
-                        setMenuOpen(false);
-                      }}
-                    />
-                  )}
-                  {isAdmin && (
-                    <MenuItem
-                      icon={<FiPin size={13} />}
-                      label={post.isPinned ? "Unpin Post" : "Pin Post"}
-                      onClick={() => {
-                        onPin(post._id);
-                        setMenuOpen(false);
-                      }}
-                    />
-                  )}
-                  {(isOwner || isAdmin) && (
-                    <MenuItem
-                      icon={<FiTrash2 size={13} />}
-                      label="Delete Post"
-                      danger
-                      onClick={() => {
-                        onDelete(post._id);
-                        setMenuOpen(false);
-                      }}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+            ))}
+          </div>
 
-        {/* Content */}
-        {editing ? (
-          <div style={{ marginBottom: 12 }}>
-            <textarea
-              value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              rows={4}
-              style={{
-                ...inputStyle,
-                width: "100%",
-                boxSizing: "border-box",
-                resize: "vertical",
-              }}
-            />
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                marginTop: 8,
-                justifyContent: "flex-end",
-              }}
+          {/* Search or class picker */}
+          {tab === "search" ? (
+            <div className="relative">
+              <FiSearch
+                size={13}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={`Search ${userType}s by name…`}
+                className={`${inp} pl-9`}
+              />
+            </div>
+          ) : (
+            <select
+              value={classId}
+              onChange={(e) => setClassId(e.target.value)}
+              className={inp}
             >
+              <option value="">— Select Class / Section —</option>
+              {classes.map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.displayName}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {/* People list */}
+          <div className="max-h-60 overflow-y-auto border border-gray-100 rounded-xl">
+            {fetching ? (
+              <div className="p-8 text-center text-gray-400 text-xs flex items-center justify-center gap-2">
+                <FiLoader className="animate-spin" size={14} /> Fetching…
+              </div>
+            ) : people.length === 0 ? (
+              <div className="p-8 text-center text-gray-400 text-xs">
+                {tab === "search"
+                  ? query.length < 2
+                    ? "Type at least 2 characters to search"
+                    : "No results found"
+                  : !classId
+                    ? "Select a class first"
+                    : `No ${userType}s in this class`}
+              </div>
+            ) : (
+              people.map((p) => {
+                const name = getName(p);
+                const already = isAlreadyMember(p._id);
+                const sel = selected.includes(p._id);
+                return (
+                  <div
+                    key={p._id}
+                    onClick={() => !already && toggle(p._id)}
+                    className={`flex items-center gap-3 px-3.5 py-2.5 transition-colors ${already ? "opacity-50 cursor-default" : "cursor-pointer hover:bg-gray-50"} ${sel ? "bg-indigo-50" : ""}`}
+                  >
+                    <Avatar
+                      name={name}
+                      size="w-9 h-9"
+                      fs="text-xs"
+                      url={p.photo?.url || p.documents?.studentPhoto?.url}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 truncate">
+                        {name}
+                      </p>
+                      <p className="text-xs text-gray-400 truncate">
+                        {p.email || p.teacherId || p.studentId || ""}
+                      </p>
+                    </div>
+                    {already ? (
+                      <span className="text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full font-medium shrink-0">
+                        In group
+                      </span>
+                    ) : (
+                      <div
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${sel ? "bg-indigo-600 border-indigo-600" : "border-gray-300"}`}
+                      >
+                        {sel && <FiCheck size={10} className="text-white" />}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-1">
+            <span className="text-xs text-gray-400">
+              {selected.length > 0
+                ? `${selected.length} selected`
+                : "Select to add"}
+            </span>
+            <div className="flex gap-2">
               <button
-                onClick={() => setEditing(false)}
-                style={secondaryBtnStyle}
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
               >
                 Cancel
               </button>
-              <button
-                onClick={saveEdit}
-                disabled={saving}
-                style={primaryBtnStyle}
-              >
-                {saving ? "Saving..." : "Save"}
-              </button>
+              {(tab === "search" ? selected.length > 0 : !!classId) && (
+                <button
+                  onClick={() =>
+                    tab === "class" && selected.length === 0
+                      ? doAdd(classPeople)
+                      : doAdd(chosen)
+                  }
+                  disabled={busy}
+                  className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                >
+                  {busy ? (
+                    <FiLoader size={13} className="animate-spin" />
+                  ) : (
+                    <FiUserPlus size={13} />
+                  )}
+                  {tab === "class" && selected.length === 0
+                    ? "Add All"
+                    : `Add ${selected.length || ""}`}
+                </button>
+              )}
             </div>
           </div>
-        ) : (
-          post.content && (
-            <p
-              style={{
-                margin: "0 0 12px",
-                fontSize: 14,
-                color: "var(--text-primary)",
-                lineHeight: 1.65,
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {post.content}
-            </p>
-          )
-        )}
+        </div>
+      </div>
+    </Modal>
+  );
+}
 
-        {/* Attachments */}
-        {post.attachments?.length > 0 && (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                post.attachments.length === 1 ? "1fr" : "repeat(2, 1fr)",
-              gap: 8,
-              marginBottom: 12,
-            }}
-          >
-            {post.attachments.map((att, i) => (
-              <AttachmentPreview key={i} attachment={att} />
-            ))}
+// ─── MEMBERS PANEL ────────────────────────────────────────────────────────────
+function MembersPanel({ group, isAdmin, onRemove, onAdd }) {
+  const [search, setSearch] = useState("");
+  const members = (group.members || []).filter((m) => {
+    const name = m.userId?.name || m.userId?.fullName || "";
+    return name.toLowerCase().includes(search.toLowerCase());
+  });
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="px-4 py-3 border-b border-gray-100 shrink-0">
+        <div className="flex items-center justify-between mb-2.5">
+          <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+            {group.members?.length || 0} Members
+          </span>
+          {isAdmin && (
+            <button
+              onClick={onAdd}
+              className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              <MdGroupAdd size={13} /> Add
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2">
+          <FiSearch size={11} className="text-gray-400 shrink-0" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search…"
+            className="bg-transparent text-xs text-gray-700 placeholder-gray-400 flex-1 outline-none"
+          />
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto p-2">
+        {members.map((m, i) => {
+          const name =
+            m.userId?.name ||
+            m.userId?.fullName ||
+            m.userId?.toString() ||
+            "Unknown";
+          const photo = m.userId?.photo?.url;
+          return (
+            <div
+              key={i}
+              className="flex items-center gap-2.5 px-2.5 py-2.5 rounded-xl hover:bg-gray-50 transition-colors group"
+            >
+              <Avatar name={name} size="w-9 h-9" fs="text-xs" url={photo} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-semibold text-gray-800 truncate">
+                    {name}
+                  </p>
+                  {m.role === "admin" && (
+                    <MdAdminPanelSettings
+                      size={12}
+                      className="text-amber-500 shrink-0"
+                    />
+                  )}
+                </div>
+                <div className="flex gap-1 mt-0.5">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">
+                    {m.userType}
+                  </span>
+                  {m.role && m.role !== "member" && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-semibold">
+                      {m.role}
+                    </span>
+                  )}
+                </div>
+              </div>
+              {isAdmin && (
+                <button
+                  onClick={() =>
+                    onRemove(m.userId?._id || m.userId?.toString())
+                  }
+                  className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
+                >
+                  <FiUserMinus size={13} />
+                </button>
+              )}
+            </div>
+          );
+        })}
+        {members.length === 0 && (
+          <div className="text-center py-10 text-gray-400">
+            <FiUsers size={28} className="mx-auto mb-2 opacity-20" />
+            <p className="text-xs">{search ? "No match" : "No members"}</p>
           </div>
         )}
-
-        {/* Footer */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 16,
-            paddingTop: 12,
-            borderTop: "1px solid var(--border)",
-          }}
-        >
-          <button
-            onClick={() => onLike(post._id)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: liked ? "#ef4444" : "var(--text-muted)",
-              fontSize: 13,
-              fontWeight: 500,
-              padding: "4px 0",
-              transition: "color 0.15s ease",
-            }}
-          >
-            <FiHeart size={15} fill={liked ? "#ef4444" : "none"} />
-            {post.likes?.length || 0}{" "}
-            {post.likes?.length === 1 ? "Like" : "Likes"}
-          </button>
-          <span
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              color: "var(--text-muted)",
-              fontSize: 13,
-            }}
-          >
-            <FiMessageCircle size={15} />
-            {post.comments?.length || 0} Comments
-          </span>
-        </div>
       </div>
     </div>
   );
 }
 
-// ─── ATTACHMENT PREVIEW ───────────────────────────────────────────────────────
-function AttachmentPreview({ attachment }) {
+// ─── FILE BUBBLE ──────────────────────────────────────────────────────────────
+function FileBubble({ file, isOwn }) {
   const isImage =
-    attachment.fileType === "image" || attachment.type === "image";
-  const isPdf = attachment.fileType === "pdf" || attachment.type === "pdf";
+    file.type === "image" || file.url?.match(/\.(jpe?g|png|gif|webp|svg)/i);
+  const isVideo =
+    file.type === "video" || file.url?.match(/\.(mp4|mov|webm|avi)/i);
+  const isPdf = file.type === "pdf" || file.name?.endsWith(".pdf");
 
-  if (isImage) {
+  if (isImage)
     return (
-      <div
-        style={{
-          borderRadius: 10,
-          overflow: "hidden",
-          border: "1px solid var(--border)",
-          background: "var(--hover)",
-        }}
+      <a
+        href={file.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block"
       >
         <img
-          src={attachment.url}
-          alt={attachment.name || "attachment"}
-          style={{
-            width: "100%",
-            height: 180,
-            objectFit: "cover",
-            display: "block",
-          }}
+          src={file.url}
+          alt={file.name || "image"}
+          className="max-w-[220px] w-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
         />
-      </div>
+      </a>
     );
-  }
+
+  if (isVideo)
+    return (
+      <a
+        href={file.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl no-underline ${isOwn ? "bg-indigo-700/60" : "bg-gray-100"}`}
+      >
+        <div className="w-10 h-10 bg-black/30 rounded-xl flex items-center justify-center shrink-0">
+          <BsPlayCircleFill size={18} className="text-white" />
+        </div>
+        <div className="min-w-0">
+          <p
+            className={`text-xs font-semibold truncate max-w-[140px] ${isOwn ? "text-white" : "text-gray-800"}`}
+          >
+            {file.name || "Video"}
+          </p>
+          <p
+            className={`text-[10px] ${isOwn ? "text-indigo-200" : "text-gray-400"}`}
+          >
+            Tap to play
+          </p>
+        </div>
+      </a>
+    );
 
   return (
     <a
-      href={attachment.url}
+      href={file.url}
       target="_blank"
       rel="noopener noreferrer"
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        padding: "10px 12px",
-        borderRadius: 10,
-        border: "1px solid var(--border)",
-        background: "var(--hover)",
-        textDecoration: "none",
-        color: "var(--text-primary)",
-      }}
+      className={`flex items-center gap-2.5 px-3 py-2 rounded-xl no-underline ${isOwn ? "bg-indigo-700/60" : "bg-gray-100"}`}
     >
-      {isPdf ? (
-        <FiFile size={18} color="#ef4444" />
-      ) : (
-        <FiFile size={18} color="var(--accent)" />
-      )}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 500,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {attachment.name || "File"}
-        </div>
-        {attachment.size && (
-          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-            {(attachment.size / 1024).toFixed(1)} KB
-          </div>
+      <div
+        className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${isPdf ? "bg-rose-100" : "bg-blue-100"}`}
+      >
+        {isPdf ? (
+          <BsFileEarmarkPdf size={17} className="text-rose-500" />
+        ) : (
+          <FiFile size={17} className="text-blue-500" />
         )}
       </div>
-      <FiDownload size={14} color="var(--text-muted)" />
+      <div className="flex-1 min-w-0">
+        <p
+          className={`text-xs font-semibold truncate max-w-[140px] ${isOwn ? "text-white" : "text-gray-800"}`}
+        >
+          {file.name || "File"}
+        </p>
+        {file.size && (
+          <p
+            className={`text-[10px] ${isOwn ? "text-indigo-200" : "text-gray-400"}`}
+          >
+            {(file.size / 1024).toFixed(1)} KB
+          </p>
+        )}
+      </div>
+      <FiDownload
+        size={12}
+        className={isOwn ? "text-indigo-300" : "text-gray-400"}
+      />
     </a>
   );
 }
 
-// ─── CREATE POST ──────────────────────────────────────────────────────────────
-function CreatePost({ groupId, currentUser, onPosted }) {
-  const [content, setContent] = useState("");
-  const [files, setFiles] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const fileRef = useRef(null);
+// ─── MESSAGE BUBBLE ───────────────────────────────────────────────────────────
+function Bubble({ msg, isOwn, isAdmin, onDelete, onPin }) {
+  const [menu, setMenu] = useState(false);
+  const menuRef = useRef(null);
+  const senderName =
+    msg.sender?.userId?.name || msg.sender?.userId?.fullName || "Unknown";
 
-  const submit = async () => {
-    if (!content.trim() && files.length === 0) return;
-    setLoading(true);
-    try {
-      const fd = new FormData();
-      fd.append("groupId", groupId);
-      fd.append("content", content);
-      files.forEach((f) => fd.append("attachments", f));
-
-      const { data } = await api.post("/posts", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      if (data.success) {
-        setContent("");
-        setFiles([]);
-        onPosted(data.data);
-        toast.success("Post created!");
-      }
-    } catch (e) {
-      toast.error(e.response?.data?.message || "Failed to create post");
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const h = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target))
+        setMenu(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
 
   return (
     <div
-      style={{
-        background: "var(--card-bg)",
-        border: "1px solid var(--border)",
-        borderRadius: 14,
-        padding: "16px 18px",
-        marginBottom: 16,
-      }}
+      className={`flex gap-2 mb-1.5 group/bubble ${isOwn ? "flex-row-reverse" : "flex-row"}`}
     >
-      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-        <Avatar name={currentUser?.name || "You"} size={36} />
-        <div style={{ flex: 1 }}>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Share something with this group..."
-            rows={3}
-            style={{
-              ...inputStyle,
-              width: "100%",
-              boxSizing: "border-box",
-              resize: "none",
-              fontSize: 14,
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();
-            }}
-          />
+      {!isOwn && (
+        <Avatar
+          name={senderName}
+          size="w-7 h-7"
+          fs="text-[10px]"
+          url={msg.sender?.userId?.photo?.url}
+        />
+      )}
 
-          {/* File previews */}
-          {files.length > 0 && (
+      <div
+        className={`max-w-[75%] sm:max-w-[62%] flex flex-col ${isOwn ? "items-end" : "items-start"}`}
+      >
+        {/* Sender label */}
+        {!isOwn && (
+          <div className="flex items-center gap-1.5 mb-1 ml-1">
+            <span className="text-[11px] font-bold text-indigo-600">
+              {senderName}
+            </span>
+            {msg.sender?.userType === "admin" && (
+              <MdAdminPanelSettings size={11} className="text-amber-500" />
+            )}
+          </div>
+        )}
+
+        <div
+          className={`relative rounded-2xl px-3.5 py-2.5 shadow-sm
+          ${isOwn ? "bg-indigo-600 text-white rounded-tr-sm" : "bg-white text-gray-900 rounded-tl-sm border border-gray-100"}`}
+        >
+          {/* Pinned indicator */}
+          {msg.isPinned && (
             <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 6,
-                marginTop: 8,
-              }}
+              className={`flex items-center gap-1 text-[10px] font-bold mb-1.5 ${isOwn ? "text-indigo-200" : "text-amber-500"}`}
             >
-              {files.map((f, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "4px 10px",
-                    borderRadius: 20,
-                    background: "var(--accent-soft)",
-                    color: "var(--accent)",
-                    fontSize: 12,
-                    fontWeight: 500,
-                  }}
-                >
-                  {f.type.startsWith("image/") ? (
-                    <FiImage size={11} />
-                  ) : (
-                    <FiFile size={11} />
-                  )}
-                  {f.name}
-                  <button
-                    onClick={() => setFiles(files.filter((_, j) => j !== i))}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "var(--accent)",
-                      padding: 0,
-                      lineHeight: 1,
-                    }}
-                  >
-                    <FiX size={11} />
-                  </button>
-                </div>
-              ))}
+              <MdPin size={10} /> Pinned
             </div>
           )}
 
+          {/* File attachment */}
+          {msg.file?.url && (
+            <div className="mb-2">
+              <FileBubble file={msg.file} isOwn={isOwn} />
+            </div>
+          )}
+
+          {/* Text */}
+          {msg.text && (
+            <p
+              className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${isOwn ? "text-white" : "text-gray-800"}`}
+            >
+              {msg.text}
+            </p>
+          )}
+
+          {/* Footer */}
           <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: 10,
-            }}
+            className={`flex items-center gap-1.5 mt-1 ${isOwn ? "justify-end" : "justify-start"}`}
           >
-            <button
-              onClick={() => fileRef.current?.click()}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "var(--text-muted)",
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 13,
-                padding: "6px 10px",
-                borderRadius: 8,
-                transition: "background 0.15s ease",
-              }}
-              className="attach-btn"
+            <span
+              className={`text-[10px] ${isOwn ? "text-indigo-200" : "text-gray-400"}`}
             >
-              <FiPaperclip size={15} /> Attach
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              multiple
-              accept="image/*,.pdf,.doc,.docx"
-              style={{ display: "none" }}
-              onChange={(e) =>
-                setFiles([...files, ...Array.from(e.target.files)])
-              }
-            />
-            <button
-              onClick={submit}
-              disabled={loading || (!content.trim() && files.length === 0)}
-              style={{
-                ...primaryBtnStyle,
-                opacity: !content.trim() && files.length === 0 ? 0.5 : 1,
-              }}
-            >
-              {loading ? (
-                <FiLoader size={14} className="spin" />
-              ) : (
-                <FiSend size={14} />
-              )}
-              {loading ? "Posting..." : "Post"}
-            </button>
+              {fmt(msg.createdAt)}
+            </span>
+            {isOwn && (
+              <span
+                className={`text-[10px] ${msg.status === "seen" ? "text-sky-300" : "text-indigo-300"}`}
+              >
+                {msg.status === "seen"
+                  ? "✓✓"
+                  : msg.status === "delivered"
+                    ? "✓✓"
+                    : "✓"}
+              </span>
+            )}
           </div>
+
+          {/* Context menu trigger */}
+          {(isOwn || isAdmin) && (
+            <div
+              ref={menuRef}
+              className={`absolute -top-1 ${isOwn ? "left-0 -translate-x-full -ml-1" : "right-0 translate-x-full ml-1"}`}
+            >
+              <button
+                onClick={() => setMenu((v) => !v)}
+                className="opacity-0 group-hover/bubble:opacity-100 transition-opacity p-1.5 bg-white rounded-full shadow border border-gray-100 text-gray-500 hover:text-gray-700"
+              >
+                <BsThreeDotsVertical size={10} />
+              </button>
+              {menu && (
+                <div
+                  className={`absolute z-30 top-6 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[140px] ${isOwn ? "right-0" : "left-0"}`}
+                >
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        onPin(msg._id);
+                        setMenu(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    >
+                      <MdPin size={12} className="text-amber-500" />
+                      {msg.isPinned ? "Unpin" : "Pin"}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      onDelete(msg._id);
+                      setMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-rose-500 hover:bg-rose-50"
+                  >
+                    <FiTrash2 size={12} /> Delete
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-// ─── GROUP DETAIL PANEL ───────────────────────────────────────────────────────
-function GroupDetail({ group, currentUser, onGroupUpdated }) {
-  const [posts, setPosts] = useState([]);
+// ─── DATE SEPARATOR ───────────────────────────────────────────────────────────
+function DateSep({ date }) {
+  return (
+    <div className="flex items-center gap-3 my-4 px-2">
+      <div className="flex-1 h-px bg-gray-200/80" />
+      <span className="text-[10px] font-semibold text-gray-400 bg-gray-100 px-3 py-1 rounded-full shrink-0">
+        {fmtDate(date)}
+      </span>
+      <div className="flex-1 h-px bg-gray-200/80" />
+    </div>
+  );
+}
+
+// ─── PINNED BANNER ────────────────────────────────────────────────────────────
+function PinnedBanner({ msg }) {
+  return (
+    <div className="mx-3 mt-2 mb-1 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl flex items-center gap-2.5 shrink-0">
+      <MdPin size={13} className="text-amber-500 shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">
+          Pinned Message
+        </p>
+        <p className="text-xs text-gray-600 truncate">
+          {msg.text || "📎 Attachment"}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── CHAT WINDOW ──────────────────────────────────────────────────────────────
+function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [activeTab, setActiveTab] = useState("posts");
+  const [text, setText] = useState("");
+  const [file, setFile] = useState(null); // single file only
+  const [sending, setSending] = useState(false);
+  const [showMembers, setShowMembers] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
-  const isAdmin = currentUser?.role === "school_admin";
+  const [showMenu, setShowMenu] = useState(false);
+  const fileRef = useRef(null);
+  const bottomRef = useRef(null);
+  const menuRef = useRef(null);
+  const textareaRef = useRef(null);
 
-  const fetchPosts = useCallback(
+  const isAdmin = currentUser?.role === "school_admin";
+  const isTeacher = currentUser?.role === "teacher_admin";
+  // announcement type → admin only; other types → teacher + admin
+  const canSend =
+    group.type === "announcement" ? isAdmin : isAdmin || isTeacher;
+
+  const meta = GROUP_TYPE_META[group.type] || GROUP_TYPE_META.custom;
+  const { Icon } = meta;
+  const pinnedMsg = messages.find((m) => m.isPinned);
+
+  useEffect(() => {
+    const h = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target))
+        setShowMenu(false);
+    };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const fetchMessages = useCallback(
     async (pg = 1) => {
       setLoading(true);
       try {
-        const { data } = await api.get(`/posts/group/${group._id}`, {
-          params: { page: pg, limit: 10 },
+        const { data } = await api.get(`/messages/group/${group._id}`, {
+          params: { page: pg, limit: 25 },
         });
         if (data.success) {
-          setPosts(pg === 1 ? data.data : (prev) => [...prev, ...data.data]);
+          // backend already returns oldest-first (reversed)
+          setMessages(pg === 1 ? data.data : (prev) => [...data.data, ...prev]);
           setTotalPages(data.totalPages);
           setPage(pg);
         }
-      } catch (e) {
-        toast.error("Failed to load posts");
+      } catch {
+        toast.error("Failed to load messages");
       } finally {
         setLoading(false);
       }
@@ -1043,59 +996,81 @@ function GroupDetail({ group, currentUser, onGroupUpdated }) {
   );
 
   useEffect(() => {
-    fetchPosts(1);
-    setActiveTab("posts");
-  }, [group._id, fetchPosts]);
+    fetchMessages(1);
+  }, [group._id, fetchMessages]);
 
-  const handleLike = async (postId) => {
+  useEffect(() => {
+    if (page === 1 && messages.length > 0) {
+      setTimeout(
+        () => bottomRef.current?.scrollIntoView({ behavior: "auto" }),
+        80,
+      );
+    }
+  }, [messages.length, page]);
+
+  // ── File select: 1 file, 10 MB max ────────────────────────────────────────
+  const handleFile = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.size > MAX_FILE_SIZE) {
+      toast.error("File too large. Max 10 MB.");
+      return;
+    }
+    setFile(f);
+    e.target.value = "";
+  };
+
+  // ── Send ───────────────────────────────────────────────────────────────────
+  const send = async () => {
+    if (!text.trim() && !file) return;
+    setSending(true);
     try {
-      const { data } = await api.patch(`/posts/${postId}/like`);
+      const fd = new FormData();
+      fd.append("groupId", group._id);
+      if (text.trim()) fd.append("text", text.trim());
+      if (file) fd.append("file", file);
+      const { data } = await api.post("/messages", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       if (data.success) {
-        setPosts((prev) =>
-          prev.map((p) => {
-            if (p._id !== postId) return p;
-            const userId = currentUser?.id;
-            const alreadyLiked = p.likes?.some((l) => l?.toString() === userId);
-            return {
-              ...p,
-              likes: alreadyLiked
-                ? p.likes.filter((l) => l?.toString() !== userId)
-                : [...(p.likes || []), userId],
-            };
-          }),
+        setMessages((prev) => [...prev, data.data]);
+        setText("");
+        setFile(null);
+        setTimeout(
+          () => bottomRef.current?.scrollIntoView({ behavior: "smooth" }),
+          60,
         );
       }
     } catch (e) {
-      toast.error("Action failed");
+      toast.error(e.response?.data?.message || "Failed to send");
+    } finally {
+      setSending(false);
     }
   };
 
-  const handlePin = async (postId) => {
+  const deleteMsg = async (id) => {
+    if (!confirm("Delete this message?")) return;
     try {
-      const { data } = await api.patch(`/posts/${postId}/pin`);
+      const { data } = await api.delete(`/messages/${id}`);
       if (data.success) {
-        fetchPosts(1);
-        toast.success(data.isPinned ? "Post pinned" : "Post unpinned");
+        setMessages((prev) => prev.filter((m) => m._id !== id));
+        toast.success("Deleted");
       }
-    } catch (e) {
-      toast.error(e.response?.data?.message || "Action failed");
+    } catch {
+      toast.error("Delete failed");
     }
   };
 
-  const handleDelete = async (postId) => {
-    if (!confirm("Delete this post?")) return;
+  const pinMsg = async (id) => {
     try {
-      const { data } = await api.delete(`/posts/${postId}`);
-      if (data.success) {
-        setPosts((prev) => prev.filter((p) => p._id !== postId));
-        toast.success("Post deleted");
-      }
-    } catch (e) {
-      toast.error(e.response?.data?.message || "Delete failed");
+      await api.patch(`/messages/${id}/pin`);
+      fetchMessages(1);
+    } catch {
+      toast.error("Pin failed");
     }
   };
 
-  const handleRemoveMember = async (memberId) => {
+  const removeMember = async (memberId) => {
     if (!confirm("Remove this member?")) return;
     try {
       const { data } = await api.delete(`/groups/${group._id}/members`, {
@@ -1105,421 +1080,300 @@ function GroupDetail({ group, currentUser, onGroupUpdated }) {
         onGroupUpdated(data.data);
         toast.success("Member removed");
       }
-    } catch (e) {
-      toast.error(e.response?.data?.message || "Failed to remove member");
+    } catch {
+      toast.error("Remove failed");
     }
   };
 
-  const meta = GROUP_TYPE_META[group.type] || GROUP_TYPE_META.custom;
-  const Icon = meta.icon;
+  // ── Group messages by date ─────────────────────────────────────────────────
+  const grouped = [];
+  let lastDate = null;
+  messages.forEach((m) => {
+    const d = new Date(m.createdAt).toDateString();
+    if (d !== lastDate) {
+      grouped.push({ type: "date", date: m.createdAt });
+      lastDate = d;
+    }
+    grouped.push({ type: "msg", data: m });
+  });
 
-  // Separate pinned
-  const pinnedPosts = posts.filter((p) => p.isPinned);
-  const regularPosts = posts.filter((p) => !p.isPinned);
-
-  const canPost = group.permissions?.canPost?.includes(
-    currentUser?.role === "school_admin" ? "admin" : "teacher",
-  );
+  // File icon for attach button preview
+  const fileIcon = file ? (
+    file.type.startsWith("image/") ? (
+      <FiImage size={11} />
+    ) : file.type.startsWith("video/") ? (
+      <BsCameraVideo size={11} />
+    ) : file.name?.endsWith(".pdf") ? (
+      <BsFileEarmarkPdf size={11} />
+    ) : (
+      <FiFile size={11} />
+    )
+  ) : null;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Group Header */}
-      <div
-        style={{
-          padding: "20px 24px 0",
-          borderBottom: "1px solid var(--border)",
-          background: "var(--card-bg)",
-        }}
-      >
+    <div className="flex h-full overflow-hidden">
+      {/* ── Chat column ── */}
+      <div className="flex flex-col flex-1 min-w-0 h-full">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-3 sm:px-4 py-3 bg-white border-b border-gray-100 shadow-sm shrink-0">
+          <button
+            onClick={onBack}
+            className="md:hidden p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <FiArrowLeft size={18} />
+          </button>
+          <div
+            className={`w-10 h-10 rounded-full ${meta.bg} flex items-center justify-center shrink-0 shadow-sm`}
+          >
+            <Icon size={18} className="text-white" />
+          </div>
+          <div
+            className="flex-1 min-w-0 cursor-pointer"
+            onClick={() => setShowMembers((v) => !v)}
+          >
+            <p className="text-sm font-bold text-gray-900 truncate">
+              {group.name}
+            </p>
+            <p className="text-xs text-gray-400 truncate flex items-center gap-1.5">
+              <span>{group.members?.length || 0} members</span>
+              {group.type === "announcement" && (
+                <span className="inline-flex items-center gap-0.5 text-amber-500 font-semibold">
+                  <FiLock size={9} /> Admin only
+                </span>
+              )}
+            </p>
+          </div>
+          <div ref={menuRef} className="relative">
+            <button
+              onClick={() => setShowMenu((v) => !v)}
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+            >
+              <BsThreeDotsVertical size={16} />
+            </button>
+            {showMenu && (
+              <div className="absolute right-0 top-10 z-30 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[170px]">
+                <button
+                  onClick={() => {
+                    setShowMembers((v) => !v);
+                    setShowMenu(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  <FiUsers size={13} />{" "}
+                  {showMembers ? "Hide Members" : "View Members"}
+                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      setShowAddMember(true);
+                      setShowMenu(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    <FiUserPlus size={13} /> Add Member
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Pinned banner */}
+        {pinnedMsg && <PinnedBanner msg={pinnedMsg} />}
+
+        {/* Messages */}
         <div
+          className="flex-1 overflow-y-auto px-3 sm:px-4 py-2"
           style={{
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 14,
-            marginBottom: 16,
+            background: "linear-gradient(160deg,#f0f2f8 0%,#eaecf2 100%)",
           }}
         >
-          <div
-            style={{
-              width: 52,
-              height: 52,
-              borderRadius: 14,
-              background: meta.color + "20",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <Icon size={26} color={meta.color} />
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                flexWrap: "wrap",
-              }}
-            >
-              <h2
-                style={{
-                  margin: 0,
-                  fontSize: 18,
-                  fontWeight: 700,
-                  color: "var(--text-primary)",
-                }}
-              >
-                {group.name}
-              </h2>
-              <TypeBadge type={group.type} />
-              {group.status === "Archived" && (
-                <span
-                  style={{
-                    fontSize: 11,
-                    padding: "2px 8px",
-                    borderRadius: 20,
-                    background: "#64748b20",
-                    color: "#64748b",
-                    fontWeight: 600,
-                  }}
-                >
-                  Archived
-                </span>
-              )}
-            </div>
-            {group.description && (
-              <p
-                style={{
-                  margin: "4px 0 0",
-                  fontSize: 13,
-                  color: "var(--text-muted)",
-                  lineHeight: 1.5,
-                }}
-              >
-                {group.description}
-              </p>
-            )}
-            <div
-              style={{
-                display: "flex",
-                gap: 16,
-                marginTop: 6,
-                fontSize: 12,
-                color: "var(--text-muted)",
-              }}
-            >
-              <span>
-                <FiUsers size={12} style={{ marginRight: 4 }} />
-                {group.members?.length || 0} members
-              </span>
-              {group.classId && (
-                <span>
-                  <MdOutlineClass size={12} style={{ marginRight: 4 }} />
-                  {group.classId.name}
-                </span>
-              )}
-              {group.sectionId && (
-                <span>
-                  <FiHash size={12} style={{ marginRight: 4 }} />
-                  {group.sectionId.name}
-                </span>
-              )}
-              {group.subjectId && (
-                <span>
-                  <MdSubject size={12} style={{ marginRight: 4 }} />
-                  {group.subjectId.name}
-                </span>
-              )}
-            </div>
-          </div>
-          {isAdmin && (
-            <div style={{ display: "flex", gap: 8 }}>
+          {page < totalPages && (
+            <div className="text-center py-2 mb-1">
               <button
-                onClick={() => setShowAddMember(true)}
-                style={{
-                  ...secondaryBtnStyle,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 5,
-                  fontSize: 12,
-                }}
+                onClick={() => fetchMessages(page + 1)}
+                disabled={loading}
+                className="text-xs font-semibold text-indigo-600 bg-white px-4 py-1.5 rounded-full shadow-sm border border-indigo-100 hover:bg-indigo-50 transition-colors"
               >
-                <FiUserPlus size={13} /> Add
+                {loading ? (
+                  <>
+                    <FiLoader
+                      size={11}
+                      className="animate-spin inline mr-1.5"
+                    />
+                    Loading…
+                  </>
+                ) : (
+                  <>
+                    <FiChevronDown size={11} className="inline mr-1" />
+                    Load earlier
+                  </>
+                )}
               </button>
+            </div>
+          )}
+
+          {loading && messages.length === 0 ? (
+            <div className="flex flex-col gap-3 pt-4">
+              {[0, 1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className={`flex gap-2 ${i % 2 === 0 ? "" : "flex-row-reverse"}`}
+                >
+                  <Skel cls="w-7 h-7 rounded-full shrink-0" />
+                  <Skel
+                    cls={`h-14 rounded-2xl ${i % 2 === 0 ? "w-48" : "w-52"}`}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full py-20 text-center">
+              <div
+                className={`w-16 h-16 rounded-full ${meta.bg} flex items-center justify-center mb-4 opacity-20`}
+              >
+                <Icon size={30} className="text-white" />
+              </div>
+              <p className="text-sm font-semibold text-gray-500">
+                No messages yet
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {canSend
+                  ? "Send the first message!"
+                  : "Waiting for an admin to post…"}
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-0.5 pb-2">
+              {grouped.map((item, i) =>
+                item.type === "date" ? (
+                  <DateSep key={`d-${i}`} date={item.date} />
+                ) : (
+                  <Bubble
+                    key={item.data._id}
+                    msg={item.data}
+                    isOwn={
+                      item.data.sender?.userId?._id === currentUser?.id ||
+                      item.data.sender?.userId?.toString() === currentUser?.id
+                    }
+                    isAdmin={isAdmin}
+                    onDelete={deleteMsg}
+                    onPin={pinMsg}
+                  />
+                ),
+              )}
+              <div ref={bottomRef} />
             </div>
           )}
         </div>
 
-        {/* Tabs */}
-        <div style={{ display: "flex", gap: 4 }}>
-          {["posts", "members"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                padding: "8px 16px",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: 13,
-                fontWeight: 600,
-                color:
-                  activeTab === tab ? "var(--accent)" : "var(--text-muted)",
-                borderBottom:
-                  activeTab === tab
-                    ? "2px solid var(--accent)"
-                    : "2px solid transparent",
-                marginBottom: -1,
-                transition: "all 0.15s ease",
-                textTransform: "capitalize",
-              }}
-            >
-              {tab === "posts"
-                ? `Posts (${posts.length})`
-                : `Members (${group.members?.length || 0})`}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      <div style={{ flex: 1, overflow: "auto", padding: "20px 24px" }}>
-        {activeTab === "posts" && (
-          <div>
-            {/* Create Post */}
-            {canPost && (
-              <CreatePost
-                groupId={group._id}
-                currentUser={currentUser}
-                onPosted={(post) => setPosts((prev) => [post, ...prev])}
-              />
-            )}
-
-            {/* Pinned Posts */}
-            {pinnedPosts.length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "#f59e0b",
-                    textTransform: "uppercase",
-                    letterSpacing: 1,
-                    marginBottom: 8,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 5,
-                  }}
-                >
-                  <FiPin size={11} /> Pinned
-                </div>
-                {pinnedPosts.map((p) => (
-                  <PostCard
-                    key={p._id}
-                    post={p}
-                    currentUser={currentUser}
-                    onLike={handleLike}
-                    onPin={handlePin}
-                    onDelete={handleDelete}
-                    onUpdate={(updated) =>
-                      setPosts((prev) =>
-                        prev.map((x) => (x._id === updated._id ? updated : x)),
-                      )
-                    }
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Regular Posts */}
-            {loading && posts.length === 0 ? (
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 12 }}
-              >
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: "var(--card-bg)",
-                      border: "1px solid var(--border)",
-                      borderRadius: 14,
-                      padding: 18,
-                    }}
-                  >
-                    <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-                      <Skeleton w={38} h={38} radius={19} />
-                      <div style={{ flex: 1 }}>
-                        <Skeleton h={14} style={{ marginBottom: 6 }} />
-                        <Skeleton h={12} w="60%" />
-                      </div>
-                    </div>
-                    <Skeleton h={14} style={{ marginBottom: 6 }} />
-                    <Skeleton h={14} w="80%" />
-                  </div>
-                ))}
-              </div>
-            ) : regularPosts.length === 0 && pinnedPosts.length === 0 ? (
-              <EmptyState
-                icon={<FiMessageCircle size={36} />}
-                title="No posts yet"
-                subtitle={
-                  canPost
-                    ? "Be the first to share something!"
-                    : "Nothing has been posted here yet."
-                }
-              />
-            ) : (
-              <div
-                style={{ display: "flex", flexDirection: "column", gap: 14 }}
-              >
-                {regularPosts.map((p) => (
-                  <PostCard
-                    key={p._id}
-                    post={p}
-                    currentUser={currentUser}
-                    onLike={handleLike}
-                    onPin={handlePin}
-                    onDelete={handleDelete}
-                    onUpdate={(updated) =>
-                      setPosts((prev) =>
-                        prev.map((x) => (x._id === updated._id ? updated : x)),
-                      )
-                    }
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Load More */}
-            {page < totalPages && (
-              <div style={{ textAlign: "center", marginTop: 20 }}>
+        {/* Input bar */}
+        {canSend ? (
+          <div className="shrink-0 bg-white border-t border-gray-100 px-3 py-2.5">
+            {/* Attached file pill */}
+            {file && (
+              <div className="flex items-center gap-1.5 mb-2 bg-indigo-50 text-indigo-700 text-xs font-medium px-3 py-1.5 rounded-full w-fit max-w-[260px]">
+                {fileIcon}
+                <span className="truncate flex-1">{file.name}</span>
+                <span className="text-indigo-400 shrink-0">
+                  ({(file.size / 1024).toFixed(0)}KB)
+                </span>
                 <button
-                  onClick={() => fetchPosts(page + 1)}
-                  disabled={loading}
-                  style={secondaryBtnStyle}
+                  onClick={() => setFile(null)}
+                  className="text-indigo-400 hover:text-indigo-700 ml-0.5 shrink-0"
                 >
-                  {loading ? <FiLoader size={14} className="spin" /> : null}
-                  Load more
+                  <FiX size={11} />
                 </button>
               </div>
             )}
-          </div>
-        )}
+            <div className="flex items-end gap-2">
+              {/* Attach — single file, 10 MB */}
+              <button
+                onClick={() => fileRef.current?.click()}
+                title="Attach file (image / video / PDF / doc — max 10 MB)"
+                className="p-2.5 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-colors shrink-0 mb-0.5"
+              >
+                <FiPaperclip size={17} />
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                className="hidden"
+                accept="image/*,video/*,.pdf,.doc,.docx"
+                onChange={handleFile}
+              />
 
-        {activeTab === "members" && (
-          <div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {group.members?.map((member, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "10px 14px",
-                    borderRadius: 10,
-                    background: "var(--card-bg)",
-                    border: "1px solid var(--border)",
-                  }}
-                >
-                  <Avatar
-                    name={
-                      member.userId?.name || member.userId?.toString() || "?"
-                    }
-                    size={36}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{
-                        fontWeight: 600,
-                        fontSize: 13,
-                        color: "var(--text-primary)",
-                      }}
-                    >
-                      {member.userId?.name || member.userId?.toString()}
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        marginTop: 2,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 11,
-                          padding: "1px 7px",
-                          borderRadius: 10,
-                          background: "var(--hover)",
-                          color: "var(--text-muted)",
-                          fontWeight: 500,
-                        }}
-                      >
-                        {member.userType}
-                      </span>
-                      {member.role && member.role !== "member" && (
-                        <span
-                          style={{
-                            fontSize: 11,
-                            padding: "1px 7px",
-                            borderRadius: 10,
-                            background: "var(--accent-soft)",
-                            color: "var(--accent)",
-                            fontWeight: 600,
-                          }}
-                        >
-                          {member.role}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                    Joined {new Date(member.joinedAt).toLocaleDateString()}
-                  </div>
-                  {isAdmin && (
-                    <button
-                      onClick={() =>
-                        handleRemoveMember(
-                          member.userId?.toString() || member.userId,
-                        )
-                      }
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        color: "var(--text-muted)",
-                        padding: 6,
-                        borderRadius: 6,
-                        transition: "color 0.15s ease",
-                      }}
-                      title="Remove member"
-                    >
-                      <FiUserMinus size={15} />
-                    </button>
-                  )}
-                </div>
-              ))}
-              {(!group.members || group.members.length === 0) && (
-                <EmptyState
-                  icon={<FiUsers size={36} />}
-                  title="No members"
-                  subtitle="Add members to this group"
-                />
-              )}
+              {/* Text */}
+              <textarea
+                ref={textareaRef}
+                value={text}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height =
+                    Math.min(e.target.scrollHeight, 120) + "px";
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    send();
+                  }
+                }}
+                placeholder={canSend ? "Type a message… (Enter to send)" : ""}
+                rows={1}
+                className="flex-1 resize-none py-2.5 px-3.5 rounded-2xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:bg-white transition-all overflow-hidden"
+                style={{ minHeight: 42, maxHeight: 120, fontFamily: "inherit" }}
+              />
+
+              {/* Send */}
+              <button
+                onClick={send}
+                disabled={sending || (!text.trim() && !file)}
+                className="p-2.5 text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed rounded-xl transition-colors shrink-0 mb-0.5 shadow-sm"
+              >
+                {sending ? (
+                  <FiLoader size={16} className="animate-spin" />
+                ) : (
+                  <FiSend size={16} />
+                )}
+              </button>
             </div>
           </div>
+        ) : (
+          <div className="shrink-0 bg-gray-50 border-t border-gray-100 px-4 py-3.5 flex items-center justify-center gap-2 text-gray-400">
+            <FiLock size={13} />
+            <span className="text-xs font-medium">
+              {group.type === "announcement"
+                ? "Only admins can send in announcement groups"
+                : "You don't have permission to send messages"}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Members side panel ── */}
+      <div
+        className={`shrink-0 border-l border-gray-100 bg-white overflow-hidden transition-all duration-300 ${showMembers ? "w-64 xl:w-72" : "w-0"}`}
+      >
+        {showMembers && (
+          <MembersPanel
+            group={group}
+            isAdmin={isAdmin}
+            onRemove={removeMember}
+            onAdd={() => {
+              setShowAddMember(true);
+              setShowMembers(false);
+            }}
+          />
         )}
       </div>
 
       {showAddMember && (
-        <AddMembersModal
-          groupId={group._id}
+        <AddMemberModal
+          group={group}
           onClose={() => setShowAddMember(false)}
-          onAdded={async () => {
-            const { data } = await api.get(`/groups/${group._id}`);
-            if (data.success) onGroupUpdated(data.data);
+          onAdded={(updated) => {
+            onGroupUpdated(updated);
           }}
         />
       )}
@@ -1527,207 +1381,108 @@ function GroupDetail({ group, currentUser, onGroupUpdated }) {
   );
 }
 
-// ─── SHARED UI HELPERS ────────────────────────────────────────────────────────
-function ModalOverlay({ onClose, children }) {
+// ─── GROUP SIDEBAR ITEM ───────────────────────────────────────────────────────
+function GroupItem({ group, isActive, onClick }) {
+  const meta = GROUP_TYPE_META[group.type] || GROUP_TYPE_META.custom;
+  const { Icon } = meta;
   return (
     <div
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1000,
-        background: "rgba(0,0,0,0.45)",
-        backdropFilter: "blur(4px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-      }}
+      onClick={onClick}
+      className={`flex items-center gap-3 px-3 py-3 cursor-pointer transition-all rounded-xl mx-1.5 ${isActive ? "bg-indigo-50 shadow-sm" : "hover:bg-gray-50"}`}
     >
       <div
-        style={{
-          background: "var(--card-bg)",
-          borderRadius: 16,
-          width: "100%",
-          maxWidth: 480,
-          boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-          animation: "modalIn 0.2s ease",
-        }}
+        className={`w-12 h-12 rounded-full ${meta.bg} flex items-center justify-center shrink-0 shadow-sm`}
       >
-        {children}
+        <Icon size={21} className="text-white" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-1 mb-0.5">
+          <span
+            className={`text-sm font-semibold truncate ${isActive ? "text-indigo-700" : "text-gray-900"}`}
+          >
+            {group.name}
+          </span>
+          <span className="text-[10px] text-gray-400 shrink-0">
+            {timeAgo(group.updatedAt || group.createdAt)}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${meta.soft} ${meta.text}`}
+          >
+            {meta.label}
+          </span>
+          <span className="text-[10px] text-gray-400">
+            {group.members?.length || 0} members
+          </span>
+          {group.lastMessage && (
+            <span className="text-[10px] text-gray-400 truncate">
+              · {group.lastMessage}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
-function FormField({ label, children }) {
-  return (
-    <div>
-      <label
-        style={{
-          display: "block",
-          fontSize: 12,
-          fontWeight: 600,
-          color: "var(--text-muted)",
-          marginBottom: 5,
-        }}
-      >
-        {label}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-function MenuItem({ icon, label, onClick, danger = false }) {
+// ─── TYPE FILTER CHIP ─────────────────────────────────────────────────────────
+function TypeChip({
+  label,
+  active,
+  onClick,
+  text = "text-indigo-600",
+  soft = "bg-indigo-50",
+}) {
   return (
     <button
       onClick={onClick}
-      style={{
-        width: "100%",
-        padding: "9px 14px",
-        display: "flex",
-        alignItems: "center",
-        gap: 9,
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        fontSize: 13,
-        fontWeight: 500,
-        textAlign: "left",
-        color: danger ? "#ef4444" : "var(--text-primary)",
-        transition: "background 0.1s ease",
-      }}
-      className="menu-item-hover"
+      className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all
+        ${active ? `${soft} ${text}` : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"}`}
     >
-      {icon} {label}
+      {label}
     </button>
   );
 }
 
-function EmptyState({ icon, title, subtitle }) {
-  return (
-    <div
-      style={{
-        textAlign: "center",
-        padding: "48px 24px",
-        color: "var(--text-muted)",
-      }}
-    >
-      <div style={{ marginBottom: 12, opacity: 0.4 }}>{icon}</div>
-      <div
-        style={{
-          fontWeight: 600,
-          fontSize: 15,
-          color: "var(--text-primary)",
-          marginBottom: 4,
-        }}
-      >
-        {title}
-      </div>
-      <div style={{ fontSize: 13 }}>{subtitle}</div>
-    </div>
-  );
-}
-
-// ─── STYLE CONSTANTS ──────────────────────────────────────────────────────────
-const inputStyle = {
-  width: "100%",
-  padding: "9px 12px",
-  borderRadius: 8,
-  border: "1px solid var(--border)",
-  background: "var(--input-bg)",
-  color: "var(--text-primary)",
-  fontSize: 13,
-  outline: "none",
-  fontFamily: "'DM Sans', sans-serif",
-  transition: "border-color 0.15s ease",
-};
-
-const primaryBtnStyle = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 6,
-  padding: "8px 16px",
-  borderRadius: 8,
-  background: "var(--accent)",
-  color: "#fff",
-  border: "none",
-  cursor: "pointer",
-  fontSize: 13,
-  fontWeight: 600,
-  transition: "opacity 0.15s ease",
-  fontFamily: "'DM Sans', sans-serif",
-};
-
-const secondaryBtnStyle = {
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 6,
-  padding: "8px 14px",
-  borderRadius: 8,
-  background: "var(--hover)",
-  color: "var(--text-primary)",
-  border: "1px solid var(--border)",
-  cursor: "pointer",
-  fontSize: 13,
-  fontWeight: 500,
-  transition: "background 0.15s ease",
-  fontFamily: "'DM Sans', sans-serif",
-};
-
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+// ─── ROOT COMPONENT ───────────────────────────────────────────────────────────
 export default function Groups() {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [viewMode, setViewMode] = useState("split"); // split | list
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [theme, setTheme] = useState("light");
+  const [mobileView, setMobileView] = useState("list"); // "list" | "chat"
 
-  // Fetch current user
   useEffect(() => {
     api
       .get("/auth/me")
       .then(({ data }) => {
-        if (data.success) {
+        if (data.success)
           setCurrentUser({
             ...data.user,
-            id: data.user.school_id || data.user.teacher_id,
+            id: data.user.teacher_id || data.user.school_id,
           });
-        }
       })
       .catch(() => {});
-
-    // detect OS theme
-    // const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    // setTheme(mq.matches ? "dark" : "light");
-    // const handler = (e) => setTheme(e.matches ? "dark" : "light");
-    // mq.addEventListener("change", handler);
-    // return () => mq.removeEventListener("change", handler);
-    setTheme("light");
   }, []);
 
-  // Fetch groups
   const fetchGroups = useCallback(async () => {
+    if (!currentUser) return;
     setLoading(true);
     try {
-      const endpoint =
-        currentUser?.role === "school_admin"
+      const ep =
+        currentUser.role === "school_admin"
           ? "/groups/school-groups"
           : "/groups/my-groups";
-      const { data } = await api.get(endpoint, { params: { limit: 50 } });
+      const { data } = await api.get(ep, { params: { limit: 50 } });
       if (data.success) {
         setGroups(data.data || []);
-        if (data.data?.length > 0 && !selectedGroup) {
-          setSelectedGroup(data.data[0]);
-        }
+        if (data.data?.length > 0 && !selected) setSelected(data.data[0]);
       }
-    } catch (e) {
+    } catch {
       toast.error("Failed to load groups");
     } finally {
       setLoading(false);
@@ -1735,433 +1490,202 @@ export default function Groups() {
   }, [currentUser?.role]);
 
   useEffect(() => {
-    if (currentUser) fetchGroups();
-  }, [currentUser, fetchGroups]);
+    fetchGroups();
+  }, [fetchGroups]);
 
-  // Filtered groups
-  const filteredGroups = groups.filter((g) => {
-    const matchSearch = g.name.toLowerCase().includes(search.toLowerCase());
-    const matchType = filterType === "all" || g.type === filterType;
-    return matchSearch && matchType;
-  });
+  const isAdmin = currentUser?.role === "school_admin";
+  const isTeacher = currentUser?.role === "teacher_admin";
 
-  const isDark = false;
+  const filtered = groups.filter(
+    (g) =>
+      g.name.toLowerCase().includes(search.toLowerCase()) &&
+      (filterType === "all" || g.type === filterType),
+  );
 
   return (
     <>
-      {/* Google Fonts */}
       <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
         rel="stylesheet"
       />
-
       <style>{`
-        :root {
-          --accent: ${isDark ? "#6366f1" : "#4f46e5"};
-          --accent-soft: ${isDark ? "#6366f115" : "#4f46e510"};
-          --bg: ${isDark ? "#0f1117" : "#f8f9fc"};
-          --card-bg: ${isDark ? "#161b27" : "#ffffff"};
-          --border: ${isDark ? "#1e2738" : "#e8ebf0"};
-          --text-primary: ${isDark ? "#e2e8f0" : "#1a202c"};
-          --text-muted: ${isDark ? "#64748b" : "#8896a5"};
-          --hover: ${isDark ? "#1e2535" : "#f1f5f9"};
-          --input-bg: ${isDark ? "#1e2535" : "#f8fafc"};
-          --skeleton: ${isDark ? "#1e2535" : "#f0f3f7"};
-        }
-        * { box-sizing: border-box; }
-        body { margin: 0; }
-        @keyframes shimmer {
-          0% { opacity: 1 } 50% { opacity: 0.5 } 100% { opacity: 1 }
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg) } to { transform: rotate(360deg) }
-        }
-        @keyframes modalIn {
-          from { opacity: 0; transform: translateY(12px) scale(0.98) }
-          to { opacity: 1; transform: translateY(0) scale(1) }
-        }
-        .spin { animation: spin 0.8s linear infinite; }
-        .group-card-hover:hover { background: var(--hover) !important; }
-        .post-card-hover:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
-        .menu-item-hover:hover { background: var(--hover); }
-        .attach-btn:hover { background: var(--hover); }
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        * { box-sizing: border-box; } body { margin: 0; }
+        @keyframes modalIn { from { opacity:0; transform:translateY(12px) scale(.97) } to { opacity:1; transform:none } }
+        textarea, input, select { font-family: 'Outfit', sans-serif !important; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-        input:focus, textarea:focus, select:focus {
-          border-color: var(--accent) !important;
-          box-shadow: 0 0 0 3px var(--accent-soft);
-        }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
       `}</style>
 
       <div
-        style={{
-          fontFamily: "'DM Sans', sans-serif",
-          background: "var(--bg)",
-          minHeight: "80vh",
-          display: "flex",
-          flexDirection: "column",
-        }}
+        className="flex h-screen overflow-hidden bg-gray-100"
+        style={{ fontFamily: "'Outfit', sans-serif" }}
       >
-        {/* Top Bar */}
+        {/* ── SIDEBAR ── */}
         <div
-          style={{
-            background: "var(--card-bg)",
-            borderBottom: "1px solid var(--border)",
-            padding: "12px 20px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
+          className={`flex flex-col bg-white border-r border-gray-100 shrink-0 w-full md:w-72 lg:w-80 ${mobileView === "chat" ? "hidden md:flex" : "flex"}`}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                background: "var(--accent)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <MdOutlineGroups size={18} color="#fff" />
+          {/* Top bar */}
+          <div className="px-4 pt-4 pb-3 border-b border-gray-100 shrink-0">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
+                  <MdOutlineGroups size={17} className="text-white" />
+                </div>
+                <span className="text-base font-bold text-gray-900">
+                  Groups
+                </span>
+                <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                  {groups.length}
+                </span>
+              </div>
+              {(isAdmin || isTeacher) && (
+                <button
+                  onClick={() => setShowCreate(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
+                >
+                  <FiPlus size={13} /> New
+                </button>
+              )}
             </div>
-            <span
-              style={{
-                fontWeight: 700,
-                fontSize: 16,
-                color: "var(--text-primary)",
-              }}
+            {/* Search */}
+            <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2.5 mb-3">
+              <FiSearch size={13} className="text-gray-400 shrink-0" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search groups…"
+                className="bg-transparent text-sm text-gray-700 placeholder-gray-400 flex-1 outline-none"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <FiX size={12} />
+                </button>
+              )}
+            </div>
+            {/* Filter chips */}
+            <div
+              className="flex gap-1.5 overflow-x-auto pb-1"
+              style={{ scrollbarWidth: "none" }}
             >
-              Groups
-            </span>
-            <span
-              style={{
-                fontSize: 12,
-                padding: "2px 8px",
-                borderRadius: 10,
-                background: "var(--accent-soft)",
-                color: "var(--accent)",
-                fontWeight: 600,
-              }}
-            >
-              {groups.length}
-            </span>
+              <TypeChip
+                label="All"
+                active={filterType === "all"}
+                onClick={() => setFilterType("all")}
+              />
+              {Object.entries(GROUP_TYPE_META).map(([k, v]) => (
+                <TypeChip
+                  key={k}
+                  label={v.label}
+                  active={filterType === k}
+                  onClick={() => setFilterType(k)}
+                  text={v.text}
+                  soft={v.soft}
+                />
+              ))}
+            </div>
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {/* <button
-              onClick={() => setTheme(isDark ? "light" : "dark")}
-              style={{
-                ...secondaryBtnStyle,
-                padding: "6px 10px",
-                fontSize: 16,
-              }}
-              title="Toggle theme"
-            >
-              {isDark ? "☀️" : "🌙"}
-            </button> */}
-            {(currentUser?.role === "school_admin" ||
-              currentUser?.role === "teacher_admin") && (
-              <button
-                onClick={() => setShowCreate(true)}
-                style={primaryBtnStyle}
-              >
-                <FiPlus size={14} /> New Group
-              </button>
+
+          {/* Group list */}
+          <div className="flex-1 overflow-y-auto py-2">
+            {loading ? (
+              <div className="flex flex-col gap-1 px-3">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex gap-3 items-center p-3">
+                    <Skel cls="w-12 h-12 rounded-full" />
+                    <div className="flex-1 flex flex-col gap-2">
+                      <Skel cls="h-3 w-3/4" /> <Skel cls="h-2.5 w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                <MdOutlineGroups size={32} className="mb-2 opacity-20" />
+                <p className="text-sm">
+                  {search ? "No groups found" : "No groups yet"}
+                </p>
+              </div>
+            ) : (
+              filtered.map((g) => (
+                <GroupItem
+                  key={g._id}
+                  group={g}
+                  isActive={selected?._id === g._id}
+                  onClick={() => {
+                    setSelected(g);
+                    setMobileView("chat");
+                  }}
+                />
+              ))
             )}
           </div>
         </div>
 
-        {/* Main Layout */}
+        {/* ── CHAT PANEL ── */}
         <div
-          style={{
-            display: "flex",
-            flex: 1,
-            overflow: "hidden",
-            height: "calc(100vh - 57px)",
-          }}
+          className={`flex-1 min-w-0 h-full overflow-hidden flex flex-col ${mobileView === "list" ? "hidden md:flex" : "flex"}`}
         >
-          {/* Sidebar */}
-          <div
-            style={{
-              width: sidebarCollapsed ? 0 : 280,
-              flexShrink: 0,
-              borderRight: "1px solid var(--border)",
-              background: "var(--card-bg)",
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-              transition: "width 0.25s ease",
-            }}
-          >
-            {!sidebarCollapsed && (
-              <>
-                {/* Search + Filter */}
-                <div style={{ padding: "14px 14px 10px" }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "7px 10px",
-                      borderRadius: 8,
-                      background: "var(--input-bg)",
-                      border: "1px solid var(--border)",
-                      marginBottom: 10,
-                    }}
-                  >
-                    <FiSearch size={14} color="var(--text-muted)" />
-                    <input
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search groups..."
-                      style={{
-                        background: "none",
-                        border: "none",
-                        outline: "none",
-                        fontSize: 13,
-                        color: "var(--text-primary)",
-                        flex: 1,
-                        fontFamily: "'DM Sans', sans-serif",
-                      }}
-                    />
-                    {search && (
-                      <button
-                        onClick={() => setSearch("")}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          color: "var(--text-muted)",
-                          padding: 0,
-                        }}
-                      >
-                        <FiX size={12} />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Type filter chips */}
-                  <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                    <TypeChip
-                      label="All"
-                      value="all"
-                      active={filterType === "all"}
-                      onClick={() => setFilterType("all")}
-                    />
-                    {Object.entries(GROUP_TYPE_META).map(([k, v]) => (
-                      <TypeChip
-                        key={k}
-                        label={v.label}
-                        value={k}
-                        active={filterType === k}
-                        onClick={() => setFilterType(k)}
-                        color={v.color}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Group List */}
-                <div
-                  style={{ flex: 1, overflow: "auto", padding: "0 8px 12px" }}
-                >
-                  {loading ? (
-                    <div
-                      style={{
-                        padding: "8px 6px",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 8,
-                      }}
-                    >
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div
-                          key={i}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                            padding: "8px 6px",
-                          }}
-                        >
-                          <Skeleton w={42} h={42} radius={10} />
-                          <div style={{ flex: 1 }}>
-                            <Skeleton h={13} style={{ marginBottom: 6 }} />
-                            <Skeleton h={11} w="60%" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : filteredGroups.length === 0 ? (
-                    <div
-                      style={{
-                        textAlign: "center",
-                        padding: "32px 16px",
-                        color: "var(--text-muted)",
-                        fontSize: 13,
-                      }}
-                    >
-                      {search ? "No groups found" : "No groups yet"}
-                    </div>
-                  ) : (
-                    filteredGroups.map((g) => (
-                      <GroupCard
-                        key={g._id}
-                        group={g}
-                        isActive={selectedGroup?._id === g._id}
-                        onClick={() => setSelectedGroup(g)}
-                        userType={currentUser?.role}
-                      />
-                    ))
-                  )}
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Toggle Sidebar Button */}
-          <button
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            style={{
-              position: "absolute",
-              left: sidebarCollapsed ? 0 : 274,
-              top: "50%",
-              transform: "translateY(-50%)",
-              zIndex: 10,
-              width: 20,
-              height: 44,
-              background: "var(--card-bg)",
-              border: "1px solid var(--border)",
-              borderLeft: sidebarCollapsed ? "1px solid var(--border)" : "none",
-              borderRadius: sidebarCollapsed ? "0 6px 6px 0" : "0 6px 6px 0",
-              cursor: "pointer",
-              color: "var(--text-muted)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: "left 0.25s ease",
-              boxShadow: "2px 0 8px rgba(0,0,0,0.06)",
-            }}
-          >
-            <FiChevronLeft
-              size={12}
-              style={{
-                transform: sidebarCollapsed ? "rotate(180deg)" : "none",
-                transition: "transform 0.25s ease",
+          {selected ? (
+            <ChatWindow
+              key={selected._id}
+              group={selected}
+              currentUser={currentUser}
+              onGroupUpdated={(updated) => {
+                setGroups((prev) =>
+                  prev.map((g) => (g._id === updated._id ? updated : g)),
+                );
+                setSelected(updated);
               }}
+              onBack={() => setMobileView("list")}
             />
-          </button>
-
-          {/* Detail Panel */}
-          <div
-            style={{
-              flex: 1,
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            {selectedGroup ? (
-              <GroupDetail
-                key={selectedGroup._id}
-                group={selectedGroup}
-                currentUser={currentUser}
-                onGroupUpdated={(updated) => {
-                  setGroups((prev) =>
-                    prev.map((g) => (g._id === updated._id ? updated : g)),
-                  );
-                  setSelectedGroup(updated);
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexDirection: "column",
-                  gap: 12,
-                  color: "var(--text-muted)",
-                }}
-              >
-                <div style={{ opacity: 0.3 }}>
-                  <MdOutlineGroups size={64} />
-                </div>
-                <div
-                  style={{
-                    fontWeight: 600,
-                    fontSize: 16,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  Select a group
-                </div>
-                <div style={{ fontSize: 13 }}>
-                  Choose a group from the sidebar to see posts and members
-                </div>
-                {(currentUser?.role === "school_admin" ||
-                  currentUser?.role === "teacher_admin") && (
-                  <button
-                    onClick={() => setShowCreate(true)}
-                    style={{ ...primaryBtnStyle, marginTop: 8 }}
-                  >
-                    <FiPlus size={14} /> Create your first group
-                  </button>
-                )}
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 text-center px-6">
+              <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                <MdOutlineGroups size={38} className="text-indigo-400" />
               </div>
-            )}
-          </div>
+              <p className="text-base font-bold text-gray-700 mb-1">
+                Select a group
+              </p>
+              <p className="text-sm text-gray-400">
+                Choose a group from the sidebar to open the chat
+              </p>
+              {(isAdmin || isTeacher) && (
+                <button
+                  onClick={() => setShowCreate(true)}
+                  className="mt-5 flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
+                >
+                  <FiPlus size={14} /> Create a group
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Modals */}
       {showCreate && (
         <CreateGroupModal
           onClose={() => setShowCreate(false)}
-          onCreated={(group) => {
-            setGroups((prev) => [group, ...prev]);
-            setSelectedGroup(group);
+          onCreated={(g) => {
+            setGroups((prev) => [g, ...prev]);
+            setSelected(g);
+            setMobileView("chat");
           }}
         />
       )}
 
       <ToastContainer
         position="bottom-right"
-        autoClose={3000}
-        theme={isDark ? "dark" : "light"}
+        autoClose={3200}
         toastStyle={{
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Outfit', sans-serif",
           fontSize: 13,
-          borderRadius: 10,
+          borderRadius: 12,
         }}
       />
     </>
-  );
-}
-
-// ─── TYPE CHIP ────────────────────────────────────────────────────────────────
-function TypeChip({ label, value, active, onClick, color }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        padding: "3px 9px",
-        borderRadius: 20,
-        background: active ? (color || "var(--accent)") + "20" : "transparent",
-        border: `1px solid ${active ? (color || "var(--accent)") + "50" : "var(--border)"}`,
-        color: active ? color || "var(--accent)" : "var(--text-muted)",
-        fontSize: 11,
-        fontWeight: 600,
-        cursor: "pointer",
-        transition: "all 0.15s ease",
-        fontFamily: "'DM Sans', sans-serif",
-      }}
-    >
-      {label}
-    </button>
   );
 }

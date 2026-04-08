@@ -410,7 +410,9 @@ export const getCompleteSyllabus = async (req, res) => {
         const subjectIds = [
           ...new Map(
             classItem.details
-              .flatMap((section) => section.subjects)
+              .flatMap((section) =>
+                section.subjectTeachers?.map((st) => st.subjectId),
+              )
               .filter(Boolean)
               .map((id) => [id.toString(), id]),
           ).values(),

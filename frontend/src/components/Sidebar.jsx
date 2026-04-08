@@ -148,6 +148,7 @@ const Sidebar = ({ closeSidebar }) => {
       ],
     },
     { name: "Group", icon: <FaUserGroup />, path: "/school/group" },
+    { name: "Diary", icon: <FaBookOpen />, path: "/school/diary" },
     { name: "Events", icon: <FaCalendar />, path: "/school/event" },
     { name: "Notices", icon: <FaBell />, path: "/school/notice" },
     { name: "Calendar", icon: <FaCalendarAlt />, path: "/school/calendar" },

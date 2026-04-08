@@ -2,6 +2,11 @@ import Teacher from "../models/teacher.js";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import { deleteFromCloudinary } from "../utils/deleteFromCloudinary.js";
 import bcrypt from "bcryptjs";
+import {
+  syncTeacherGroups,
+  removeTeacherFromOldGroups,
+} from "../utils/groupSync.js";
+
 /* ================= GENERATE TEACHER ID ================= */
 
 const generateTeacherId = async (schoolId) => {
@@ -74,6 +79,9 @@ export const createTeacher = async (req, res) => {
       subjects,
       schoolId,
     });
+
+    // Sync teacher groups based on assigned classes and subjects
+    await syncTeacherGroups(teacher);
 
     res.status(201).json({
       success: true,
@@ -180,6 +188,8 @@ export const updateTeacher = async (req, res) => {
       schoolId: safeSchoolId,
     });
 
+    const oldTeacher = teacher.toObject(); // for group sync comparison
+
     if (!teacher) {
       return res.status(404).json({
         success: false,
@@ -252,6 +262,15 @@ export const updateTeacher = async (req, res) => {
       { new: true },
     ).populate("assignedClasses", "name className section");
 
+    const classesChanged =
+      JSON.stringify(oldTeacher.assignedClasses) !==
+      JSON.stringify(updatedTeacher.assignedClasses);
+
+    if (classesChanged) {
+      await removeTeacherFromOldGroups(oldTeacher);
+      await syncTeacherGroups(updatedTeacher);
+    }
+
     res.json({
       success: true,
       message: "Teacher updated successfully",
@@ -296,6 +315,18 @@ export const deleteTeacher = async (req, res) => {
     if (teacher.photo?.public_id) {
       await deleteFromCloudinary(teacher.photo.public_id);
     }
+
+    await Group.updateMany(
+      {
+        schoolId,
+        "members.userId": teacher._id,
+      },
+      {
+        $pull: {
+          members: { userId: teacher._id },
+        },
+      },
+    );
 
     await teacher.deleteOne();
 

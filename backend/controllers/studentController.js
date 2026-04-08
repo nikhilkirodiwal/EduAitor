@@ -1,6 +1,11 @@
 import Student from "../models/student.js";
+import Group from "../models/group.js";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import { deleteFromCloudinary } from "../utils/deleteFromCloudinary.js";
+import {
+  syncStudentGroups,
+  removeStudentFromOldGroups,
+} from "../utils/groupSync.js";
 
 /* ================= GENERATE STUDENT ID ================= */
 
@@ -71,6 +76,9 @@ export const createStudent = async (req, res) => {
       totalPaid: 0,
       documents,
     });
+
+    // AUTO ADD TO GROUPS
+    await syncStudentGroups(student);
 
     res.status(201).json({
       success: true,
@@ -179,6 +187,8 @@ export const updateStudent = async (req, res) => {
       schoolId,
     });
 
+    const oldStudent = student.toObject(); // Reference for group sync
+
     if (!student) {
       return res.status(404).json({
         success: false,
@@ -231,6 +241,21 @@ export const updateStudent = async (req, res) => {
       .populate("classId", "name className")
       .populate("sectionId", "name sectionName");
 
+
+    const classChanged =
+      oldStudent.classId?.toString() !== updatedStudent.classId?.toString();
+
+    const sectionChanged =
+      oldStudent.sectionId?.toString() !== updatedStudent.sectionId?.toString();
+
+    if (classChanged || sectionChanged) {
+      // remove from old groups
+      await removeStudentFromOldGroups(oldStudent);
+
+      // add to new groups
+      await syncStudentGroups(updatedStudent);
+    }
+
     res.json({
       success: true,
       message: "Student updated successfully",
@@ -279,6 +304,18 @@ export const deleteStudent = async (req, res) => {
         await deleteFromCloudinary(docs[key].public_id);
       }
     }
+
+    await Group.updateMany(
+      {
+        schoolId,
+        "members.userId": student._id,
+      },
+      {
+        $pull: {
+          members: { userId: student._id },
+        },
+      },
+    );
 
     await student.deleteOne();
 

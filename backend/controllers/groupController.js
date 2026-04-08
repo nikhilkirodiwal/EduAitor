@@ -1,5 +1,8 @@
 import Group from "../models/group.js";
-import Post from "../models/post.js";
+import Message from "../models/message.js";
+import Student from "../models/student.js";
+import Teacher from "../models/teacher.js";
+import Class from "../models/class.js";
 
 // ─── Auth normalizer ──────────────────────────────────────────────────────────
 // JWT payload shape: { role, school_id, teacher_id?, email, name? }
@@ -41,6 +44,102 @@ export const createGroup = async (req, res) => {
 
     const { name, type, description, classId, sectionId, subjectId } = req.body;
 
+    let members = [];
+
+    // ─── CLASS GROUP ─────────────────────────────
+    if (type === "class") {
+      const students = await Student.find({ schoolId, classId }).select("_id");
+
+      const teachers = await Teacher.find({
+        schoolId,
+        assignedClasses: classId,
+      }).select("_id");
+
+      members = [
+        ...students.map((s) => ({
+          userId: s._id,
+          userType: "student",
+        })),
+        ...teachers.map((t) => ({
+          userId: t._id,
+          userType: "teacher",
+        })),
+      ];
+    }
+
+    // ─── SECTION GROUP ───────────────────────────
+    if (type === "section") {
+      const students = await Student.find({
+        schoolId,
+        classId,
+        sectionId,
+      }).select("_id");
+
+      members = students.map((s) => ({
+        userId: s._id,
+        userType: "student",
+      }));
+    }
+
+    // ─── SUBJECT GROUP ───────────────────────────
+    if (type === "subject") {
+      const students = await Student.find({
+        schoolId,
+        classId,
+        sectionId,
+      }).select("_id");
+
+      const classData = await Class.findById(classId);
+
+      if (!classData) {
+        return res.status(400).json({
+          success: false,
+          message: "Class not found",
+        });
+      }
+
+      let teacherIds = [];
+
+      const section = classData?.details.find(
+        (d) => d.sectionId?.toString() === sectionId,
+      );
+
+      if (section) {
+        teacherIds = [...new Set(teacherIds.map(String))]
+          .filter((st) => st.subjectId?.toString() === subjectId)
+          .map((st) => st.teacherId);
+      }
+
+      members = [
+        ...students.map((s) => ({
+          userId: s._id,
+          userType: "student",
+        })),
+        ...teacherIds.map((t) => ({
+          userId: t,
+          userType: "teacher",
+        })),
+      ];
+    }
+
+    // ─── TEACHER / CUSTOM GROUP ──────────────────
+    if (["teacher", "custom"].includes(type)) {
+      members = req.body.members || [];
+    }
+
+    // Always include creator as admin
+    const exists = members.some(
+      (m) => m.userId.toString() === userId.toString(),
+    );
+
+    if (!exists) {
+      members.push({
+        userId,
+        userType,
+        role: "admin",
+      });
+    }
+
     const group = await Group.create({
       name,
       type,
@@ -50,11 +149,13 @@ export const createGroup = async (req, res) => {
       sectionId: sectionId || null,
       subjectId: subjectId || null,
       createdBy: { userId, userType },
-      members: [{ userId, userType, role: "admin" }],
+      members,
+      isAutoCreated: ["class", "section", "subject"].includes(type),
     });
 
     res.status(201).json({ success: true, data: group });
   } catch (err) {
+    console.error("Create group error:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
@@ -116,7 +217,7 @@ export const getAllSchoolGroups = async (req, res) => {
     const limitNum = Math.min(50, parseInt(limit));
 
     const skip = (pageNum - 1) * limitNum;
-    
+
     const [groups, total] = await Promise.all([
       Group.find(filter)
         .populate("classId", "name")
@@ -190,7 +291,7 @@ export const updateGroup = async (req, res) => {
         .json({ success: false, message: "Insufficient permissions" });
     }
 
-    const allowedFields = ["name", "description", "permissions", "status"];
+    const allowedFields = ["name", "description", "status"];
     allowedFields.forEach((field) => {
       if (req.body[field] !== undefined) group[field] = req.body[field];
     });
@@ -263,8 +364,21 @@ export const addMembers = async (req, res) => {
         .json({ success: false, message: "Insufficient permissions" });
     }
 
+    if (group.isAutoCreated && userType !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only admin can modify auto-created groups",
+      });
+    }
+
+    const validMembers = members.filter(
+      (m) =>
+        m.userId &&
+        ["student", "teacher", "admin", "staff"].includes(m.userType),
+    );
+
     const existingIds = new Set(group.members.map((m) => m.userId.toString()));
-    const newMembers = members.filter(
+    const newMembers = validMembers.filter(
       (m) => !existingIds.has(m.userId.toString()),
     );
 
@@ -312,8 +426,19 @@ export const removeMembers = async (req, res) => {
         .json({ success: false, message: "Insufficient permissions" });
     }
 
-    group.members = group.members.filter(
-      (m) => !memberIds.map(String).includes(m.userId.toString()),
+    if (memberIds.includes(group.createdBy.userId.toString())) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot remove group creator",
+      });
+    }
+
+    const removeSet = new Set(memberIds.map(String));
+
+    group.members = group.members.map((m) =>
+      removeSet.has(m.userId.toString())
+        ? { ...m.toObject(), isManuallyRemoved: true }
+        : m,
     );
     await group.save();
 
