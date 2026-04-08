@@ -19,12 +19,10 @@ export const loginUser = async (req, res) => {
       password === process.env.SUPER_ADMIN_PASSWORD
     ) {
       const token = generateToken({ role: "super_admin", email });
-
-      const isProd = process.env.CLIENT_URL?.includes("https");
       res.cookie("token", token, {
         httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       });
       return res.json({
         success: true,
@@ -49,12 +47,10 @@ export const loginUser = async (req, res) => {
         teacher_id: teacher._id,
         name: teacher.fullName,
       });
-
-      const isProd = process.env.CLIENT_URL?.includes("https");
       res.cookie("token", token, {
         httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       });
 
       return res.json({
@@ -89,12 +85,10 @@ export const loginUser = async (req, res) => {
       name: school.school_name,
     });
     console.log("Generated token:", token);
-
-    const isProd = process.env.CLIENT_URL?.includes("https");
     res.cookie("token", token, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
     return res.json({

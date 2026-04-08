@@ -1,10 +1,6 @@
 import jwt from "jsonwebtoken";
 
 export const authMiddleware = (req, res, next) => {
-  if (req.method === "OPTIONS") {
-    return next();
-  }
-
   const token = req.cookies.token;
 
   if (!token) {
