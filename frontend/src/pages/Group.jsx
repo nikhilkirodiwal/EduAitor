@@ -696,7 +696,7 @@ function FileBubble({ file, isOwn }) {
         <img
           src={file.url}
           alt={file.name || "image"}
-          className="max-w-[220px] w-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
+          className="max-w-55 w-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
         />
       </a>
     );
@@ -714,7 +714,7 @@ function FileBubble({ file, isOwn }) {
         </div>
         <div className="min-w-0">
           <p
-            className={`text-xs font-semibold truncate max-w-[140px] ${isOwn ? "text-white" : "text-gray-800"}`}
+            className={`text-xs font-semibold truncate max-w-35 ${isOwn ? "text-white" : "text-gray-800"}`}
           >
             {file.name || "Video"}
           </p>
@@ -745,7 +745,7 @@ function FileBubble({ file, isOwn }) {
       </div>
       <div className="flex-1 min-w-0">
         <p
-          className={`text-xs font-semibold truncate max-w-[140px] ${isOwn ? "text-white" : "text-gray-800"}`}
+          className={`text-xs font-semibold truncate max-w-35 ${isOwn ? "text-white" : "text-gray-800"}`}
         >
           {file.name || "File"}
         </p>
@@ -832,7 +832,7 @@ function Bubble({ msg, isOwn, isAdmin, onDelete, onPin }) {
           {/* Text */}
           {msg.text && (
             <p
-              className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${isOwn ? "text-white" : "text-gray-800"}`}
+              className={`text-sm leading-relaxed whitespace-pre-wrap wrap-break-word ${isOwn ? "text-white" : "text-gray-800"}`}
             >
               {msg.text}
             </p>
@@ -874,7 +874,7 @@ function Bubble({ msg, isOwn, isAdmin, onDelete, onPin }) {
               </button>
               {menu && (
                 <div
-                  className={`absolute z-30 top-6 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[140px] ${isOwn ? "right-0" : "left-0"}`}
+                  className={`absolute z-30 top-6 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-35 ${isOwn ? "right-0" : "left-0"}`}
                 >
                   {isAdmin && (
                     <button
@@ -1151,7 +1151,7 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
               <BsThreeDotsVertical size={16} />
             </button>
             {showMenu && (
-              <div className="absolute right-0 top-10 z-30 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[170px]">
+              <div className="absolute right-0 top-10 z-30 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-42.5">
                 <button
                   onClick={() => {
                     setShowMembers((v) => !v);
@@ -1272,7 +1272,7 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
           <div className="shrink-0 bg-white border-t border-gray-100 px-3 py-2.5">
             {/* Attached file pill */}
             {file && (
-              <div className="flex items-center gap-1.5 mb-2 bg-indigo-50 text-indigo-700 text-xs font-medium px-3 py-1.5 rounded-full w-fit max-w-[260px]">
+              <div className="flex items-center gap-1.5 mb-2 bg-indigo-50 text-indigo-700 text-xs font-medium px-3 py-1.5 rounded-full w-fit max-w-65">
                 {fileIcon}
                 <span className="truncate flex-1">{file.name}</span>
                 <span className="text-indigo-400 shrink-0">
@@ -1518,7 +1518,7 @@ export default function Groups() {
       `}</style>
 
       <div
-        className="flex h-screen overflow-hidden bg-gray-100"
+        className="flex h-[85vh] overflow-hidden bg-gray-100"
         style={{ fontFamily: "'Outfit', sans-serif" }}
       >
         {/* ── SIDEBAR ── */}

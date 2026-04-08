@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "../context/AuthContext";
+
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -83,21 +85,14 @@ function EditModal({ entry, classes, onClose, onSaved }) {
 
   // Populate sections when classId is set
   useEffect(() => {
-    if (!form.classId) {
-      setSections([]);
-      setSubjects([]);
-      return;
-    }
+    if (!form.classId) { setSections([]); setSubjects([]); return; }
     const cls = classes.find((c) => c._id === form.classId);
     setSections(cls?.details || []);
   }, [form.classId, classes]);
 
   // Populate subjects when sectionId is set
   useEffect(() => {
-    if (!form.sectionId) {
-      setSubjects([]);
-      return;
-    }
+    if (!form.sectionId) { setSubjects([]); return; }
     const sec = sections.find((s) => s._id === form.sectionId);
     setSubjects(sec?.subjectTeachers || []);
   }, [form.sectionId, sections]);
@@ -110,9 +105,7 @@ function EditModal({ entry, classes, onClose, onSaved }) {
     if (Object.keys(errs).length) return;
     setSaving(true);
     try {
-      await axios.put(`${API}/diary/${entry._id}`, form, {
-        withCredentials: true,
-      });
+      await axios.put(`${API}/diary/${entry._id}`, form, { withCredentials: true });
       toast.success("Diary entry updated");
       onSaved();
       onClose();
@@ -128,9 +121,7 @@ function EditModal({ entry, classes, onClose, onSaved }) {
       <div className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <h2 className="text-sm font-semibold text-slate-800">
-            Edit Diary Entry
-          </h2>
+          <h2 className="text-sm font-semibold text-slate-800">Edit Diary Entry</h2>
           <button
             onClick={onClose}
             className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 text-lg"
@@ -138,6 +129,7 @@ function EditModal({ entry, classes, onClose, onSaved }) {
             ×
           </button>
         </div>
+
 
         {/* Body */}
         <div className="overflow-y-auto flex-1 px-5 py-4 space-y-3">
@@ -154,9 +146,7 @@ function EditModal({ entry, classes, onClose, onSaved }) {
             >
               <option value="">Select class</option>
               {classes.map((c) => (
-                <option key={c._id} value={c._id}>
-                  Class {c.name}
-                </option>
+                <option key={c._id} value={c._id}>Class {c.name}</option>
               ))}
             </select>
           </Field>
@@ -167,10 +157,7 @@ function EditModal({ entry, classes, onClose, onSaved }) {
               className={fieldCls(errors.sectionId)}
               value={form.sectionId}
               disabled={!sections.length}
-              onChange={(e) => {
-                set("sectionId", e.target.value);
-                set("subjectId", "");
-              }}
+              onChange={(e) => { set("sectionId", e.target.value); set("subjectId", ""); }}
             >
               <option value="">Select section</option>
               {sections.map((s) => (
@@ -208,8 +195,7 @@ function EditModal({ entry, classes, onClose, onSaved }) {
                   onClick={() => set("type", t)}
                   className={`py-2 text-xs font-medium rounded-xl border capitalize transition-all ${
                     form.type === t
-                      ? TYPE_STYLES[t].badge +
-                        " ring-2 ring-offset-1 ring-current/20"
+                      ? TYPE_STYLES[t].badge + " ring-2 ring-offset-1 ring-current/20"
                       : "border-slate-200 text-slate-500 hover:bg-slate-50"
                   }`}
                 >
@@ -283,13 +269,14 @@ export default function DiaryTeacher() {
   const [deleteId, setDeleteId] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [editEntry, setEditEntry] = useState(null);
+  const { user, loading, setUser } = useAuth();
+
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchClasses = async () => {
     try {
-      const res = await axios.get(`${API}/classes/all`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(`${API}/classes/all`, { withCredentials: true });
+      console.log("Classes:", res.data.classes);
       setClasses(res.data.classes);
     } catch {
       toast.error("Failed to load classes");
@@ -323,7 +310,10 @@ export default function DiaryTeacher() {
     setForm({ ...form, sectionId, subjectId: "" });
     setErrors((e) => ({ ...e, sectionId: undefined }));
     const sec = sections.find((s) => s._id === sectionId);
-    setSubjects(sec?.subjectTeachers || []);
+    const filteredSubjects = sec?.subjectTeachers?.filter(
+  (st) => st.teacherId?._id?.toString() === user?.teacher_id?.toString()
+);
+    setSubjects(filteredSubjects || []);
   };
 
   const handleSubmit = async (e) => {
@@ -333,7 +323,7 @@ export default function DiaryTeacher() {
     if (Object.keys(errs).length) {
       toast.error("Please fix the errors before submitting");
       return;
-    }
+    } 
     setSubmitting(true);
     try {
       await axios.post(`${API}/diary`, form, { withCredentials: true });
@@ -360,30 +350,19 @@ export default function DiaryTeacher() {
       fetchDiary();
     } catch {
       toast.error("Failed to delete entry");
-    } finally {
+    } 
+    finally {
       setDeleting(false);
     }
   };
 
   // ── Format date ────────────────────────────────────────────────────────────
   const fmtDate = (d) =>
-    d
-      ? new Date(d).toLocaleDateString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        })
-      : "";
+    d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "";
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar
-        closeOnClick
-        pauseOnHover
-      />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar closeOnClick pauseOnHover />
 
       {/* ── Header ───────────────────────────────────────────────────────────
       <div className="bg-white border-b border-slate-200 sticky top-0 z-20">
@@ -394,19 +373,14 @@ export default function DiaryTeacher() {
       </div> */}
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+
         {/* ── Add Form ───────────────────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100">
-            <h2 className="text-sm font-semibold text-slate-700">
-              Add new entry
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-700">Add new entry</h2>
           </div>
 
-          <form
-            onSubmit={handleSubmit}
-            noValidate
-            className="px-5 py-4 space-y-4"
-          >
+          <form onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-4">
             {/* Type toggle */}
             <div className="grid grid-cols-3 gap-2">
               {["homework", "classwork", "remark"].map((t) => (
@@ -416,8 +390,7 @@ export default function DiaryTeacher() {
                   onClick={() => setForm({ ...form, type: t, dueDate: "" })}
                   className={`py-2.5 text-xs font-medium rounded-xl border capitalize transition-all ${
                     form.type === t
-                      ? TYPE_STYLES[t].badge +
-                        " ring-2 ring-offset-1 ring-current/20"
+                      ? TYPE_STYLES[t].badge + " ring-2 ring-offset-1 ring-current/20"
                       : "border-slate-200 text-slate-500 hover:bg-slate-50"
                   }`}
                 >
@@ -436,9 +409,7 @@ export default function DiaryTeacher() {
                 >
                   <option value="">Select class</option>
                   {classes.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      Class {c.name}
-                    </option>
+                    <option key={c._id} value={c._id}>Class {c.name}</option>
                   ))}
                 </select>
               </Field>
@@ -466,9 +437,7 @@ export default function DiaryTeacher() {
                 className={fieldCls(errors.subjectId)}
                 value={form.subjectId}
                 disabled={!subjects.length}
-                onChange={(e) =>
-                  setForm({ ...form, subjectId: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, subjectId: e.target.value })}
               >
                 <option value="">Select subject</option>
                 {subjects.map((s) => (
@@ -488,8 +457,7 @@ export default function DiaryTeacher() {
                 value={form.content}
                 onChange={(e) => {
                   setForm({ ...form, content: e.target.value });
-                  if (errors.content)
-                    setErrors((er) => ({ ...er, content: undefined }));
+                  if (errors.content) setErrors((er) => ({ ...er, content: undefined }));
                 }}
               />
             </Field>
@@ -503,8 +471,7 @@ export default function DiaryTeacher() {
                   value={form.dueDate}
                   onChange={(e) => {
                     setForm({ ...form, dueDate: e.target.value });
-                    if (errors.dueDate)
-                      setErrors((er) => ({ ...er, dueDate: undefined }));
+                    if (errors.dueDate) setErrors((er) => ({ ...er, dueDate: undefined }));
                   }}
                 />
               </Field>
@@ -542,17 +509,13 @@ export default function DiaryTeacher() {
                     {/* Top row */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span
-                          className={`text-xs font-medium px-2.5 py-0.5 rounded-full capitalize ${ts.badge}`}
-                        >
+                        <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full capitalize ${ts.badge}`}>
                           {d.type}
                         </span>
                         {d.classId?.name && (
                           <span className="text-xs text-slate-400">
                             Class {d.classId.name}
-                            {d.sectionId?.name
-                              ? ` · Sec ${d.sectionId.name}`
-                              : ""}
+                            {d.sectionId?.name ? ` · Sec ${d.sectionId.name}` : ""}
                           </span>
                         )}
                         {d.subjectId?.name && (
@@ -569,18 +532,8 @@ export default function DiaryTeacher() {
                           className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                           title="Edit"
                         >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                         </button>
                         <button
@@ -588,49 +541,27 @@ export default function DiaryTeacher() {
                           className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                           title="Delete"
                         >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
                       </div>
                     </div>
 
                     {/* Content */}
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      {d.content}
-                    </p>
+                    <p className="text-sm text-slate-600 leading-relaxed">{d.content}</p>
 
                     {/* Footer */}
-                    {d.type === "homework" && d.dueDate && (
+                    {d.type === "homework" &&
+                    d.dueDate && (
                       <div className="mt-2 flex items-center gap-1.5">
-                        <svg
-                          className="w-3.5 h-3.5 text-amber-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
+                        <svg className="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span className="text-xs text-amber-700 font-medium">
-                          Due {fmtDate(d.dueDate)}
-                        </span>
+                        <span className="text-xs text-amber-700 font-medium">Due {fmtDate(d.dueDate)}</span>
                       </div>
-                    )}
+                    )
+                }
                   </div>
                 );
               })}
@@ -654,26 +585,13 @@ export default function DiaryTeacher() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-xs">
             <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mb-3">
-              <svg
-                className="w-5 h-5 text-red-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
+              <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
-            <h3 className="text-sm font-semibold text-slate-800 mb-1">
-              Delete entry?
-            </h3>
+            <h3 className="text-sm font-semibold text-slate-800 mb-1">Delete entry?</h3>
             <p className="text-xs text-slate-500 mb-5 leading-relaxed">
-              This will permanently remove the diary entry. Students and parents
-              will no longer see it.
+              This will permanently remove the diary entry. Students and parents will no longer see it.
             </p>
             <div className="flex gap-2">
               <button
