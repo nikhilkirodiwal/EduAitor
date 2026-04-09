@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -12,14 +13,11 @@ const StudentView = () => {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  /* ================= FETCH ================= */
-
   const fetchStudent = async () => {
     try {
       const res = await axios.get(`${API}/students/${id}`, {
         withCredentials: true,
       });
-
       setStudent(res.data.data);
     } catch {
       toast.error("Failed to load student");
@@ -33,105 +31,230 @@ const StudentView = () => {
   }, [id]);
 
   if (loading) return <Loader />;
-
   if (!student) return <Empty />;
 
   const docs = student.documents || {};
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
-      {/* HEADER */}
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold">Student Profile</h1>
-
-        <button
-          onClick={() => navigate(`/school/student-manage/${student._id}`)}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-        >
-          Edit Student
-        </button>
-      </div>
-
-      {/* PROFILE CARD */}
-      <div className="bg-white rounded-2xl shadow p-6 mb-6 flex flex-col sm:flex-row gap-6 items-center">
-        <img
-          src={docs.studentPhoto?.url || "https://via.placeholder.com/120"}
-          alt="student"
-          className="w-28 h-28 rounded-full object-cover border-4 border-indigo-100"
-        />
-
-        <div className="text-center sm:text-left">
-          <h2 className="text-xl sm:text-2xl font-semibold">
-            {student.firstName} {student.lastName}
-          </h2>
-
-          <p className="text-gray-500 mt-1">
-            Class {student.classId?.name || "-"}{" "}
-            {student.sectionId?.name && `- ${student.sectionId.name}`}
-          </p>
-
-          <p className="text-gray-500">Roll No: {student.rollNo || "-"}</p>
-
-          <span className="inline-block mt-2 px-3 py-1 text-xs rounded-full bg-indigo-100 text-indigo-600 font-medium">
-            {student.studentType || "Student"}
-          </span>
+    <div className=" min-h-screen">
+      {/* /*HEADER */}
+      <button
+        onClick={() => navigate("/school/students")}
+        className="flex items-center gap-2 text-indigo-600 mb-4 cursor-pointer"
+      >
+        <FaArrowLeft />
+        Back to Students
+      </button>
+      {/* TOP BANNER */}
+      <div className="bg-indigo-600 px-6 py-5 sm:px-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-indigo-50 text-base sm:text-2xl mb-0.5">
+              Student Profile
+            </p>
+          </div>
+          <button
+            onClick={() => navigate(`/school/student-manage/${student._id}`)}
+            className="px-4 py-2 bg-white text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-50 transition"
+          >
+            Edit Student
+          </button>
         </div>
       </div>
 
-      {/* GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        <Card title="Student Details">
-          <Info label="First Name" value={student.firstName} />
-          <Info label="Last Name" value={student.lastName} />
-          <Info label="Gender" value={student.gender} />
-          <Info label="Blood Group" value={student.bloodGroup} />
-          <Info label="DOB" value={formatDate(student.dob)} />
-          <Info
-            label="Admission Date"
-            value={formatDate(student.admissionDate)}
+      <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto">
+        {/* PROFILE CARD */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+          <img
+            src={docs.studentPhoto?.url || "https://via.placeholder.com/120"}
+            alt="student"
+            className="w-24 h-24 rounded-full object-cover ring-4 ring-indigo-100 shrink-0"
           />
-        </Card>
+          <div className="flex-1 text-center sm:text-left">
+            <h2 className="text-xl font-semibold text-gray-900">
+              {student.firstName} {student.lastName}
+            </h2>
+            <p className="text-gray-500 text-sm mt-1">
+              {student.classId?.name || "—"}
+              {student.sectionId?.name
+                ? ` · Section ${student.sectionId.name}`
+                : ""}
+              {student.rollNo ? ` · Roll No. ${student.rollNo}` : ""}
+            </p>
+            <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-start">
+              {student.studentType && (
+                <span className="px-3 py-1 text-xs rounded-full bg-indigo-100 text-indigo-700 font-medium">
+                  {student.studentType}
+                </span>
+              )}
+              {student.gender && (
+                <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600 font-medium">
+                  {student.gender}
+                </span>
+              )}
+              {student.bloodGroup && (
+                <span className="px-3 py-1 text-xs rounded-full bg-red-50 text-red-600 font-medium">
+                  {student.bloodGroup}
+                </span>
+              )}
+            </div>
+          </div>
 
-        <Card title="Class Details">
-          <Info label="Class" value={student.classId?.name} />
-          <Info label="Section" value={student.sectionId?.name} />
-          <Info label="Roll Number" value={student.rollNo} />
-          <Info label="Student Type" value={student.studentType} />
-        </Card>
+          {/* Quick stats */}
+          <div className="flex sm:flex-col gap-4 sm:gap-3 text-center sm:text-right shrink-0">
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wide">
+                Admission
+              </p>
+              <p className="text-sm font-medium text-gray-700">
+                {formatDate(student.admissionDate)}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wide">
+                Student ID
+              </p>
+              <p className="text-sm font-medium text-gray-700">
+                {student.studentId || "—"}
+              </p>
+            </div>
+          </div>
+        </div>
 
-        <Card title="Fee Details">
-          <Info label="Total Fee" value={`₹ ${student.totalFee || 0}`} />
-          <Info label="Discount Type" value={student.discountType} />
-          <Info label="Discount Value" value={student.discountValue} />
-          <Info label="Final Fee" value={`₹ ${student.finalFee || 0}`} />
-        </Card>
+        {/* FEE SUMMARY STRIP */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <StatCard
+            label="Total Fee"
+            value={`₹${Number(student.totalFee || 0).toLocaleString("en-IN")}`}
+            color="bg-blue-100 text-blue-900"
+          />
+          <StatCard
+            label="Discount"
+            value={
+              student.discountValue
+                ? student.discountType === "Percentage"
+                  ? `${student.discountValue}%`
+                  : `₹${student.discountValue}`
+                : "—"
+            }
+            color="bg-amber-100 text-amber-900"
+          />
+          <StatCard
+            label="Final Fee"
+            value={`₹${Number(student.finalFee || 0).toLocaleString("en-IN")}`}
+            color="bg-green-100 text-green-900"
+          />
+          <StatCard
+            label="Total Paid"
+            value={`₹${Number(student.totalPaid || 0).toLocaleString("en-IN")}`}
+            color="bg-indigo-100 text-indigo-900"
+          />
+        </div>
 
-        <Card title="Parent Details">
-          <Info label="Father Name" value={student.fatherName} />
-          <Info label="Father Mobile" value={student.fatherMobile} />
-          <Info label="Father Email" value={student.fatherEmail} />
+        {/* MAIN GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-4">
+          {/* Student Details */}
+          <Section title="Student Details" icon="👤">
+            <Row label="First Name" value={student.firstName} />
+            <Row label="Last Name" value={student.lastName} />
+            <Row label="Date of Birth" value={formatDate(student.dob)} />
+            <Row label="Gender" value={student.gender} />
+            <Row label="Blood Group" value={student.bloodGroup} />
+            <Row
+              label="Admission Date"
+              value={formatDate(student.admissionDate)}
+            />
+          </Section>
 
-          <Divider />
+          {/* Class Details */}
+          <Section title="Class Details" icon="🏫">
+            <Row label="Class" value={student.classId?.name} />
+            <Row label="Section" value={student.sectionId?.name} />
+            <Row label="Roll Number" value={student.rollNo} />
+            <Row label="Student Type" value={student.studentType} />
+          </Section>
 
-          <Info label="Mother Name" value={student.motherName} />
-          <Info label="Mother Mobile" value={student.motherMobile} />
-          <Info label="Mother Email" value={student.motherEmail} />
-        </Card>
+          {/* Documents */}
+          <Section title="Documents" icon="📄">
+            <DocRow label="Birth Certificate" file={docs.birthCertificate} />
+            <DocRow
+              label="Transfer Certificate"
+              file={docs.transferCertificate}
+            />
+            <DocRow label="Student Aadhar" file={docs.studentAadhar} />
+            <DocRow label="Father Aadhar" file={docs.fatherAadhar} />
+            <DocRow label="Mother Aadhar" file={docs.motherAadhar} />
+          </Section>
 
-        <Card title="Guardian Details">
-          <Info label="Guardian Name" value={student.guardianName} />
-          <Info label="Guardian Mobile" value={student.guardianMobile} />
-          <Info label="Relation" value={student.guardianRelation} />
-          <Info label="Address" value={student.address} />
-        </Card>
+          {/* Father Details */}
+          <Section title="Father Details" icon="👨">
+            <Row label="Name" value={student.fatherName} />
+            <Row label="Mobile" value={student.fatherMobile} />
+            <Row label="Email" value={student.fatherEmail} />
+            {docs.fatherPhoto?.url && (
+              <div className="pt-2">
+                <img
+                  src={docs.fatherPhoto.url}
+                  className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-100"
+                />
+              </div>
+            )}
+          </Section>
 
-        <Card title="Documents">
-          <Doc label="Birth Certificate" file={docs.birthCertificate} />
-          <Doc label="Transfer Certificate" file={docs.transferCertificate} />
-          <Doc label="Student Aadhar" file={docs.studentAadhar} />
-          <Doc label="Father Aadhar" file={docs.fatherAadhar} />
-          <Doc label="Mother Aadhar" file={docs.motherAadhar} />
-        </Card>
+          {/* Mother Details */}
+          <Section title="Mother Details" icon="👩">
+            <Row label="Name" value={student.motherName} />
+            <Row label="Mobile" value={student.motherMobile} />
+            <Row label="Email" value={student.motherEmail} />
+            {docs.motherPhoto?.url && (
+              <div className="pt-2">
+                <img
+                  src={docs.motherPhoto.url}
+                  className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-100"
+                />
+              </div>
+            )}
+          </Section>
+
+          {/* Guardian Details */}
+          <Section title="Guardian Details" icon="🧑">
+            <Row label="Guardian Name" value={student.guardianName} />
+            <Row label="Mobile" value={student.guardianMobile} />
+            <Row label="Relation" value={student.guardianRelation} />
+            <Row label="Address" value={student.address} />
+          </Section>
+        </div>
+
+        {/* PARENT LOGIN — full width */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-base">🔐</span>
+            <h3 className="text-base font-semibold text-gray-800">
+              Parent Login
+            </h3>
+            <span className="ml-auto text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+              Dev visible
+            </span>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+              <p className="text-xs text-indigo-400 uppercase tracking-wide mb-1">
+                Username
+              </p>
+              <p className="text-base font-semibold text-indigo-800">
+                {student.username || "—"}
+              </p>
+            </div>
+            <div className="flex-1 bg-purple-50 border border-purple-100 rounded-xl p-4">
+              <p className="text-xs text-purple-400 uppercase tracking-wide mb-1">
+                Password (temp)
+              </p>
+              <p className="text-base font-semibold text-purple-800 tracking-widest">
+                {student.temp_password || "—"}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -139,52 +262,67 @@ const StudentView = () => {
 
 export default StudentView;
 
-/* ================= COMPONENTS ================= */
+/* ================= SUB-COMPONENTS ================= */
 
-const Card = ({ title, children }) => (
-  <div className="bg-white rounded-xl shadow p-5">
-    <h3 className="text-lg font-semibold mb-4">{title}</h3>
-    <div className="space-y-2 text-sm">{children}</div>
+const Section = ({ title, icon, children }) => (
+  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+    <div className="flex items-center gap-2 mb-4">
+      <span className="text-base">{icon}</span>
+      <h3 className="text-base font-semibold text-gray-800">{title}</h3>
+    </div>
+    <div className="space-y-2.5 text-sm">{children}</div>
   </div>
 );
 
-const Info = ({ label, value }) => (
-  <div className="flex justify-between gap-3">
-    <span className="text-gray-500">{label}</span>
-    <span className="font-medium text-right">{value || "-"}</span>
+const Row = ({ label, value }) => (
+  <div className="flex justify-between gap-3 py-0.5">
+    <span className="text-gray-400 shrink-0">{label}</span>
+    <span className="font-medium text-gray-800 text-right">{value || "—"}</span>
   </div>
 );
 
-const Doc = ({ label, file }) => (
-  <div className="flex justify-between">
-    <span className="text-gray-500">{label}</span>
-
+const DocRow = ({ label, file }) => (
+  <div className="flex justify-between gap-3 py-0.5">
+    <span className="text-gray-400">{label}</span>
     {file?.url ? (
       <a
         href={file.url}
         target="_blank"
         rel="noreferrer"
-        className="text-indigo-600 font-medium hover:underline"
+        className="text-indigo-600 font-medium hover:underline text-sm"
       >
-        View
+        View ↗
       </a>
     ) : (
-      <span className="text-gray-400">Not Uploaded</span>
+      <span className="text-gray-300 text-sm">Not uploaded</span>
     )}
   </div>
 );
 
-const Divider = () => <hr className="my-2" />;
+const StatCard = ({ label, value, color }) => (
+  <div className={`rounded-xl p-4 ${color}`}>
+    <p className="text-xs uppercase tracking-wide opacity-70 mb-1">{label}</p>
+    <p className="text-lg font-semibold">{value}</p>
+  </div>
+);
 
 const Loader = () => (
-  <div className="p-10 text-center text-gray-500">Loading...</div>
+  <div className="min-h-screen flex items-center justify-center text-gray-400">
+    Loading...
+  </div>
 );
 
 const Empty = () => (
-  <div className="p-10 text-center text-gray-400">Student not found</div>
+  <div className="min-h-screen flex items-center justify-center text-gray-400">
+    Student not found
+  </div>
 );
 
 const formatDate = (date) => {
-  if (!date) return "-";
-  return new Date(date).toISOString().slice(0, 10);
+  if (!date) return "—";
+  return new Date(date).toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 };

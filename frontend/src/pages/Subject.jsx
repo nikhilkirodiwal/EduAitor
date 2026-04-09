@@ -1,14 +1,23 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaPlus, FaBook, FaEdit, FaTrash, FaLayerGroup } from "react-icons/fa";
+import {
+  FaPlus,
+  FaBook,
+  FaEdit,
+  FaTrash,
+  FaLayerGroup,
+  FaArrowLeft,
+} from "react-icons/fa";
 import { FiX, FiCheckCircle, FiAlertTriangle } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
 
 const EMPTY_FORM = { name: "", status: "Active" };
 
 export default function Subject() {
+  const navigate = useNavigate();
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -20,6 +29,8 @@ export default function Subject() {
   const [confirmSave, setConfirmSave] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+
+  const isMobile = window.innerWidth <= 768;
 
   /* ── fetch ── */
   const fetchSubjects = async () => {
@@ -141,6 +152,18 @@ export default function Subject() {
   return (
     <div className="space-y-6">
       {/* ── Header ── */}
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+        <div className="flex items-center mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-600"
+          >
+            <FaArrowLeft />
+            Back
+          </button>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Subjects</h1>

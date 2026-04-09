@@ -7,12 +7,15 @@ import {
   FaTrash,
   FaLayerGroup,
   FaProjectDiagram,
+  FaArrowLeft,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
 
 export default function SectionManagement() {
+  const navigate = useNavigate();
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -37,6 +40,8 @@ export default function SectionManagement() {
     name: "",
     status: "Active",
   });
+
+  const isMobile = window.innerWidth <= 768;
 
   const hasChanges = (data, initial) =>
     JSON.stringify(data) !== JSON.stringify(initial);
@@ -241,7 +246,18 @@ export default function SectionManagement() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
       {/* HEADER */}
-
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+        <div className="flex items-center mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-600"
+          >
+            <FaArrowLeft />
+            Back
+          </button>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-xl sm:text-2xl font-bold flex gap-2 items-center">
           <FaLayerGroup /> Section Management

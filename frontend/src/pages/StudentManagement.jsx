@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -11,6 +12,7 @@ const steps = [
   "Documents",
   "Class Details",
   "Fee Structure",
+  "Parent Login",
   "Review",
 ];
 
@@ -57,6 +59,9 @@ const emptyForm = {
   studentAadhar: null,
   fatherAadhar: null,
   motherAadhar: null,
+
+  parentUsername: "",
+  parentPassword: "",
 };
 
 const StudentManagement = () => {
@@ -77,12 +82,7 @@ const StudentManagement = () => {
   const [feeStructure, setFeeStructure] = useState([]);
   const [freqFilter, setFreqFilter] = useState("monthly");
 
-  const FREQ_MULTIPLIER = {
-    monthly: 1,
-    quarterly: 3,
-    "half-yearly": 6,
-    annually: 12,
-  };
+  const isMobile = window.innerWidth <= 768;
 
   const calcAmount = (amount) => {
     let value;
@@ -312,6 +312,14 @@ const StudentManagement = () => {
       }
     }
 
+    if (step === 6) {
+      if (!form.username?.trim()) errors.push("Username is required");
+      if (!isEdit && !form.password?.trim())
+        errors.push("Password is required");
+      if (form.password && form.password.length < 5)
+        errors.push("Password must be at least 5 characters");
+    }
+
     return errors;
   };
 
@@ -404,7 +412,18 @@ const StudentManagement = () => {
   return (
     <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
       {/* HEADER */}
-
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+        <div className="flex items-center mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-600"
+          >
+            <FaArrowLeft />
+            Back
+          </button>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row justify-between mb-6 gap-4">
         <h1 className="text-2xl lg:text-3xl font-bold">
           {isEdit ? "Edit Student Details" : "Student Admission"}
@@ -825,12 +844,19 @@ const StudentManagement = () => {
                 />
               </div>
             )}
-            {/* STEP 6 REVIEW */}
 
+            {/* STEP 6 PARENT LOGIN */}
             {step === 6 && (
-              <div className="bg-gray-50 border rounded-xl p-6 overflow-auto">
-                <pre className="text-sm">{JSON.stringify(form, null, 2)}</pre>
-              </div>
+              <ParentLoginStep
+                form={form}
+                handleChange={handleChange}
+                isEdit={isEdit}
+              />
+            )}
+
+            {/* STEP 7 REVIEW */}
+            {step === 7 && (
+              <ReviewStep form={form} classes={classes} sections={sections} />
             )}
 
             {/* NAV */}
@@ -1000,6 +1026,222 @@ const File = ({ label, name, onChange, existingUrl }) => {
           className="mt-3 h-24 rounded-lg object-cover"
         />
       )}
+    </div>
+  );
+};
+
+/* PARENT LOGIN STEP */
+const ParentLoginStep = ({ form, handleChange, isEdit }) => {
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <div className="grid gap-5">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700">
+        These credentials will be used by the parent to log into the portal.
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Username *
+        </label>
+        <input
+          name="username"
+          value={form.username || ""}
+          onChange={handleChange}
+          placeholder="e.g. john.doe2024"
+          className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {isEdit ? "New Password (leave blank to keep current)" : "Password *"}
+        </label>
+        <div className="relative">
+          <input
+            name="password"
+            type={showPassword ? "text" : "password"}
+            value={form.password || ""}
+            onChange={handleChange}
+            placeholder="Min. 5 characters"
+            className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 pr-10"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-sm"
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </div>
+      </div>
+
+      {form.temp_password && isEdit && (
+        <div className="text-xs text-gray-400">
+          Current saved password (dev only): <code>{form.temp_password}</code>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* REVIEW STEP */
+const ReviewStep = ({ form, classes, sections }) => {
+  const className =
+    classes.find((c) => c._id === form.classId)?.name ||
+    classes.find((c) => c._id === form.classId)?.className ||
+    form.classId ||
+    "—";
+  const sectionName =
+    sections.find((s) => s.value === form.sectionId)?.label ||
+    form.sectionId ||
+    "—";
+
+  const initials =
+    `${form.firstName?.[0] || ""}${form.lastName?.[0] || ""}`.toUpperCase();
+
+  const Section = ({ title, headerClass, children }) => (
+    <div className="border border-gray-200 rounded-xl overflow-hidden mb-3">
+      <div className={`px-4 py-2.5 border-b border-gray-200 ${headerClass}`}>
+        <span className="text-sm font-medium text-gray-800">{title}</span>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 bg-white">{children}</div>
+    </div>
+  );
+
+  const Field = ({ label, value }) => {
+    if (!value && value !== 0) return null;
+    return (
+      <div className="px-4 py-2.5 border-b border-r border-gray-100">
+        <div className="text-[11px] uppercase tracking-wide text-gray-400 mb-0.5">
+          {label}
+        </div>
+        <div className="text-sm font-medium text-gray-800">{value}</div>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {/* Header card */}
+      <div className="flex items-center gap-4 p-4 mb-4 bg-gray-50 rounded-xl border border-gray-200">
+        <div
+          className="w-13 h-13 rounded-full bg-blue-100 flex items-center justify-center text-lg font-medium text-blue-800 shrink-0 overflow-hidden"
+          style={{ width: 52, height: 52 }}
+        >
+          {form.documents?.studentPhoto?.url ? (
+            <img
+              src={form.documents.studentPhoto.url}
+              className="w-full h-full object-cover rounded-full"
+            />
+          ) : (
+            initials
+          )}
+        </div>
+        <div>
+          <div className="text-base font-medium text-gray-900">
+            {form.firstName} {form.lastName}
+          </div>
+          <div className="text-sm text-gray-500 mt-0.5">
+            {className}
+            {sectionName ? ` • ${sectionName}` : ""}
+            {form.rollNo ? ` • Roll ${form.rollNo}` : ""}
+          </div>
+        </div>
+        {form.studentType && (
+          <span className="ml-auto text-xs font-medium px-2.5 py-1 bg-green-100 text-green-800 rounded-lg">
+            {form.studentType}
+          </span>
+        )}
+      </div>
+
+      <Section title="Student details" headerClass="bg-gray-100">
+        <Field label="First name" value={form.firstName} />
+        <Field label="Last name" value={form.lastName} />
+        <Field label="Date of birth" value={form.dob} />
+        <Field label="Gender" value={form.gender} />
+        <Field label="Blood group" value={form.bloodGroup} />
+        <Field label="Admission date" value={form.admissionDate} />
+      </Section>
+
+      <Section title="Parent / guardian" headerClass="bg-blue-50">
+        <Field label="Father name" value={form.fatherName} />
+        <Field label="Father mobile" value={form.fatherMobile} />
+        <Field label="Father email" value={form.fatherEmail} />
+        <Field label="Mother name" value={form.motherName} />
+        <Field label="Mother mobile" value={form.motherMobile} />
+        <Field label="Mother email" value={form.motherEmail} />
+        <Field label="Guardian name" value={form.guardianName} />
+        <Field label="Guardian mobile" value={form.guardianMobile} />
+        <Field label="Relation" value={form.guardianRelation} />
+        <Field label="Address" value={form.address} />
+      </Section>
+
+      <Section title="Class details" headerClass="bg-green-50">
+        <Field label="Class" value={className} />
+        <Field label="Section" value={sectionName} />
+        <Field label="Roll number" value={form.rollNo} />
+        <Field label="Student type" value={form.studentType} />
+      </Section>
+
+      <Section title="Fee structure" headerClass="bg-amber-50">
+        <Field
+          label="Total annual fee"
+          value={
+            form.totalFee
+              ? `₹${Number(form.totalFee).toLocaleString("en-IN")}`
+              : null
+          }
+        />
+        <Field label="Discount type" value={form.discountType} />
+        <Field
+          label="Discount value"
+          value={
+            form.discountValue
+              ? form.discountType === "Percentage"
+                ? `${form.discountValue}%`
+                : `₹${form.discountValue}`
+              : null
+          }
+        />
+        <Field
+          label="Final fee"
+          value={
+            form.finalFee
+              ? `₹${Number(form.finalFee).toLocaleString("en-IN")}`
+              : null
+          }
+        />
+      </Section>
+
+      <Section title="Parent login" headerClass="bg-purple-50">
+        <Field label="Username" value={form.username} />
+        <Field label="Password" value={form.password ? "••••••••" : null} />
+      </Section>
+
+      {/* Documents */}
+      {form.documents &&
+        Object.keys(form.documents).some((k) => form.documents[k]?.url) && (
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <div className="px-4 py-2.5 bg-pink-50 border-b border-gray-200">
+              <span className="text-sm font-medium text-gray-800">
+                Documents uploaded
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2 p-4 bg-white">
+              {Object.entries(form.documents).map(([key, val]) =>
+                val?.url ? (
+                  <span
+                    key={key}
+                    className="px-3 py-1 text-xs font-medium bg-pink-50 text-pink-800 rounded-lg"
+                  >
+                    {key.replace(/([A-Z])/g, " $1").trim()}
+                  </span>
+                ) : null,
+              )}
+            </div>
+          </div>
+        )}
     </div>
   );
 };

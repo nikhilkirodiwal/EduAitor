@@ -48,6 +48,9 @@ import AddSchool from "./pages/AddSchool";
 import Group from "./pages/Group";
 import DiaryPrincipal from "./pages/DiaryPrincipal";
 import DiaryTeacher from "./pages/DiaryTeacher";
+import ParentDashboard from "./pages/ParentDashboard";
+import ParentAssignment from "./pages/ParentAssignment";
+import SchoolMenu from "./pages/SchoolMenu";
 
 const App = () => {
   return (
@@ -77,7 +80,6 @@ const App = () => {
         <Route path="subscription-plan" element={<SchoolSubscription />} />
         <Route path="school-view/:id" element={<SchoolView />} />
 
-
         <Route path="*" element={<Navigate to="/admin/dashboard" />} />
       </Route>
 
@@ -89,6 +91,7 @@ const App = () => {
           </ProtectedRoute>
         }
       >
+        <Route path="menu" element={<SchoolMenu />} />
         <Route path="dashboard" element={<SchoolDashboard />} />
         <Route path="students" element={<Students />} />
         <Route path="student-manage" element={<StudentManagement />} />
@@ -141,6 +144,20 @@ const App = () => {
         <Route path="diary" element={<DiaryTeacher />} />
 
         <Route path="*" element={<Navigate to="/teacher/dashboard" />} />
+      </Route>
+
+      <Route
+        path="/parent"
+        element={
+          <ProtectedRoute allowedRoles={["student_admin"]}>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<ParentDashboard />} />
+        <Route path="assignment" element={<ParentAssignment />} />
+
+        <Route path="*" element={<Navigate to="/parent/dashboard" />} />
       </Route>
     </Routes>
   );

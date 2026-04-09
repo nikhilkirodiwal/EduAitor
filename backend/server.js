@@ -92,6 +92,17 @@ app.get("/api/auth/me", authMiddleware, (req, res) => {
         name: req.user.name,
       },
     });
+  } else if (req.user.role === "student_admin") {
+    return res.json({
+      success: true,
+      user: {
+        username: req.user.username,
+        role: req.user.role,
+        school_id: req.user.school_id,
+        student_id: req.user.student_id,
+        name: req.user.name,
+      },
+    });
   } else {
     return res.status(401).json({ success: false, message: "Unauthorized" });
   }

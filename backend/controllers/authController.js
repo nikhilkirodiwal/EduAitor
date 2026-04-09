@@ -1,5 +1,6 @@
 import School from "../models/school.js";
 import Teacher from "../models/teacher.js";
+import Student from "../models/student.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
@@ -7,6 +8,12 @@ const generateToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: "1d",
   });
+};
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
 };
 
 export const loginUser = async (req, res) => {
@@ -19,18 +26,11 @@ export const loginUser = async (req, res) => {
       password === process.env.SUPER_ADMIN_PASSWORD
     ) {
       const token = generateToken({ role: "super_admin", email });
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      });
+      res.cookie("token", token, cookieOptions);
       return res.json({
         success: true,
         message: "Super Admin login successful",
-        data: {
-          role: "super_admin",
-          email: process.env.SUPER_ADMIN_EMAIL,
-        },
+        data: { role: "super_admin", email: process.env.SUPER_ADMIN_EMAIL },
       });
     }
 
@@ -47,23 +47,41 @@ export const loginUser = async (req, res) => {
         teacher_id: teacher._id,
         name: teacher.fullName,
       });
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      });
-
+      res.cookie("token", token, cookieOptions);
       return res.json({
         success: true,
         message: "Teacher login successful",
         data: {
           role: "teacher_admin",
-
           teacher_id: teacher._id,
           name: teacher.fullName,
           email: teacher.email,
-
           school_id: teacher.schoolId,
+        },
+      });
+    }
+
+    /* ---------- STUDENT / PARENT ADMIN ---------- */
+    const student = await Student.findOne({ username: email });
+
+    if (student && (await bcrypt.compare(password, student.password))) {
+      const token = generateToken({
+        role: "student_admin",
+        username: student.username,
+        school_id: student.schoolId,
+        student_id: student._id,
+        name: `${student.firstName} ${student.lastName}`,
+      });
+      res.cookie("token", token, cookieOptions);
+      return res.json({
+        success: true,
+        message: "Parent login successful",
+        data: {
+          role: "student_admin",
+          student_id: student._id,
+          name: `${student.firstName} ${student.lastName}`,
+          username: student.username,
+          school_id: student.schoolId,
         },
       });
     }
@@ -84,13 +102,7 @@ export const loginUser = async (req, res) => {
       school_id: school._id,
       name: school.school_name,
     });
-    console.log("Generated token:", token);
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    });
-
+    res.cookie("token", token, cookieOptions);
     return res.json({
       success: true,
       message: "School Admin login successful",
@@ -102,9 +114,6 @@ export const loginUser = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaPlus, FaTrash } from "react-icons/fa";
+import { FaArrowLeft, FaPlus, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -17,10 +17,11 @@ const Teachers = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
+  const isMobile = window.innerWidth <= 768;
+
   /* FETCH TEACHERS */
 
   const fetchTeachers = async () => {
-
     try {
       setLoading(true);
 
@@ -101,10 +102,6 @@ const Teachers = () => {
     teachers.reduce((a, b) => a + Number(b.experience || 0), 0) /
     (teachers.length || 1);
 
-  const avgRating =
-    teachers.reduce((a, b) => a + Number(b.rating || 0), 0) /
-    (teachers.length || 1);
-
   if (loading) {
     return (
       <div className="p-8 flex items-center justify-center min-h-screen">
@@ -119,7 +116,18 @@ const Teachers = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
       {/* HEADER */}
-
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+        <div className="flex items-center mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-600"
+          >
+            <FaArrowLeft />
+            Back
+          </button>
+        </div>
+      )}
       <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Teachers</h1>

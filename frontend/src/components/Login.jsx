@@ -1,7 +1,13 @@
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaUserShield, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  FaUserShield,
+  FaArrowLeft,
+  FaLock,
+  FaEye,
+  FaEyeSlash,
+} from "react-icons/fa";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -32,6 +38,8 @@ export default function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const isMobile = window.innerWidth <= 768;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -52,10 +60,17 @@ export default function Login() {
         navigate("/admin/dashboard");
         toast.success("Login successful! Welcome back.");
       } else if (role === "school_admin") {
-        navigate("/school/dashboard");
+        if (isMobile) {
+          navigate("/school/menu"); // mobile page
+        } else {
+          navigate("/school/dashboard"); // desktop page
+        }
         toast.success("Login successful! Welcome back.");
       } else if (role === "teacher_admin") {
         navigate("/teacher/dashboard");
+        toast.success("Login successful! Welcome back.");
+      } else if (role === "student_admin") {
+        navigate("/parent/dashboard");
         toast.success("Login successful! Welcome back.");
       }
     } catch {
@@ -162,6 +177,7 @@ export default function Login() {
               <p>Super Admin: super@admin.com / admin</p>
               <p>School Admin: school@admin.com / admin</p>
               <p>Teacher Admin: teacher@admin.com / admin</p>
+              <p>Student Admin: student@admin.com / admin</p>
             </div>
           </form>
         </div>

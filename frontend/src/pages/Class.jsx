@@ -10,6 +10,7 @@ import {
   FaTrash,
   FaEye,
   FaTimes,
+  FaArrowLeft,
 } from "react-icons/fa";
 import { FiX, FiCheckCircle, FiAlertTriangle } from "react-icons/fi";
 import { toast } from "react-toastify";
@@ -50,6 +51,8 @@ export default function ClassPage() {
   const [confirmSave, setConfirmSave] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+
+  const isMobile = window.innerWidth <= 768;
 
   /* ── fetch ── */
   const fetchAll = async () => {
@@ -255,6 +258,18 @@ export default function ClassPage() {
   return (
     <div className="space-y-6">
       {/* ── Header ── */}
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+        <div className="flex items-center mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-600"
+          >
+            <FaArrowLeft />
+            Back
+          </button>
+        </div>
+      )}
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Classes</h1>
         <p className="text-sm text-gray-500 mt-0.5">

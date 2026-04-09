@@ -65,6 +65,7 @@ const teacherSchema = new mongoose.Schema(
       type: String,
       default: "Present",
     },
+    
     temp_password: {
       type: String,
     },

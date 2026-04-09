@@ -16,6 +16,7 @@ import {
   FaCalendar,
   FaBookOpen,
   FaUserAlt,
+  FaUsers,
 } from "react-icons/fa";
 
 import {
@@ -42,7 +43,7 @@ const Sidebar = ({ closeSidebar }) => {
   const location = useLocation();
   const [openMenu, setOpenMenu] = useState(null);
 
-  // const role = localStorage.getItem("userRole"); // super_admin / school_admin / teacher_admin
+  // const role = localStorage.getItem("userRole"); // super_admin / school_admin / teacher_admin / student_admin
 
   const role = user?.role;
   const logout = async () => {
@@ -64,6 +65,8 @@ const Sidebar = ({ closeSidebar }) => {
     sessionStorage.clear();
     navigate("/admin/login", { replace: true });
   };
+
+  const isMobile = window.innerWidth <= 768;
 
   /* ---------------- SUPER ADMIN MENU ---------------- */
 
@@ -99,6 +102,9 @@ const Sidebar = ({ closeSidebar }) => {
   /* ---------------- SCHOOL ADMIN MENU ---------------- */
 
   const schoolAdminMenu = [
+    ...(isMobile
+      ? [{ name: "Menu", icon: <FaTachometerAlt />, path: "/school/menu" }]
+      : []),
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/school/dashboard" },
 
     {
@@ -222,6 +228,21 @@ const Sidebar = ({ closeSidebar }) => {
     { name: "Calendar", icon: <FaCalendarAlt />, path: "/teacher/calendar" },
   ];
 
+  /* ---------------- STUDENT / PARENT ADMIN MENU ---------------- */
+
+  const studentAdminMenu = [
+    { name: "Dashboard", icon: <FaTachometerAlt />, path: "/parent/dashboard" },
+    { name: "My Child", icon: <FaUserGraduate />, path: "/parent/student" },
+    { name: "Fee Details", icon: <FaWallet />, path: "/parent/fees" },
+    { name: "Attendance", icon: <FaUsers />, path: "/parent/attendance" },
+    { name: "Diary", icon: <FaBookOpen />, path: "/parent/diary" },
+    { name: "Assignment", icon: <GiSchoolBag />, path: "/parent/assignment" },
+    { name: "Calendar", icon: <FaCalendarAlt />, path: "/parent/calendar" },
+    { name: "Timetable", icon: <FaClock />, path: "/parent/timetable" },
+    { name: "Notices", icon: <FaBell />, path: "/parent/notice" },
+    { name: "Events", icon: <FaCalendar />, path: "/parent/event" },
+  ];
+
   let menu = [];
 
   if (role === "super_admin") {
@@ -230,6 +251,8 @@ const Sidebar = ({ closeSidebar }) => {
     menu = schoolAdminMenu;
   } else if (role === "teacher_admin") {
     menu = teacherAdminMenu;
+  } else if (role === "student_admin") {
+    menu = studentAdminMenu;
   }
 
   const toggleMenu = (name) => {

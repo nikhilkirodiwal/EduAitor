@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { FaPlus, FaEye, FaEdit, FaUsers } from "react-icons/fa";
+import { FaPlus, FaArrowLeft, FaEye, FaEdit, FaUsers } from "react-icons/fa";
 import { MdPersonOutline } from "react-icons/md";
 import { PiChartPieSliceBold } from "react-icons/pi";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +19,7 @@ const Students = () => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [confirmMessage, setConfirmMessage] = useState("");
-
+  const isMobile = window.innerWidth <= 768;
   const fetchClasses = async () => {
     try {
       const res = await axios.get(`${API}/classes/all`, {
@@ -87,7 +87,18 @@ const Students = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
       {/* HEADER */}
-
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+        <div className="flex items-center mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-600"
+          >
+            <FaArrowLeft />
+            Back
+          </button>
+        </div>
+      )}
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">

@@ -70,13 +70,17 @@ const studentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "School", // or whatever your school model is named
     },
+
+    username: String,
+    password: String,
+    temp_password: {
+      type: String,
+    },
+    
   },
   { timestamps: true },
 );
 
 // Unique index set for schools
-studentSchema.index(
-  { schoolId: 1, studentId: 1 },
-  { unique: true }
-);
+studentSchema.index({ schoolId: 1, studentId: 1 }, { unique: true });
 export default mongoose.model("Student", studentSchema);

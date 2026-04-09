@@ -453,9 +453,13 @@ export default function Assignment() {
   };
   const togglePublish = async (a) => {
     try {
-      await axios.patch(`${API}/assignment/publish/${a._id}`, {
-        withCredentials: true,
-      });
+      await axios.patch(
+        `${API}/assignment/publish/${a._id}`,
+        {},
+        {
+          withCredentials: true,
+        },
+      );
       toast.success(a.isPublished ? "Unpublished" : "Published ✓");
       fetchAssignments();
     } catch {

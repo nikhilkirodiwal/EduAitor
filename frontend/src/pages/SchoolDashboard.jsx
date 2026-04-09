@@ -23,6 +23,7 @@ import {
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
 const settingsKey = "schoolDashboardVisibility";
@@ -112,13 +113,12 @@ const SchoolDashboard = () => {
     books: [],
     issueStats: { totalIssued: 0, overdue: 0, returned: 0, pendingFine: 0 },
   });
-
+  const isMobile = window.innerWidth <= 768;
   useEffect(() => {
     localStorage.setItem(settingsKey, JSON.stringify(visibility));
   }, [visibility]);
 
   const fetchDashboard = async ({ silent = false } = {}) => {
-
     try {
       silent ? setRefreshing(true) : setLoading(true);
       const [
@@ -400,6 +400,18 @@ const SchoolDashboard = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+        <div className="flex items-center mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-600"
+          >
+            <FaArrowLeft />
+            Back
+          </button>
+        </div>
+      )}
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -482,8 +494,8 @@ const SchoolDashboard = () => {
               Command Center
             </p>
             <h2 className="mt-3 text-2xl font-black">
-              { "Your school"} is operating with{" "}
-              {metrics.classesReadyRate}% classroom readiness
+              {"Your school"} is operating with {metrics.classesReadyRate}%
+              classroom readiness
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-slate-300">
               Keep academic operations, fee recovery, and communication

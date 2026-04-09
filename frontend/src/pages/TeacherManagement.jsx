@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -56,14 +57,13 @@ const TeacherManagement = () => {
   const [subjects, setSubjects] = useState([]);
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const isMobile = window.innerWidth <= 768;
   const progress = (step / steps.length) * 100;
 
   /* FETCH DROPDOWN DATA */
 
   useEffect(() => {
     const fetchDropdownData = async () => {
-
       try {
         setLoading(true);
 
@@ -250,7 +250,6 @@ const TeacherManagement = () => {
   };
 
   const submitTeacher = async () => {
-
     try {
       const data = new FormData();
 
@@ -319,7 +318,18 @@ const TeacherManagement = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
       {/* HEADER */}
-
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+        <div className="flex items-center mb-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-gray-600"
+          >
+            <FaArrowLeft />
+            Back
+          </button>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:justify-between gap-3 mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold">
           {isEdit ? "Edit Teacher Details" : "Add Teacher"}

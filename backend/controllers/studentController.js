@@ -6,6 +6,7 @@ import {
   syncStudentGroups,
   removeStudentFromOldGroups,
 } from "../utils/groupSync.js";
+import bcrypt from "bcryptjs";
 
 /* ================= GENERATE STUDENT ID ================= */
 
@@ -67,6 +68,11 @@ export const createStudent = async (req, res) => {
     await uploadFile("motherAadhar", "documents");
 
     const studentId = await generateStudentId(schoolId);
+
+    if (safeBody.password && safeBody.password.trim() !== "") {
+      safeBody.temp_password = safeBody.password;
+      safeBody.password = await bcrypt.hash(safeBody.password, 10);
+    }
 
     const student = await Student.create({
       ...safeBody,
@@ -230,6 +236,14 @@ export const updateStudent = async (req, res) => {
     await updateFile("fatherAadhar", "documents");
     await updateFile("motherAadhar", "documents");
 
+    if (safeBody.password && safeBody.password.trim() !== "") {
+      safeBody.temp_password = safeBody.password;
+      safeBody.password = await bcrypt.hash(safeBody.password, 10);
+    } else {
+      delete safeBody.password;
+      delete safeBody.temp_password;
+    }
+
     const updatedStudent = await Student.findOneAndUpdate(
       { _id: req.params.id, schoolId },
       {
@@ -240,7 +254,6 @@ export const updateStudent = async (req, res) => {
     )
       .populate("classId", "name className")
       .populate("sectionId", "name sectionName");
-
 
     const classChanged =
       oldStudent.classId?.toString() !== updatedStudent.classId?.toString();
