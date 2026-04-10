@@ -53,6 +53,9 @@ import ParentAssignment from "./pages/ParentAssignment";
 import SchoolMenu from "./pages/SchoolMenu";
 import TeacherAssignmentResult from "./pages/TeacherAssignmentResult";
 import ParentAssignmentResult from "./pages/ParentAssignmentResult";
+import TeacherEvent from "./pages/TeacherEvent";
+import TeacherNotice from "./pages/TeacherNotice";
+import TeacherCalendar from "./pages/TeacherCalendar";
 
 const App = () => {
   return (
@@ -145,6 +148,9 @@ const App = () => {
         <Route path="attendance/report" element={<AttendanceReportTeacher />} />
         <Route path="syllabus" element={<Syllabus />} />
         <Route path="diary" element={<DiaryTeacher />} />
+        <Route path="event" element={<TeacherEvent />} />
+        <Route path="notice" element={<TeacherNotice />} />
+        <Route path="calendar" element={<TeacherCalendar />} />
 
         <Route path="*" element={<Navigate to="/teacher/dashboard" />} />
       </Route>

@@ -203,7 +203,7 @@ function ChildList({ children, color }) {
             }}
           >
             <div
-              className="w-2 h-2 rounded-full flex-shrink-0"
+              className="w-2 h-2 rounded-full shrink-0"
               style={{ background: color.icon }}
             />
             <span className="flex-1 text-[13.5px] font-bold text-slate-800">
