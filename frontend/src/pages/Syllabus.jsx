@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FiChevronDown, FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
+import { FaArrowLeft } from "react-icons/fa";
 import { toast } from "react-toastify";
 import TermManagement from "../components/TermManagement";
+import { useNavigate } from "react-router-dom";
 
 function Syllabus() {
   const API = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
 
   // ==================== STATE ====================
   const [classes, setClasses] = useState([]);
@@ -29,6 +32,8 @@ function Syllabus() {
     type: "", // "chapter" | "topic"
     id: null,
   });
+
+  const isMobile = window.innerWidth <= 768;
 
   // ==================== FETCH DATA ====================
   useEffect(() => {
@@ -93,7 +98,7 @@ function Syllabus() {
   const fetchChapters = async () => {
     try {
       if (!selectedClass || !selectedSubject || !selectedTerm) return;
-      
+
       setLoading(true);
       const res = await axios.get(`${API}/syllabus/chapters`, {
         params: {
@@ -298,6 +303,20 @@ function Syllabus() {
   return (
     <div className="min-h-screen ">
       <div className="max-w-6xl mx-auto p-6">
+        {/* 🔙 BACK BUTTON */}
+        {isMobile && (
+          <div className="px-4 pt-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                         bg-white shadow-sm border border-slate-100
+                         text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+            >
+              <FaArrowLeft size={16} />
+              Back
+            </button>
+          </div>
+        )}
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl py-1 font-bold text-transparent bg-clip-text bg-blue-600 mb-2">

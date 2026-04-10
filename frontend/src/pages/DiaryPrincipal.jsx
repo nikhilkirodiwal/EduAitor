@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -378,6 +380,9 @@ const INIT_FILTERS = {
 };
 
 export default function DiaryPrincipal() {
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
+
   const [classes, setClasses] = useState([]);
   const [entries, setEntries] = useState([]);
   const [stats, setStats] = useState({
@@ -479,6 +484,20 @@ export default function DiaryPrincipal() {
       {/* ── Sticky Header ────────────────────────────────────────────────────── */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-20">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+          {/* 🔙 BACK BUTTON */}
+          {isMobile && (
+            <div className="px-4 pt-4">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+              >
+                <FaArrowLeft size={16} />
+                Back
+              </button>
+            </div>
+          )}
           <div>
             <h1 className="text-base font-semibold text-slate-800 leading-tight">
               School Diary

@@ -402,12 +402,14 @@ const SchoolDashboard = () => {
     <div className="min-h-screen bg-slate-50 pb-10">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
-        <div className="flex items-center mb-4">
+          <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
           >
-            <FaArrowLeft />
+            <FaArrowLeft size={16} />
             Back
           </button>
         </div>

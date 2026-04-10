@@ -86,19 +86,21 @@ const Students = () => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
-      {/* HEADER */}
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
-        <div className="flex items-center mb-4">
+          <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-gray-600"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
           >
-            <FaArrowLeft />
+            <FaArrowLeft size={16} />
             Back
           </button>
         </div>
       )}
+      {/* HEADER */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const Defaulters = () => {
   const [defaulters, setDefaulters] = useState([]);
@@ -12,6 +14,8 @@ const Defaulters = () => {
   const [viewData, setViewData] = useState(null);
   const [classes, setClasses] = useState([]);
   const API = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
 
   const loadClasses = async () => {
     try {
@@ -59,6 +63,20 @@ const Defaulters = () => {
 
   return (
     <div className="p-4 md:p-8 bg-slate-50 min-h-screen font-sans">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
         <div>

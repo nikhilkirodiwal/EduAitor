@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 function ExamCreate() {
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
   const [exams, setExams] = useState([]);
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -177,6 +181,20 @@ function ExamCreate() {
 
   return (
     <div className="p-4 md:p-8 bg-slate-50 min-h-screen font-sans text-slate-900">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* Header */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>

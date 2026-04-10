@@ -9,9 +9,10 @@ import {
   FaChevronUp,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
-
 
 const EMPTY_FORM = {
   name: "",
@@ -25,6 +26,8 @@ const EMPTY_FORM = {
 };
 
 const RouteManagement = () => {
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -239,6 +242,20 @@ const RouteManagement = () => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* HEADER */}
       <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <div>

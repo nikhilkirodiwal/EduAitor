@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const FeeStructure = () => {
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
+
   /* ── state ── */
   const [classes, setClasses] = useState([]);
   const [feeData, setFeeData] = useState(null); // null = not loaded yet
@@ -216,6 +221,20 @@ const FeeStructure = () => {
           No max-width so it fills the right panel
       ══════════════════════════════════════════ */}
       <div className="w-full p-4 bg-[#f5f4f0] min-h-screen">
+        {/* 🔙 BACK BUTTON */}
+        {isMobile && (
+          <div className="px-4 pt-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+            >
+              <FaArrowLeft size={16} />
+              Back
+            </button>
+          </div>
+        )}
         {/* ── TOP BAR : class dropdown + add button ── */}
         <div className="flex flex-wrap items-end gap-3 mb-4">
           {/* Class selector */}

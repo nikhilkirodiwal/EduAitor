@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const initialBookForm = {
   title: "",
@@ -29,7 +31,9 @@ const bookCategories = [
 
 const LibraryManagement = () => {
   const API = import.meta.env.VITE_API_URL;
-  
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
+
   const [activeTab, setActiveTab] = useState("inventory");
   const [searchTerm, setSearchTerm] = useState("");
   const [books, setBooks] = useState([]);
@@ -364,6 +368,20 @@ const LibraryManagement = () => {
       <ToastContainer />
 
       <div className="border-b border-slate-200 bg-white">
+        {/* 🔙 BACK BUTTON */}
+        {isMobile && (
+          <div className="px-4 pt-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+            >
+              <FaArrowLeft size={16} />
+              Back
+            </button>
+          </div>
+        )}
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6">
           <div>
             <h1 className="text-2xl font-black tracking-tight text-slate-900">

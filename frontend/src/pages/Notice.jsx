@@ -15,10 +15,12 @@ import {
 } from "react-icons/fi";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
 
-// Add later 
+// Add later
 const createdBy = "Admin";
 
 /* ── style maps ── */
@@ -74,6 +76,8 @@ const EMPTY_FORM = {
 export default function Notice() {
   const [notices, setNotices] = useState([]);
   const [classes, setClasses] = useState([]);
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -296,6 +300,20 @@ export default function Notice() {
   /* ════════════════════════════════════════════════════ */
   return (
     <div>
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* ── Header ── */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Notices</h1>

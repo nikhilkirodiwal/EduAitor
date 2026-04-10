@@ -17,6 +17,7 @@ import {
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FiAlertTriangle } from "react-icons/fi";
+import { FaArrowLeft } from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -53,6 +54,7 @@ const getStatus = (ev) => {
 
 export default function EventsPage() {
   const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
 
   const [events, setEvents] = useState([]);
   const [stats, setStats] = useState({
@@ -252,6 +254,21 @@ export default function EventsPage() {
   /* ════════════════════════════════════════════════════ */
   return (
     <div>
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+        <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
+
       {/* ── Header ── */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Events</h1>

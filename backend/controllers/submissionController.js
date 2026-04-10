@@ -196,3 +196,157 @@ export const getMySubmission = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+/* ── TEACHER: GET ALL SUBMISSIONS FOR AN ASSIGNMENT ── */
+export const getAssignmentSubmissions = async (req, res) => {
+  try {
+    const { teacher_id } = req.user;
+
+    const assignment = await Assignment.findOne({
+      _id: req.params.id,
+      teacherId: teacher_id,
+    });
+
+    if (!assignment) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Assignment not found" });
+    }
+
+    const submissions = await AssignmentSubmission.find({
+      assignmentId: req.params.id,
+    }).populate("studentId", "firstName lastName rollNo studentId");
+
+    const totalStudents = submissions.length;
+    const avgScore = totalStudents
+      ? Math.round(
+          submissions.reduce((s, r) => s + r.percentage, 0) / totalStudents,
+        )
+      : 0;
+    const highest = totalStudents
+      ? Math.max(...submissions.map((s) => s.percentage))
+      : 0;
+    const lowest = totalStudents
+      ? Math.min(...submissions.map((s) => s.percentage))
+      : 0;
+
+    res.json({
+      success: true,
+      data: {
+        assignment,
+        submissions,
+        stats: { totalStudents, avgScore, highest, lowest },
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/* ── TEACHER: GET SINGLE STUDENT SUBMISSION DETAIL ── */
+export const getStudentSubmissionDetail = async (req, res) => {
+  try {
+    const { teacher_id } = req.user;
+    const { assignmentId, studentId } = req.params;
+
+    const assignment = await Assignment.findOne({
+      _id: assignmentId,
+      teacherId: teacher_id,
+    });
+
+    if (!assignment) {
+      return res.status(404).json({ success: false, message: "Not found" });
+    }
+
+    const submission = await AssignmentSubmission.findOne({
+      assignmentId,
+      studentId,
+    }).populate("studentId", "firstName lastName rollNo studentId documents");
+
+    if (!submission) {
+      return res.status(404).json({ success: false, message: "No submission" });
+    }
+
+    const report = submission.toObject();
+    report.answers = report.answers.map((ans) => ({
+      ...ans,
+      options: assignment.questions[ans.questionIndex]?.options || [],
+    }));
+
+    res.json({ success: true, data: { assignment, submission: report } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/* ── TEACHER: GET ALL ASSIGNMENTS WITH SUBMISSION SUMMARY ── */
+export const getTeacherAssignmentResults = async (req, res) => {
+  try {
+    const { teacher_id } = req.user;
+
+    const assignments = await Assignment.find({ teacherId: teacher_id })
+      .populate("classId", "name")
+      .populate("subjectId", "name")
+      .sort({ createdAt: -1 });
+
+    const withStats = await Promise.all(
+      assignments.map(async (a) => {
+        const subs = await AssignmentSubmission.find({ assignmentId: a._id });
+        const count = subs.length;
+        const avg = count
+          ? Math.round(subs.reduce((s, r) => s + r.percentage, 0) / count)
+          : null;
+        return { ...a.toObject(), submissionCount: count, avgScore: avg };
+      }),
+    );
+
+    res.json({ success: true, data: withStats });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+/* ── PARENT: GET ALL MY SUBMISSION HISTORY ── */
+export const getMySubmissionHistory = async (req, res) => {
+  try {
+    const student_id = req.user?.student_id;
+
+    if (!student_id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "student_id not found in token" });
+    }
+
+    const submissions = await AssignmentSubmission.find({
+      studentId: student_id,
+    })
+      .populate({
+        path: "assignmentId",
+        select:
+          "title totalMarks dueDate type subjectId chapterId classId questions",
+        populate: [
+          { path: "subjectId", select: "name" },
+          { path: "chapterId", select: "name" },
+          { path: "classId", select: "name" },
+        ],
+      })
+      .sort({ submittedAt: -1 });
+
+    const data = submissions.map((sub) => {
+      const subObj = sub.toObject();
+      const assignmentQuestions = subObj.assignmentId?.questions || [];
+
+      subObj.answers = subObj.answers.map((ans) => ({
+        ...ans,
+        options: assignmentQuestions[ans.questionIndex]?.options || [],
+      }));
+
+      return subObj;
+    });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error("getMySubmissionHistory error:", err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

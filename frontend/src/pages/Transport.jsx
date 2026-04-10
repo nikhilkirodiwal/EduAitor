@@ -10,6 +10,8 @@ import {
   FaUserTie,
 } from "react-icons/fa6";
 import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -31,9 +33,10 @@ const Transport = () => {
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
 
   const fetchDashboard = async () => {
-
     try {
       setLoading(true);
 
@@ -186,6 +189,20 @@ const Transport = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       <div className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

@@ -15,36 +15,42 @@ import {
   getMySubmission,
 } from "../controllers/submissionController.js";
 
+import {
+  getAssignmentSubmissions,
+  getStudentSubmissionDetail,
+  getTeacherAssignmentResults,
+  getMySubmissionHistory,
+} from "../controllers/submissionController.js";
+
 import { authMiddleware } from "../auth/auth.js";
 import { generateAIQuestions } from "../controllers/aiController.js";
 
 const router = express.Router();
 
-/* ================= CREATE ================= */
-router.post("/create", authMiddleware, createAssignment);
+router.use(authMiddleware);
 
-/* ================= GET (TEACHER) ================= */
-router.get("/teacher", authMiddleware, getTeacherAssignments);
+router.post("/create", createAssignment);
+router.post("/generate-questions", generateAIQuestions);
 
-/* ================= GET SINGLE ================= */
-router.get("/:id", authMiddleware, getAssignmentById);
+router.get("/teacher/results", getTeacherAssignmentResults);
+router.get("/teacher", getTeacherAssignments);
 
-/* ================= UPDATE ================= */
-router.put("/:id", authMiddleware, updateAssignment);
+router.get("/student/history", getMySubmissionHistory);
+router.get("/student/list", getStudentAssignments);
+router.post("/student/:id/submit", submitAssignment);
+router.get("/student/:id/report", getMySubmission);
+router.get("/student/:id", getAssignmentForStudent);
 
-/* ================= DELETE ================= */
-router.delete("/:id", authMiddleware, deleteAssignment);
+router.patch("/publish/:id", togglePublishAssignment);
 
-/* ================= PUBLISH ================= */
-router.patch("/publish/:id", authMiddleware, togglePublishAssignment);
+router.get(
+  "/teacher/:assignmentId/student/:studentId",
+  getStudentSubmissionDetail,
+);
+router.get("/teacher/:id/submissions", getAssignmentSubmissions);
 
-/* ================= AI INTEGRATE =================*/
-router.post("/generate-questions", authMiddleware, generateAIQuestions);
-
-/* ================= STUDENT / PARENT ROUTES ================= */
-router.get("/student/list", authMiddleware, getStudentAssignments);
-router.get("/student/:id", authMiddleware, getAssignmentForStudent);
-router.post("/student/:id/submit", authMiddleware, submitAssignment);
-router.get("/student/:id/report", authMiddleware, getMySubmission);
+router.get("/:id", getAssignmentById);
+router.put("/:id", updateAssignment);
+router.delete("/:id", deleteAssignment);
 
 export default router;

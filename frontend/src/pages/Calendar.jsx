@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -129,9 +131,10 @@ const getStatus = (ev) => {
 
 // ─── Main Calendar ────────────────────────────────────────────────────────────
 
-export default function Calendar({ schoolId, /* academicYearId */ }) {
+export default function Calendar({ schoolId /* academicYearId */ }) {
   const today = new Date();
-
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
   const [month, setMonth] = useState(today.getMonth());
   const [year, setYear] = useState(today.getFullYear());
 
@@ -271,6 +274,20 @@ export default function Calendar({ schoolId, /* academicYearId */ }) {
 
   return (
     <div className="min-h-screen p-4">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* Page Header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
@@ -816,9 +833,7 @@ function EventModal({
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
         {/* Accent bar — reflects selected type color */}
-        <div
-          className={`h-1.5 w-full transition-colors duration-300`}
-        />
+        <div className={`h-1.5 w-full transition-colors duration-300`} />
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">

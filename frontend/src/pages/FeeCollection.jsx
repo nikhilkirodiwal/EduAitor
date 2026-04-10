@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 function FeeCollection() {
   const [classes, setClasses] = useState([]);
@@ -10,6 +12,8 @@ function FeeCollection() {
   const [selectedClass, setSelectedClass] = useState("");
 
   const API = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
   /* Fetch all classes for the dropdown */
   const fetchClasses = async () => {
     try {
@@ -183,6 +187,20 @@ function FeeCollection() {
 
   return (
     <div>
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       <h1 className="text-2xl font-bold mb-4">Fee Collection</h1>
       <div className="fc-container">
         <div className="fc-search">

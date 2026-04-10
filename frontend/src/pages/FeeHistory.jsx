@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 /* ─── Constants ──────────────────────────────────────────── */
 const LIMIT = 20;
@@ -183,6 +185,8 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
 /* ─── Main Component ─────────────────────────────────────── */
 function FeeHistory() {
   const API = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
 
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -257,6 +261,20 @@ function FeeHistory() {
       className="min-h-screen bg-stone-50"
       style={{ fontFamily: "Georgia, serif" }}
     >
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* ── Header ── */}
       <div className="bg-white border-b border-stone-200 px-4 sm:px-8 py-5">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">

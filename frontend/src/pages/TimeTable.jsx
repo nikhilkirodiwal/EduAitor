@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
 import { toast } from "react-toastify";
 import {
   FaSave,
@@ -27,6 +30,9 @@ const DAYS = [
 ];
 
 export default function TimeTable() {
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
+
   const [classes, setClasses] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -227,6 +233,20 @@ export default function TimeTable() {
   /* ════════════════════════════════════════════════════ */
   return (
     <div className="space-y-6">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* ── Header ── */}
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Timetable</h1>

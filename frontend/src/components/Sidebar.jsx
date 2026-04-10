@@ -190,7 +190,6 @@ const Sidebar = ({ closeSidebar }) => {
     {
       name: "Attendance",
       icon: <FaUserAlt />,
-      path: "/teacher/attendance",
       children: [
         { name: "Mark Attendance", path: "/teacher/attendance/mark" },
         { name: "Attendance Report", path: "/teacher/attendance/report" },
@@ -206,7 +205,10 @@ const Sidebar = ({ closeSidebar }) => {
     {
       name: "Assignment",
       icon: <GiSchoolBag />,
-      path: "/teacher/assignment",
+      children: [
+        { name: "My Assignments", path: "/teacher/assignment" },
+        { name: "Assignment   Result", path: "/teacher/assignment/result" },
+      ],
     },
 
     {
@@ -236,7 +238,14 @@ const Sidebar = ({ closeSidebar }) => {
     { name: "Fee Details", icon: <FaWallet />, path: "/parent/fees" },
     { name: "Attendance", icon: <FaUsers />, path: "/parent/attendance" },
     { name: "Diary", icon: <FaBookOpen />, path: "/parent/diary" },
-    { name: "Assignment", icon: <GiSchoolBag />, path: "/parent/assignment" },
+    {
+      name: "Assignment",
+      icon: <GiSchoolBag />,
+      children: [
+        { name: "My Assignments", path: "/parent/assignment" },
+        { name: "Assignment Result", path: "/parent/assignment/result" },
+      ],
+    },
     { name: "Calendar", icon: <FaCalendarAlt />, path: "/parent/calendar" },
     { name: "Timetable", icon: <FaClock />, path: "/parent/timetable" },
     { name: "Notices", icon: <FaBell />, path: "/parent/notice" },

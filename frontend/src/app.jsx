@@ -51,6 +51,8 @@ import DiaryTeacher from "./pages/DiaryTeacher";
 import ParentDashboard from "./pages/ParentDashboard";
 import ParentAssignment from "./pages/ParentAssignment";
 import SchoolMenu from "./pages/SchoolMenu";
+import TeacherAssignmentResult from "./pages/TeacherAssignmentResult";
+import ParentAssignmentResult from "./pages/ParentAssignmentResult";
 
 const App = () => {
   return (
@@ -138,6 +140,7 @@ const App = () => {
       >
         <Route path="dashboard" element={<TeacherDashboard />} />
         <Route path="assignment" element={<Assignment />} />
+        <Route path="assignment/result" element={<TeacherAssignmentResult />} />
         <Route path="attendance/mark" element={<Attendance />} />
         <Route path="attendance/report" element={<AttendanceReportTeacher />} />
         <Route path="syllabus" element={<Syllabus />} />
@@ -156,6 +159,7 @@ const App = () => {
       >
         <Route path="dashboard" element={<ParentDashboard />} />
         <Route path="assignment" element={<ParentAssignment />} />
+        <Route path="assignment/result" element={<ParentAssignmentResult />} />
 
         <Route path="*" element={<Navigate to="/parent/dashboard" />} />
       </Route>
