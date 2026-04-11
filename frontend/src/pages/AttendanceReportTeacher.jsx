@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import {FaArrowLeft} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
 
 const MONTHS = [
   "January","February","March","April","May","June",
@@ -171,6 +174,9 @@ function Sel({ label, value, onChange, disabled, children }) {
 ══════════════════════════════════════════════════════════ */
 export default function AttendanceReportTeacher() {
   const API = import.meta.env.VITE_API_URL;
+    const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
+
 
   const [classes,  setClasses]  = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -250,6 +256,20 @@ export default function AttendanceReportTeacher() {
   /* ────────────────── RENDER ────────────────── */
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       <div className="max-w-2xl mx-auto px-3 py-5 sm:px-6 sm:py-8">
 
         {/* ── Page Header ── */}

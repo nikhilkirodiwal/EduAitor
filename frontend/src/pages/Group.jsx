@@ -111,8 +111,9 @@ const AVATAR_BGS = [
   "bg-teal-500",
 ];
 const avatarBg = (n = "") =>
-  AVATAR_BGS[n.charCodeAt(0) % AVATAR_BGS.length] || "bg-slate-400";
+  AVATAR_BGS[(n || "?").charCodeAt(0) % AVATAR_BGS.length];
 
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
 function timeAgo(d) {
   const diff = (Date.now() - new Date(d)) / 1000;
   if (diff < 60) return "now";
@@ -143,9 +144,47 @@ function fmtDate(d) {
   });
 }
 
-// ─── AVATAR ───────────────────────────────────────────────────────────────────
+/**
+ * Extract a display name from any user-like object or raw id string.
+ * Handles populated objects ({ fullName, firstName, lastName, name })
+ * and falls back gracefully when only an ObjectId string is present.
+ */
+function resolveName(userIdField, userLookup = {}) {
+  if (!userIdField) return "Unknown";
+
+  // Already populated with name fields
+  if (typeof userIdField === "object") {
+    return (
+      userIdField.fullName ||
+      userIdField.name ||
+      (userIdField.firstName
+        ? `${userIdField.firstName} ${userIdField.lastName || ""}`.trim()
+        : null) ||
+      null
+    );
+  }
+
+  // It's a raw ObjectId string – look it up in our cache
+  const id = userIdField.toString();
+  const cached = userLookup[id];
+  if (cached)
+    return (
+      cached.name ||
+      cached.fullName ||
+      `${cached.firstName || ""} ${cached.lastName || ""}`.trim()
+    );
+
+  return null; // caller will show a short id
+}
+
+function shortId(id) {
+  const s = id?.toString() || "";
+  return s.length > 8 ? `…${s.slice(-6)}` : s;
+}
+
+// ─── SMALL COMPONENTS ────────────────────────────────────────────────────────
 function Avatar({ name = "", size = "w-10 h-10", fs = "text-sm", url }) {
-  const initials = name
+  const initials = (name || "?")
     .split(" ")
     .map((w) => w[0])
     .join("")
@@ -197,6 +236,7 @@ const inp =
   "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all";
 
 // ─── CREATE GROUP MODAL ───────────────────────────────────────────────────────
+// Only rendered for school_admin, but guard is also in the parent
 function CreateGroupModal({ onClose, onCreated }) {
   const [form, setForm] = useState({
     name: "",
@@ -216,7 +256,7 @@ function CreateGroupModal({ onClose, onCreated }) {
         onClose();
       }
     } catch (e) {
-      toast.error(e.response?.data?.message || "Failed");
+      toast.error(e.response?.data?.message || "Failed to create group");
     } finally {
       setBusy(false);
     }
@@ -291,7 +331,7 @@ function CreateGroupModal({ onClose, onCreated }) {
 
 // ─── ADD MEMBER MODAL ─────────────────────────────────────────────────────────
 function AddMemberModal({ group, onClose, onAdded }) {
-  const [tab, setTab] = useState("search"); // "search" | "class"
+  const [tab, setTab] = useState("search");
   const [userType, setUserType] = useState("student");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -302,7 +342,6 @@ function AddMemberModal({ group, onClose, onAdded }) {
   const [busy, setBusy] = useState(false);
   const [fetching, setFetching] = useState(false);
 
-  // Load flat classes for picker
   useEffect(() => {
     api
       .get("/classes/flat")
@@ -312,7 +351,7 @@ function AddMemberModal({ group, onClose, onAdded }) {
       .catch(() => {});
   }, []);
 
-  // Search tab debounce
+  // Search debounce
   useEffect(() => {
     if (tab !== "search" || query.length < 2) {
       setResults([]);
@@ -344,26 +383,24 @@ function AddMemberModal({ group, onClose, onAdded }) {
     return () => clearTimeout(t);
   }, [query, userType, tab]);
 
-  // Class tab: fetch by classId
+  // Class fetch
   useEffect(() => {
     if (!classId || tab !== "class") {
       setClassPeople([]);
       return;
     }
-    const parts = classId.split("_");
-    const cId = parts[0];
+    const cId = classId.split("_")[0];
     setFetching(true);
     api
       .get(userType === "student" ? "/students" : "/teachers")
       .then(({ data }) => {
         if (data.success) {
-          const all = data.data || [];
           const filtered =
             userType === "student"
-              ? all.filter(
+              ? (data.data || []).filter(
                   (p) => (p.classId?._id || p.classId)?.toString() === cId,
                 )
-              : all.filter((p) =>
+              : (data.data || []).filter((p) =>
                   p.assignedClasses?.some(
                     (c) => (c._id || c)?.toString() === cId,
                   ),
@@ -388,13 +425,11 @@ function AddMemberModal({ group, onClose, onAdded }) {
 
   const doAdd = async (people) => {
     const toAdd = people.filter((p) => !isAlreadyMember(p._id));
-    if (toAdd.length === 0)
-      return toast.info("All selected are already members");
+    if (!toAdd.length) return toast.info("All selected are already members");
     setBusy(true);
     try {
-      const members = toAdd.map((p) => ({ userId: p._id, userType }));
       const { data } = await api.post(`/groups/${group._id}/members`, {
-        members,
+        members: toAdd.map((p) => ({ userId: p._id, userType })),
       });
       if (data.success) {
         toast.success(`${toAdd.length} member(s) added`);
@@ -453,7 +488,6 @@ function AddMemberModal({ group, onClose, onAdded }) {
             ))}
           </div>
 
-          {/* Search or class picker */}
           {tab === "search" ? (
             <div className="relative">
               <FiSearch
@@ -496,7 +530,7 @@ function AddMemberModal({ group, onClose, onAdded }) {
                     : "No results found"
                   : !classId
                     ? "Select a class first"
-                    : `No ${userType}s in this class`}
+                    : `No ${userType}s found in this class`}
               </div>
             ) : (
               people.map((p) => {
@@ -507,7 +541,8 @@ function AddMemberModal({ group, onClose, onAdded }) {
                   <div
                     key={p._id}
                     onClick={() => !already && toggle(p._id)}
-                    className={`flex items-center gap-3 px-3.5 py-2.5 transition-colors ${already ? "opacity-50 cursor-default" : "cursor-pointer hover:bg-gray-50"} ${sel ? "bg-indigo-50" : ""}`}
+                    className={`flex items-center gap-3 px-3.5 py-2.5 transition-colors border-b border-gray-50 last:border-0
+                      ${already ? "opacity-50 cursor-default" : "cursor-pointer hover:bg-gray-50"} ${sel ? "bg-indigo-50" : ""}`}
                   >
                     <Avatar
                       name={name}
@@ -540,12 +575,11 @@ function AddMemberModal({ group, onClose, onAdded }) {
             )}
           </div>
 
-          {/* Footer */}
           <div className="flex items-center justify-between pt-1">
             <span className="text-xs text-gray-400">
               {selected.length > 0
                 ? `${selected.length} selected`
-                : "Select to add"}
+                : "Select people to add"}
             </span>
             <div className="flex gap-2">
               <button
@@ -583,11 +617,12 @@ function AddMemberModal({ group, onClose, onAdded }) {
 }
 
 // ─── MEMBERS PANEL ────────────────────────────────────────────────────────────
-function MembersPanel({ group, isAdmin, onRemove, onAdd }) {
+function MembersPanel({ group, isAdmin, onRemove, onAdd, userLookup }) {
   const [search, setSearch] = useState("");
+
   const members = (group.members || []).filter((m) => {
-    const name = m.userId?.name || m.userId?.fullName || "";
-    return name.toLowerCase().includes(search.toLowerCase());
+    const name = getMemberName(m, userLookup).toLowerCase();
+    return name.includes(search.toLowerCase());
   });
 
   return (
@@ -611,19 +646,18 @@ function MembersPanel({ group, isAdmin, onRemove, onAdd }) {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search…"
+            placeholder="Search members…"
             className="bg-transparent text-xs text-gray-700 placeholder-gray-400 flex-1 outline-none"
           />
         </div>
       </div>
+
       <div className="flex-1 overflow-y-auto p-2">
         {members.map((m, i) => {
-          const name =
-            m.userId?.name ||
-            m.userId?.fullName ||
-            m.userId?.toString() ||
-            "Unknown";
-          const photo = m.userId?.photo?.url;
+          const name = getMemberName(m, userLookup);
+          const photo =
+            m.userId?.photo?.url || userLookup[m.userId?.toString()]?.photo;
+          const userTypeLabel = m.userType || m.role || "member";
           return (
             <div
               key={i}
@@ -642,9 +676,21 @@ function MembersPanel({ group, isAdmin, onRemove, onAdd }) {
                     />
                   )}
                 </div>
-                <div className="flex gap-1 mt-0.5">
-                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">
-                    {m.userType}
+                <div className="flex gap-1 mt-0.5 flex-wrap">
+                  {/* userType badge: student / teacher / admin / staff */}
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold
+                    ${
+                      userTypeLabel === "student"
+                        ? "bg-sky-50 text-sky-600"
+                        : userTypeLabel === "teacher"
+                          ? "bg-emerald-50 text-emerald-600"
+                          : userTypeLabel === "admin"
+                            ? "bg-amber-50 text-amber-600"
+                            : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    {userTypeLabel}
                   </span>
                   {m.role && m.role !== "member" && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-semibold">
@@ -656,7 +702,7 @@ function MembersPanel({ group, isAdmin, onRemove, onAdd }) {
               {isAdmin && (
                 <button
                   onClick={() =>
-                    onRemove(m.userId?._id || m.userId?.toString())
+                    onRemove(m.userId?._id?.toString() || m.userId?.toString())
                   }
                   className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
                 >
@@ -669,7 +715,7 @@ function MembersPanel({ group, isAdmin, onRemove, onAdd }) {
         {members.length === 0 && (
           <div className="text-center py-10 text-gray-400">
             <FiUsers size={28} className="mx-auto mb-2 opacity-20" />
-            <p className="text-xs">{search ? "No match" : "No members"}</p>
+            <p className="text-xs">{search ? "No match" : "No members yet"}</p>
           </div>
         )}
       </div>
@@ -696,7 +742,7 @@ function FileBubble({ file, isOwn }) {
         <img
           src={file.url}
           alt={file.name || "image"}
-          className="max-w-55 w-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
+          className="max-w-[220px] w-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
         />
       </a>
     );
@@ -714,7 +760,7 @@ function FileBubble({ file, isOwn }) {
         </div>
         <div className="min-w-0">
           <p
-            className={`text-xs font-semibold truncate max-w-35 ${isOwn ? "text-white" : "text-gray-800"}`}
+            className={`text-xs font-semibold truncate max-w-[140px] ${isOwn ? "text-white" : "text-gray-800"}`}
           >
             {file.name || "Video"}
           </p>
@@ -745,7 +791,7 @@ function FileBubble({ file, isOwn }) {
       </div>
       <div className="flex-1 min-w-0">
         <p
-          className={`text-xs font-semibold truncate max-w-35 ${isOwn ? "text-white" : "text-gray-800"}`}
+          className={`text-xs font-semibold truncate max-w-[140px] ${isOwn ? "text-white" : "text-gray-800"}`}
         >
           {file.name || "File"}
         </p>
@@ -765,12 +811,93 @@ function FileBubble({ file, isOwn }) {
   );
 }
 
+// ─── RESOLVE SENDER NAME ──────────────────────────────────────────────────────
+// msg.sender.userId may be a populated object OR a raw ObjectId string
+function getSenderName(msg, userLookup) {
+  const uid = msg?.sender?.userId;
+  if (!uid) return "Unknown";
+
+  // Populated object
+  if (typeof uid === "object") {
+    return (
+      uid.fullName ||
+      uid.name ||
+      (uid.firstName
+        ? `${uid.firstName} ${uid.lastName || ""}`.trim()
+        : null) ||
+      shortId(uid._id)
+    );
+  }
+
+  // Raw string – look up cache
+  const cached = userLookup[uid.toString()];
+  if (cached) {
+    return (
+      cached.fullName ||
+      cached.name ||
+      (cached.firstName
+        ? `${cached.firstName} ${cached.lastName || ""}`.trim()
+        : null) ||
+      shortId(uid)
+    );
+  }
+
+  // If it's current user → show Admin / You
+  if (uid.toString() === userLookup?.currentUserId) {
+    return "You";
+  }
+
+  // If unknown → assume admin fallback
+  return "School Admin";
+}
+
+function getSenderPhoto(msg, userLookup) {
+  const uid = msg?.sender?.userId;
+  if (!uid) return null;
+  if (typeof uid === "object") return uid.photo?.url || null;
+  return userLookup[uid.toString()]?.photo || null;
+}
+
+function getMemberName(m, userLookup) {
+  const uid = m?.userId;
+  if (!uid) return "Unknown";
+  if (typeof uid === "object") {
+    return (
+      uid.fullName ||
+      uid.name ||
+      (uid.firstName
+        ? `${uid.firstName} ${uid.lastName || ""}`.trim()
+        : null) ||
+      shortId(uid._id)
+    );
+  }
+  const cached = userLookup[uid.toString()];
+  if (cached) {
+    return (
+      cached.fullName ||
+      cached.name ||
+      (cached.firstName
+        ? `${cached.firstName} ${cached.lastName || ""}`.trim()
+        : null) ||
+      shortId(uid)
+    );
+  }
+  // If it's current user → show Admin / You
+  if (uid.toString() === userLookup?.currentUserId) {
+    return "You";
+  }
+
+  // If unknown → assume admin fallback
+  return "School Admin";
+}
+
 // ─── MESSAGE BUBBLE ───────────────────────────────────────────────────────────
-function Bubble({ msg, isOwn, isAdmin, onDelete, onPin }) {
+function Bubble({ msg, isOwn, isAdmin, onDelete, onPin, userLookup }) {
   const [menu, setMenu] = useState(false);
   const menuRef = useRef(null);
-  const senderName =
-    msg.sender?.userId?.name || msg.sender?.userId?.fullName || "Unknown";
+
+  const senderName = getSenderName(msg, userLookup);
+  const senderPhoto = getSenderPhoto(msg, userLookup);
 
   useEffect(() => {
     const h = (e) => {
@@ -790,21 +917,30 @@ function Bubble({ msg, isOwn, isAdmin, onDelete, onPin }) {
           name={senderName}
           size="w-7 h-7"
           fs="text-[10px]"
-          url={msg.sender?.userId?.photo?.url}
+          url={senderPhoto}
         />
       )}
 
       <div
         className={`max-w-[75%] sm:max-w-[62%] flex flex-col ${isOwn ? "items-end" : "items-start"}`}
       >
-        {/* Sender label */}
+        {/* Sender label (only for others) */}
         {!isOwn && (
           <div className="flex items-center gap-1.5 mb-1 ml-1">
             <span className="text-[11px] font-bold text-indigo-600">
               {senderName}
             </span>
             {msg.sender?.userType === "admin" && (
-              <MdAdminPanelSettings size={11} className="text-amber-500" />
+              <MdAdminPanelSettings
+                size={11}
+                className="text-amber-500"
+                title="Admin"
+              />
+            )}
+            {msg.sender?.userType === "teacher" && (
+              <span className="text-[9px] bg-emerald-50 text-emerald-600 font-bold px-1.5 py-0.5 rounded-full">
+                Teacher
+              </span>
             )}
           </div>
         )}
@@ -822,7 +958,7 @@ function Bubble({ msg, isOwn, isAdmin, onDelete, onPin }) {
             </div>
           )}
 
-          {/* File attachment */}
+          {/* File */}
           {msg.file?.url && (
             <div className="mb-2">
               <FileBubble file={msg.file} isOwn={isOwn} />
@@ -832,13 +968,13 @@ function Bubble({ msg, isOwn, isAdmin, onDelete, onPin }) {
           {/* Text */}
           {msg.text && (
             <p
-              className={`text-sm leading-relaxed whitespace-pre-wrap wrap-break-word ${isOwn ? "text-white" : "text-gray-800"}`}
+              className={`text-sm leading-relaxed whitespace-pre-wrap break-words ${isOwn ? "text-white" : "text-gray-800"}`}
             >
               {msg.text}
             </p>
           )}
 
-          {/* Footer */}
+          {/* Timestamp + tick */}
           <div
             className={`flex items-center gap-1.5 mt-1 ${isOwn ? "justify-end" : "justify-start"}`}
           >
@@ -851,16 +987,14 @@ function Bubble({ msg, isOwn, isAdmin, onDelete, onPin }) {
               <span
                 className={`text-[10px] ${msg.status === "seen" ? "text-sky-300" : "text-indigo-300"}`}
               >
-                {msg.status === "seen"
+                {msg.status === "seen" || msg.status === "delivered"
                   ? "✓✓"
-                  : msg.status === "delivered"
-                    ? "✓✓"
-                    : "✓"}
+                  : "✓"}
               </span>
             )}
           </div>
 
-          {/* Context menu trigger */}
+          {/* Context menu */}
           {(isOwn || isAdmin) && (
             <div
               ref={menuRef}
@@ -874,7 +1008,7 @@ function Bubble({ msg, isOwn, isAdmin, onDelete, onPin }) {
               </button>
               {menu && (
                 <div
-                  className={`absolute z-30 top-6 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-35 ${isOwn ? "right-0" : "left-0"}`}
+                  className={`absolute z-30 top-6 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[140px] ${isOwn ? "right-0" : "left-0"}`}
                 >
                   {isAdmin && (
                     <button
@@ -921,13 +1055,13 @@ function DateSep({ date }) {
 }
 
 // ─── PINNED BANNER ────────────────────────────────────────────────────────────
-function PinnedBanner({ msg }) {
+function PinnedBanner({ msg, userLookup }) {
   return (
     <div className="mx-3 mt-2 mb-1 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl flex items-center gap-2.5 shrink-0">
       <MdPin size={13} className="text-amber-500 shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wide">
-          Pinned Message
+          Pinned · {getSenderName(msg, userLookup)}
         </p>
         <p className="text-xs text-gray-600 truncate">
           {msg.text || "📎 Attachment"}
@@ -938,13 +1072,19 @@ function PinnedBanner({ msg }) {
 }
 
 // ─── CHAT WINDOW ──────────────────────────────────────────────────────────────
-function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
+function ChatWindow({
+  group,
+  currentUser,
+  onGroupUpdated,
+  onBack,
+  userLookup,
+}) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [text, setText] = useState("");
-  const [file, setFile] = useState(null); // single file only
+  const [file, setFile] = useState(null);
   const [sending, setSending] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
@@ -956,7 +1096,6 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
 
   const isAdmin = currentUser?.role === "school_admin";
   const isTeacher = currentUser?.role === "teacher_admin";
-  // announcement type → admin only; other types → teacher + admin
   const canSend =
     group.type === "announcement" ? isAdmin : isAdmin || isTeacher;
 
@@ -981,7 +1120,6 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
           params: { page: pg, limit: 25 },
         });
         if (data.success) {
-          // backend already returns oldest-first (reversed)
           setMessages(pg === 1 ? data.data : (prev) => [...data.data, ...prev]);
           setTotalPages(data.totalPages);
           setPage(pg);
@@ -1008,7 +1146,6 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
     }
   }, [messages.length, page]);
 
-  // ── File select: 1 file, 10 MB max ────────────────────────────────────────
   const handleFile = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -1020,7 +1157,6 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
     e.target.value = "";
   };
 
-  // ── Send ───────────────────────────────────────────────────────────────────
   const send = async () => {
     if (!text.trim() && !file) return;
     setSending(true);
@@ -1036,6 +1172,7 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
         setMessages((prev) => [...prev, data.data]);
         setText("");
         setFile(null);
+        if (textareaRef.current) textareaRef.current.style.height = "42px";
         setTimeout(
           () => bottomRef.current?.scrollIntoView({ behavior: "smooth" }),
           60,
@@ -1085,7 +1222,7 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
     }
   };
 
-  // ── Group messages by date ─────────────────────────────────────────────────
+  // Group by date
   const grouped = [];
   let lastDate = null;
   messages.forEach((m) => {
@@ -1097,7 +1234,6 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
     grouped.push({ type: "msg", data: m });
   });
 
-  // File icon for attach button preview
   const fileIcon = file ? (
     file.type.startsWith("image/") ? (
       <FiImage size={11} />
@@ -1110,11 +1246,13 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
     )
   ) : null;
 
+  // Resolve own identity: compare against sender.userId field
+  const myId = currentUser?.id;
+
   return (
     <div className="flex h-full overflow-hidden">
-      {/* ── Chat column ── */}
       <div className="flex flex-col flex-1 min-w-0 h-full">
-        {/* Header */}
+        {/* ── Header ── */}
         <div className="flex items-center gap-3 px-3 sm:px-4 py-3 bg-white border-b border-gray-100 shadow-sm shrink-0">
           <button
             onClick={onBack}
@@ -1151,7 +1289,7 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
               <BsThreeDotsVertical size={16} />
             </button>
             {showMenu && (
-              <div className="absolute right-0 top-10 z-30 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-42.5">
+              <div className="absolute right-0 top-10 z-30 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-[170px]">
                 <button
                   onClick={() => {
                     setShowMembers((v) => !v);
@@ -1179,9 +1317,9 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
         </div>
 
         {/* Pinned banner */}
-        {pinnedMsg && <PinnedBanner msg={pinnedMsg} />}
+        {pinnedMsg && <PinnedBanner msg={pinnedMsg} userLookup={userLookup} />}
 
-        {/* Messages */}
+        {/* ── Messages ── */}
         <div
           className="flex-1 overflow-y-auto px-3 sm:px-4 py-2"
           style={{
@@ -1253,12 +1391,15 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
                     key={item.data._id}
                     msg={item.data}
                     isOwn={
-                      item.data.sender?.userId?._id === currentUser?.id ||
-                      item.data.sender?.userId?.toString() === currentUser?.id
+                      // sender.userId may be an object with _id or a raw string
+                      (typeof item.data.sender?.userId === "object"
+                        ? item.data.sender?.userId?._id?.toString()
+                        : item.data.sender?.userId?.toString()) === myId
                     }
                     isAdmin={isAdmin}
                     onDelete={deleteMsg}
                     onPin={pinMsg}
+                    userLookup={userLookup}
                   />
                 ),
               )}
@@ -1267,16 +1408,15 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
           )}
         </div>
 
-        {/* Input bar */}
+        {/* ── Input bar ── */}
         {canSend ? (
           <div className="shrink-0 bg-white border-t border-gray-100 px-3 py-2.5">
-            {/* Attached file pill */}
             {file && (
-              <div className="flex items-center gap-1.5 mb-2 bg-indigo-50 text-indigo-700 text-xs font-medium px-3 py-1.5 rounded-full w-fit max-w-65">
+              <div className="flex items-center gap-1.5 mb-2 bg-indigo-50 text-indigo-700 text-xs font-medium px-3 py-1.5 rounded-full w-fit max-w-[260px]">
                 {fileIcon}
                 <span className="truncate flex-1">{file.name}</span>
                 <span className="text-indigo-400 shrink-0">
-                  ({(file.size / 1024).toFixed(0)}KB)
+                  ({(file.size / 1024).toFixed(0)} KB)
                 </span>
                 <button
                   onClick={() => setFile(null)}
@@ -1287,7 +1427,6 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
               </div>
             )}
             <div className="flex items-end gap-2">
-              {/* Attach — single file, 10 MB */}
               <button
                 onClick={() => fileRef.current?.click()}
                 title="Attach file (image / video / PDF / doc — max 10 MB)"
@@ -1303,7 +1442,6 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
                 onChange={handleFile}
               />
 
-              {/* Text */}
               <textarea
                 ref={textareaRef}
                 value={text}
@@ -1319,13 +1457,12 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
                     send();
                   }
                 }}
-                placeholder={canSend ? "Type a message… (Enter to send)" : ""}
+                placeholder="Type a message… (Enter to send)"
                 rows={1}
                 className="flex-1 resize-none py-2.5 px-3.5 rounded-2xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:bg-white transition-all overflow-hidden"
                 style={{ minHeight: 42, maxHeight: 120, fontFamily: "inherit" }}
               />
 
-              {/* Send */}
               <button
                 onClick={send}
                 disabled={sending || (!text.trim() && !file)}
@@ -1364,6 +1501,7 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
               setShowAddMember(true);
               setShowMembers(false);
             }}
+            userLookup={userLookup}
           />
         )}
       </div>
@@ -1372,9 +1510,7 @@ function ChatWindow({ group, currentUser, onGroupUpdated, onBack }) {
         <AddMemberModal
           group={group}
           onClose={() => setShowAddMember(false)}
-          onAdded={(updated) => {
-            onGroupUpdated(updated);
-          }}
+          onAdded={(updated) => onGroupUpdated(updated)}
         />
       )}
     </div>
@@ -1406,7 +1542,7 @@ function GroupItem({ group, isActive, onClick }) {
             {timeAgo(group.updatedAt || group.createdAt)}
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
           <span
             className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${meta.soft} ${meta.text}`}
           >
@@ -1416,7 +1552,7 @@ function GroupItem({ group, isActive, onClick }) {
             {group.members?.length || 0} members
           </span>
           {group.lastMessage && (
-            <span className="text-[10px] text-gray-400 truncate">
+            <span className="text-[10px] text-gray-400 truncate max-w-[80px]">
               · {group.lastMessage}
             </span>
           )}
@@ -1448,30 +1584,81 @@ function TypeChip({
 // ─── ROOT COMPONENT ───────────────────────────────────────────────────────────
 export default function Groups() {
   const [groups, setGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingGroups, setLoadingGroups] = useState(true);
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [mobileView, setMobileView] = useState("list"); // "list" | "chat"
+  const [mobileView, setMobileView] = useState("list");
 
+  /**
+   * userLookup: { [mongoId]: { name, fullName, firstName, lastName, photo, userType } }
+   * Built by fetching /students + /teachers once, so message senders
+   * and member list always show real names even when the backend returns raw ObjectIds.
+   */
+  const [userLookup, setUserLookup] = useState({});
+
+  // ── Fetch current user ──────────────────────────────────────────────────────
   useEffect(() => {
     api
       .get("/auth/me")
       .then(({ data }) => {
-        if (data.success)
+        if (data.success) {
           setCurrentUser({
             ...data.user,
             id: data.user.teacher_id || data.user.school_id,
           });
+        }
       })
       .catch(() => {});
   }, []);
 
+  // ── Build user lookup cache ─────────────────────────────────────────────────
+  useEffect(() => {
+    if (!currentUser) return;
+    const buildLookup = async () => {
+      try {
+        const [sRes, tRes] = await Promise.allSettled([
+          api.get("/students"),
+          api.get("/teachers"),
+        ]);
+        const map = {};
+        if (sRes.status === "fulfilled" && sRes.value.data.success) {
+          (sRes.value.data.data || []).forEach((s) => {
+            map[s._id] = {
+              name: `${s.firstName || ""} ${s.lastName || ""}`.trim(),
+              photo: s.documents?.studentPhoto?.url || null,
+              userType: "student",
+            };
+          });
+        }
+        if (tRes.status === "fulfilled" && tRes.value.data.success) {
+          (tRes.value.data.data || []).forEach((t) => {
+            map[t._id] = {
+              name: t.fullName || t.name || "",
+              photo: t.photo?.url || null,
+              userType: "teacher",
+            };
+          });
+        }
+        if (currentUser?.id) {
+          map[currentUser.id] = {
+            name: currentUser.name || "Admin",
+            photo: null,
+            userType: "admin",
+          };
+        }
+        setUserLookup(map);
+      } catch {}
+    };
+    buildLookup();
+  }, [currentUser]);
+
+  // ── Fetch groups ────────────────────────────────────────────────────────────
   const fetchGroups = useCallback(async () => {
     if (!currentUser) return;
-    setLoading(true);
+    setLoadingGroups(true);
     try {
       const ep =
         currentUser.role === "school_admin"
@@ -1485,7 +1672,7 @@ export default function Groups() {
     } catch {
       toast.error("Failed to load groups");
     } finally {
-      setLoading(false);
+      setLoadingGroups(false);
     }
   }, [currentUser?.role]);
 
@@ -1493,6 +1680,7 @@ export default function Groups() {
     fetchGroups();
   }, [fetchGroups]);
 
+  // Only school_admin can create groups
   const isAdmin = currentUser?.role === "school_admin";
   const isTeacher = currentUser?.role === "teacher_admin";
 
@@ -1525,7 +1713,6 @@ export default function Groups() {
         <div
           className={`flex flex-col bg-white border-r border-gray-100 shrink-0 w-full md:w-72 lg:w-80 ${mobileView === "chat" ? "hidden md:flex" : "flex"}`}
         >
-          {/* Top bar */}
           <div className="px-4 pt-4 pb-3 border-b border-gray-100 shrink-0">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -1539,7 +1726,9 @@ export default function Groups() {
                   {groups.length}
                 </span>
               </div>
-              {(isAdmin || isTeacher) && (
+
+              {/* ✅ Only school_admin sees the New button */}
+              {isAdmin && (
                 <button
                   onClick={() => setShowCreate(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
@@ -1548,7 +1737,7 @@ export default function Groups() {
                 </button>
               )}
             </div>
-            {/* Search */}
+
             <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2.5 mb-3">
               <FiSearch size={13} className="text-gray-400 shrink-0" />
               <input
@@ -1566,7 +1755,7 @@ export default function Groups() {
                 </button>
               )}
             </div>
-            {/* Filter chips */}
+
             <div
               className="flex gap-1.5 overflow-x-auto pb-1"
               style={{ scrollbarWidth: "none" }}
@@ -1589,15 +1778,15 @@ export default function Groups() {
             </div>
           </div>
 
-          {/* Group list */}
           <div className="flex-1 overflow-y-auto py-2">
-            {loading ? (
+            {loadingGroups ? (
               <div className="flex flex-col gap-1 px-3">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div key={i} className="flex gap-3 items-center p-3">
                     <Skel cls="w-12 h-12 rounded-full" />
                     <div className="flex-1 flex flex-col gap-2">
-                      <Skel cls="h-3 w-3/4" /> <Skel cls="h-2.5 w-1/2" />
+                      <Skel cls="h-3 w-3/4" />
+                      <Skel cls="h-2.5 w-1/2" />
                     </div>
                   </div>
                 ))}
@@ -1634,6 +1823,7 @@ export default function Groups() {
               key={selected._id}
               group={selected}
               currentUser={currentUser}
+              userLookup={userLookup}
               onGroupUpdated={(updated) => {
                 setGroups((prev) =>
                   prev.map((g) => (g._id === updated._id ? updated : g)),
@@ -1653,7 +1843,8 @@ export default function Groups() {
               <p className="text-sm text-gray-400">
                 Choose a group from the sidebar to open the chat
               </p>
-              {(isAdmin || isTeacher) && (
+              {/* Only school_admin can create */}
+              {isAdmin && (
                 <button
                   onClick={() => setShowCreate(true)}
                   className="mt-5 flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
@@ -1666,7 +1857,8 @@ export default function Groups() {
         </div>
       </div>
 
-      {showCreate && (
+      {/* Only school_admin can open this modal */}
+      {showCreate && isAdmin && (
         <CreateGroupModal
           onClose={() => setShowCreate(false)}
           onCreated={(g) => {

@@ -3,11 +3,14 @@ import axios from "axios";
 import { FaSchool, FaUsers, FaCalendarAlt, FaEye } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import {FaArrowLeft} from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
 
 const Schools = () => {
   const navigate = useNavigate();
+    const isMobile = window.innerWidth <= 768;
+
   const [schools, setSchools] = useState([]);
 
   /* ---------------- FETCH ---------------- */
@@ -39,6 +42,20 @@ const Schools = () => {
 
   return (
     <div className="p-6 space-y-6">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
 
       {/* HEADER */}
 

@@ -273,10 +273,10 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen px-2 sm:px-4 py-4">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
-          <div className="pt-4">
+        <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
@@ -289,7 +289,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
         </div>
       )}
       {/* Page Header */}
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
             Academic Calendar
@@ -298,7 +298,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
             Holidays, Exams, Events &amp; Meetings
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={loadAll}
             title="Refresh"
@@ -319,20 +319,20 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
         </div>
       </div>
 
-      <div className="flex gap-5 items-start">
+      <div className="flex flex-col lg:flex-row gap-5 items-start">
         {/* ── Calendar panel ── */}
-        <div className="flex-1 min-w-0">
+        <div className="w-full lg:flex-1 min-w-0 order-1 lg:order-2">
           {/* Controls */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4 mb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 md:gap-10">
+              <div className="flex items-center justify-between sm:justify-start gap-1.5 w-full sm:w-auto">
                 <button
                   onClick={() => changeMonth("prev")}
                   className="p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition"
                 >
                   <FiChevronLeft size={18} />
                 </button>
-                <h2 className="text-lg font-bold text-gray-900 px-1 min-w-42.5 text-center">
+                <h2 className="text-sm sm:text-lg font-bold text-gray-900 text-center flex-1 sm:flex-none">
                   {MONTHS[month]} {year}
                 </h2>
                 <button
@@ -343,20 +343,20 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
                 </button>
                 <button
                   onClick={goToday}
-                  className="ml-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition"
+                  className="text-xs font-semibold px-2 py-1 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition"
                 >
                   Today
                 </button>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex w-full sm:w-auto gap-2">
                 <select
                   value={month}
                   onChange={(e) => {
                     setMonth(Number(e.target.value));
                     setPopoverDay(null);
                   }}
-                  className="text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  className="flex-1 sm:flex-none text-xs sm:text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 >
                   {MONTHS.map((m, i) => (
                     <option key={i} value={i}>
@@ -370,7 +370,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
                     setYear(Number(e.target.value));
                     setPopoverDay(null);
                   }}
-                  className="text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  className="flex-1 sm:flex-none text-xs sm:text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 >
                   {Array.from({ length: 10 }, (_, i) => year - 4 + i).map(
                     (y) => (
@@ -426,7 +426,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
               {DAYS.map((d) => (
                 <div
                   key={d}
-                  className="py-3 text-center text-xs font-bold text-gray-400 uppercase tracking-wider"
+                  className="py-2 sm:py-3 text-center text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider"
                 >
                   {d}
                 </div>
@@ -437,7 +437,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
               {Array.from({ length: firstDay }).map((_, i) => (
                 <div
                   key={`e-${i}`}
-                  className="h-28 border-b border-r border-gray-50 bg-gray-50/30"
+                  className="h-20 sm:h-24 md:h-28 lg:h-32 border-b border-r border-gray-50 bg-gray-50/30"
                 />
               ))}
 
@@ -453,7 +453,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
                 return (
                   <div
                     key={day}
-                    className={`relative h-28 border-b border-r border-gray-100 p-1.5 cursor-pointer transition-colors group
+                    className={`relative h-20 sm:h-24 md:h-28 lg:h-32 border-b border-r border-gray-100 p-1.5 cursor-pointer transition-colors group
                       ${isToday ? "bg-indigo-50/60" : isWeekend ? "bg-gray-50/50" : "hover:bg-slate-50"}
                       ${isPopoverOpen ? "ring-2 ring-inset ring-indigo-400" : ""}
                     `}
@@ -470,7 +470,8 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
                       {day}
                     </div>
 
-                    <div className="space-y-0.5 overflow-hidden">
+                    {/* Desktop view */}
+                    <div className="hidden sm:block space-y-0.5 overflow-hidden">
                       {dayEvents.slice(0, 2).map((ev, idx) => {
                         const cfg =
                           TYPE_CONFIG[ev.type] || TYPE_CONFIG["Event"];
@@ -488,6 +489,20 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
                           +{dayEvents.length - 2} more
                         </div>
                       )}
+                    </div>
+
+                    {/* Mobile dots */}
+                    <div className="sm:hidden flex flex-wrap gap-0.5 mt-1">
+                      {dayEvents.map((ev, idx) => {
+                        const cfg =
+                          TYPE_CONFIG[ev.type] || TYPE_CONFIG["Event"];
+                        return (
+                          <div
+                            key={idx}
+                            className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}
+                          />
+                        );
+                      })}
                     </div>
 
                     {isPopoverOpen && (
@@ -533,7 +548,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
         </div>
 
         {/* ── Sidebar ── */}
-        <div className="w-72 shrink-0 space-y-4">
+        <div className="w-full lg:w-72 shrink-0 space-y-4 order-1 lg:order-2">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
               Summary Events
@@ -1062,7 +1077,7 @@ function DayPopover({
   return (
     <div
       ref={ref}
-      className="absolute z-40 top-full left-0 mt-1 w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+      className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-2 w-[92vw] max-w-sm sm:w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
     >
       <div className="bg-linear-to-r from-indigo-600 to-indigo-500 px-4 py-3 flex items-center justify-between">
         <div>

@@ -7,6 +7,9 @@ import {
   FiMapPin,
   FiRefreshCw,
 } from "react-icons/fi";
+import {FaArrowLeft} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -36,6 +39,9 @@ export default function TeacherCalendar({ schoolId }) {
   const [allEvents, setAllEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
+    const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
+
 
 const loadAll = async () => {
   setLoading(true);
@@ -85,6 +91,20 @@ const loadAll = async () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-2 sm:p-4 md:p-6 lg:p-8">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>

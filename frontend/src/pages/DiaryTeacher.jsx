@@ -3,6 +3,9 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../context/AuthContext";
+import {FaArrowLeft} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
 
 
 const API = import.meta.env.VITE_API_URL;
@@ -118,6 +121,7 @@ function EditModal({ entry, classes, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-sm p-0 sm:p-4">
+      
       <div className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
@@ -270,6 +274,9 @@ export default function DiaryTeacher() {
   const [deleting, setDeleting] = useState(false);
   const [editEntry, setEditEntry] = useState(null);
   const { user, loading, setUser } = useAuth();
+    const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
+
 
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
@@ -362,6 +369,21 @@ export default function DiaryTeacher() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar closeOnClick pauseOnHover />
 
       {/* ── Header ───────────────────────────────────────────────────────────

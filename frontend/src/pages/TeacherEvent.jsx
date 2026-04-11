@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
+import {FaArrowLeft} from "react-icons/fa";
+
 import {
   FiCalendar,
   FiCheckCircle,
@@ -35,6 +37,9 @@ const getStatus = (ev) => {
 /* ════════════════════════════════════════════════════ */
 export default function TeacherEvent() {
   const { user, loading: authLoading } = useAuth();
+    const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
+
 
   /* ── auth guard ── */
   if (authLoading) {
@@ -55,10 +60,12 @@ export default function TeacherEvent() {
 /* ── Inner component (rendered only when role is confirmed) ── */
 function TeacherEventContent() {
   const navigate = useNavigate();
+    const isMobile = window.innerWidth <= 768;
 
   const [events,  setEvents]  = useState([]);
   const [stats,   setStats]   = useState({ total: 0, completed: 0, upcoming: 0, categories: 0 });
   const [loading, setLoading] = useState(true);
+
 
   /* ── fetch events ── */
   const loadEvents = async () => {
@@ -87,6 +94,20 @@ function TeacherEventContent() {
   /* ════════════════════════════════════════════════════ */
   return (
     <div>
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* ── Header ── */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Events</h1>

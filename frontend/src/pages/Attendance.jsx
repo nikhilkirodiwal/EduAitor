@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import {FaArrowLeft} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -126,6 +129,9 @@ export default function Attendance() {
   const currentClass    = classes.find(c => c._id === selClass);
   const availableSections = currentClass?.details ?? [];
   const filtersComplete = !!(selClass && selSection && selSubject && selDate);
+    const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
+
 
   /* Derived counts */
   const counts = Object.values(record).reduce(
@@ -299,6 +305,19 @@ export default function Attendance() {
   /* ═══════════════════════════════════════════════════════ */
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+        
+            <div className="flex items-center mb-4">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 text-gray-600"
+              >
+                <FaArrowLeft />
+                Back
+              </button>
+            </div>
+      )}
 
       {/* ── Sticky Header ───────────────────────────────── */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-20">

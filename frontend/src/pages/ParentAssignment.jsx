@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
+import {FaArrowLeft} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -22,6 +25,10 @@ export default function ParentAssignment() {
   useEffect(() => {
     if (user?.student_id) fetchAssignments();
   }, [user]);
+
+    const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
+
 
   const fetchAssignments = async () => {
     try {
@@ -104,6 +111,20 @@ export default function ParentAssignment() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">My Assignments</h1>
         <p className="text-sm text-gray-500 mt-1">

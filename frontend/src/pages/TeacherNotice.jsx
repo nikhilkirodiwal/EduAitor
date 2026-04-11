@@ -14,6 +14,9 @@ import {
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext"; // ← adjust path if needed
+import {FaArrowLeft} from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -43,6 +46,7 @@ const AUDIENCE_STYLES = {
 /* ════════════════════════════════════════════════════ */
 export default function TeacherNotice() {
   const { user, loading: authLoading } = useAuth();
+  
 
   /* ── auth guard ── */
   if (authLoading) {
@@ -63,6 +67,9 @@ export default function TeacherNotice() {
 
 /* ── Inner component (rendered only when role is confirmed) ── */
 function TeacherNoticeContent() {
+    const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
+
   const [notices, setNotices]       = useState([]);
   const [stats, setStats]           = useState({ total: 0, active: 0, highPriority: 0, audiences: 0 });
   const [loading, setLoading]       = useState(true);
@@ -104,6 +111,20 @@ function TeacherNoticeContent() {
   /* ════════════════════════════════════════════════════ */
   return (
     <div>
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* ── Header ── */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Notices</h1>

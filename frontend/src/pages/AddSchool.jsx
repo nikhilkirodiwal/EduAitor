@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
+
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
 
 const AddSchool = () => {
   const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
 
   const emptyForm = {
     school_name: "",
@@ -93,170 +96,186 @@ const AddSchool = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 flex justify-center">
-      <div className="w-full max-w-5xl">
-        {/* HEADER */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Create School</h1>
-          <p className="text-gray-500 text-sm">
-            Fill the details below to onboard a new school
-          </p>
+    <>
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+        <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
         </div>
-
-        {/* CARD */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
-          <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input
-              label="School Name"
-              name="school_name"
-              placeholder="e.g. Oakridge International School"
-              value={form.school_name}
-              onChange={handleChange}
-              required
-            />
-
-            <Input
-              label="Slug"
-              name="slug"
-              placeholder="e.g. oakridge-intl"
-              value={form.slug}
-              onChange={handleChange}
-              required
-            />
-
-            <div className="md:col-span-2">
-              <label className="text-sm font-medium text-gray-700 mb-1 block">
-                Subscription Plan <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="subscription_plan"
-                value={form.subscription_plan}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-              >
-                <option value="">Select Plan</option>
-                {subscriptions.map((plan) => (
-                  <option key={plan._id} value={plan._id}>
-                    {plan.name} — {plan.currency} {plan.price} /{" "}
-                    {plan.billing_cycle}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <Input
-              type="date"
-              label="Start Date"
-              name="start_date"
-              value={form.start_date}
-              onChange={handleChange}
-            />
-            <Input
-              type="date"
-              label="End Date"
-              name="end_date"
-              value={form.end_date}
-              onChange={handleChange}
-            />
-
-            <Input
-              label="Contact Email"
-              type="email"
-              name="contact_email"
-              placeholder="contact@school.edu"
-              value={form.contact_email}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              label="Contact Phone"
-              name="contact_phone"
-              placeholder="+1 234 567 890"
-              value={form.contact_phone}
-              onChange={handleChange}
-              required
-            />
-
-            <div className="md:col-span-2">
-              <label className="text-sm font-medium text-gray-700 mb-1 block">
-                Address
-              </label>
-              <textarea
-                name="address"
-                placeholder="123 Education Lane, Learning City, 10001"
-                value={form.address}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-22.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-              />
-            </div>
-
-            <div className="md:col-span-2 mt-6">
-              <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
-                School Admin Login
-              </h3>
-            </div>
-
-            <Input
-              label="Admin Name"
-              name="admin_name"
-              placeholder="Full Name"
-              value={form.admin_name}
-              onChange={handleChange}
-            />
-            <Input
-              label="Admin Email"
-              type="email"
-              name="admin_email"
-              placeholder="admin@school.edu"
-              value={form.admin_email}
-              onChange={handleChange}
-              required
-            />
-            <Input
-              type="password"
-              label="Admin Password"
-              name="admin_password"
-              placeholder="••••••••"
-              value={form.admin_password}
-              onChange={handleChange}
-              required
-            />
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">
-                Status
-              </label>
-              <select
-                name="status"
-                value={form.status}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
+      )}
+      <div className="min-h-screen bg-gray-50 p-6 flex justify-center">
+        <div className="w-full max-w-5xl">
+          {/* HEADER */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">Create School</h1>
+            <p className="text-gray-500 text-sm">
+              Fill the details below to onboard a new school
+            </p>
           </div>
 
-          <div className="flex justify-between items-center px-8 py-6 border-t bg-gray-50 rounded-b-2xl">
-            <button
-              onClick={() => navigate("/admin/schools")}
-              className="px-5 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
-            >
-              Cancel
-            </button>
+          {/* CARD */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Input
+                label="School Name"
+                name="school_name"
+                placeholder="e.g. Oakridge International School"
+                value={form.school_name}
+                onChange={handleChange}
+                required
+              />
 
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm transition disabled:opacity-50"
-            >
-              {loading ? "Saving..." : "Create School"}
-            </button>
+              <Input
+                label="Slug"
+                name="slug"
+                placeholder="e.g. oakridge-intl"
+                value={form.slug}
+                onChange={handleChange}
+                required
+              />
+
+              <div className="md:col-span-2">
+                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                  Subscription Plan <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="subscription_plan"
+                  value={form.subscription_plan}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                >
+                  <option value="">Select Plan</option>
+                  {subscriptions.map((plan) => (
+                    <option key={plan._id} value={plan._id}>
+                      {plan.name} — {plan.currency} {plan.price} /{" "}
+                      {plan.billing_cycle}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <Input
+                type="date"
+                label="Start Date"
+                name="start_date"
+                value={form.start_date}
+                onChange={handleChange}
+              />
+              <Input
+                type="date"
+                label="End Date"
+                name="end_date"
+                value={form.end_date}
+                onChange={handleChange}
+              />
+
+              <Input
+                label="Contact Email"
+                type="email"
+                name="contact_email"
+                placeholder="contact@school.edu"
+                value={form.contact_email}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                label="Contact Phone"
+                name="contact_phone"
+                placeholder="+1 234 567 890"
+                value={form.contact_phone}
+                onChange={handleChange}
+                required
+              />
+
+              <div className="md:col-span-2">
+                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                  Address
+                </label>
+                <textarea
+                  name="address"
+                  placeholder="123 Education Lane, Learning City, 10001"
+                  value={form.address}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-22.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                />
+              </div>
+
+              <div className="md:col-span-2 mt-6">
+                <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
+                  School Admin Login
+                </h3>
+              </div>
+
+              <Input
+                label="Admin Name"
+                name="admin_name"
+                placeholder="Full Name"
+                value={form.admin_name}
+                onChange={handleChange}
+              />
+              <Input
+                label="Admin Email"
+                type="email"
+                name="admin_email"
+                placeholder="admin@school.edu"
+                value={form.admin_email}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                type="password"
+                label="Admin Password"
+                name="admin_password"
+                placeholder="••••••••"
+                value={form.admin_password}
+                onChange={handleChange}
+                required
+              />
+
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                  Status
+                </label>
+                <select
+                  name="status"
+                  value={form.status}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center px-8 py-6 border-t bg-gray-50 rounded-b-2xl">
+              <button
+                onClick={() => navigate("/admin/schools")}
+                className="px-5 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm transition disabled:opacity-50"
+              >
+                {loading ? "Saving..." : "Create School"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

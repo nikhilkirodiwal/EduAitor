@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FaUserShield, FaUsers } from "react-icons/fa";
+import {FaArrowLeft} from "react-icons/fa";
+
 
 const API = import.meta.env.VITE_API_URL;
 
 const Dashboard = () => {
 
   const navigate = useNavigate();
+    const isMobile = window.innerWidth <= 768;
 
   const [roles, setRoles] = useState([]);
   const [users, setUsers] = useState([]);
@@ -40,7 +43,20 @@ const Dashboard = () => {
 
   return (
     <div className="p-6">
-
+{/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       <h1 className="text-2xl font-semibold mb-6">
         Dashboard
       </h1>

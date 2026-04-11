@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import {FaArrowLeft} from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -15,6 +17,9 @@ const SchoolSubscription = () => {
     roles: [],
     status: "Active",
   };
+
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
 
   const [plans, setPlans] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -175,6 +180,20 @@ const SchoolSubscription = () => {
 
   return (
     <div className="p-8 min-h-screen">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* HEADER */}
 
       <div className="flex justify-between items-center mb-8">

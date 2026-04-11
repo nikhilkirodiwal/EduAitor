@@ -71,6 +71,9 @@ const Sidebar = ({ closeSidebar }) => {
   /* ---------------- SUPER ADMIN MENU ---------------- */
 
   const superAdminMenu = [
+    ...(isMobile
+      ? [{ name: "Menu", icon: <FaTachometerAlt />, path: "/admin/menu" }]
+      : []),
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/admin/dashboard" },
 
     {
@@ -175,6 +178,9 @@ const Sidebar = ({ closeSidebar }) => {
   /* ---------------- TEACHER ADMIN MENU ---------------- */
 
   const teacherAdminMenu = [
+    ...(isMobile
+      ? [{ name: "Menu", icon: <FaTachometerAlt />, path: "/teacher/menu" }]
+      : []),
     {
       name: "Dashboard",
       icon: <FaTachometerAlt />,
@@ -233,6 +239,9 @@ const Sidebar = ({ closeSidebar }) => {
   /* ---------------- STUDENT / PARENT ADMIN MENU ---------------- */
 
   const studentAdminMenu = [
+    ...(isMobile
+      ? [{ name: "Menu", icon: <FaTachometerAlt />, path: "/parent/menu" }]
+      : []),
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/parent/dashboard" },
     { name: "My Child", icon: <FaUserGraduate />, path: "/parent/student" },
     { name: "Fee Details", icon: <FaWallet />, path: "/parent/fees" },

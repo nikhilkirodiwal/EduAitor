@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaPlus, FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import {FaArrowLeft} from "react-icons/fa";
+
 import { toast } from "react-toastify";
 
 const API = import.meta.env.VITE_API_URL;
 
 const SchoolManagement = () => {
   const navigate = useNavigate();
-
+  const isMobile = window.innerWidth <= 768;
   const emptyForm = {
     school_name: "",
     slug: "",
@@ -164,6 +166,21 @@ const SchoolManagement = () => {
 
   return (
     <div className="p-6 min-h-screen">
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
+      
       {/* HEADER */}
 
       <div className="flex justify-between items-center mb-6">

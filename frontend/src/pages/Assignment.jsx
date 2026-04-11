@@ -21,6 +21,9 @@ import {
   FiThumbsDown,
   FiRefreshCw,
 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import {FaArrowLeft} from "react-icons/fa";
+
 import { HiOutlineClipboardList, HiSparkles } from "react-icons/hi";
 import { useAuth } from "../context/AuthContext";
 
@@ -44,6 +47,9 @@ export default function Assignment() {
   const { user, loading } = useAuth();
   const teacherId = user?.teacher_id;
   const schoolId = user?.school_id;
+    const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
+
 
   const [editingAssignmentId, setEditingAssignmentId] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -930,6 +936,20 @@ export default function Assignment() {
   return (
     <>
       <style>{styles}</style>
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       <div className="bg-slate-50 p-4 sm:p-6">
         <div className="mx-auto">
           {/* Page header */}

@@ -57,7 +57,11 @@ export default function Login() {
       const role = res.data.data.role;
 
       if (role === "super_admin") {
-        navigate("/admin/dashboard");
+         if (isMobile) {
+          navigate("/admin/menu"); // mobile page
+        } else {
+          navigate("/admin/dashboard"); // desktop page
+        }
         toast.success("Login successful! Welcome back.");
       } else if (role === "school_admin") {
         if (isMobile) {
@@ -67,10 +71,18 @@ export default function Login() {
         }
         toast.success("Login successful! Welcome back.");
       } else if (role === "teacher_admin") {
-        navigate("/teacher/dashboard");
+        if (isMobile) {
+          navigate("/teacher/menu"); // mobile page
+        } else {
+          navigate("/teacher/dashboard"); // desktop page
+        }
         toast.success("Login successful! Welcome back.");
       } else if (role === "student_admin") {
-        navigate("/parent/dashboard");
+        if (isMobile) {
+          navigate("/parent/menu"); // mobile page
+        } else {
+          navigate("/parent/dashboard"); // desktop page
+        }
         toast.success("Login successful! Welcome back.");
       }
     } catch {

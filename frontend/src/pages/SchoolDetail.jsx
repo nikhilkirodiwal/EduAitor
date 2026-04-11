@@ -25,6 +25,8 @@ import {
 } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { FaStudiovinari } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import {FaArrowLeft} from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -72,6 +74,8 @@ export default function SchoolDetail() {
   const [loadingList, setLoadingList] = useState(true);
   const [loadingWS, setLoadingWS] = useState(false);
   const [ws, setWs] = useState(null);
+    const navigate = useNavigate();
+const isMobile = window.innerWidth <= 768;
 
   useEffect(() => {
     axios
@@ -232,7 +236,20 @@ export default function SchoolDetail() {
     <div
       className="min-h-screen bg-[#F0F2F8]"
       style={{ fontFamily: "'Sora','Nunito',system-ui,sans-serif" }}
-    >
+    >{/* 🔙 BACK BUTTON */}
+      {isMobile && (
+          <div className="pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* TOP BAR */}
       <div className="bg-white border-b border-slate-200 px-6 py-3.5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">

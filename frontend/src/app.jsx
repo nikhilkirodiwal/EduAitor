@@ -56,6 +56,10 @@ import ParentAssignmentResult from "./pages/ParentAssignmentResult";
 import TeacherEvent from "./pages/TeacherEvent";
 import TeacherNotice from "./pages/TeacherNotice";
 import TeacherCalendar from "./pages/TeacherCalendar";
+import ParentMenu from "./pages/ParentMenu";
+import TeacherMenu from "./pages/TeacherMenu";
+import SuperAdminMenu from "./pages/SuperAdminMenu";
+import ReadTimetable from "./pages/ReadTimetable";
 
 const App = () => {
   return (
@@ -75,6 +79,7 @@ const App = () => {
           </ProtectedRoute>
         }
       >
+        <Route path="menu" element={<SuperAdminMenu />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="access-control" element={<AccessControl />} />
         <Route path="roles" element={<RoleManagement />} />
@@ -141,6 +146,7 @@ const App = () => {
           </ProtectedRoute>
         }
       >
+        <Route path="menu" element={<TeacherMenu />} />
         <Route path="dashboard" element={<TeacherDashboard />} />
         <Route path="assignment" element={<Assignment />} />
         <Route path="assignment/result" element={<TeacherAssignmentResult />} />
@@ -151,6 +157,8 @@ const App = () => {
         <Route path="event" element={<TeacherEvent />} />
         <Route path="notice" element={<TeacherNotice />} />
         <Route path="calendar" element={<TeacherCalendar />} />
+        <Route path="group" element={<Group />} />
+        <Route path="timetable" element={<ReadTimetable />} />
 
         <Route path="*" element={<Navigate to="/teacher/dashboard" />} />
       </Route>
@@ -163,9 +171,21 @@ const App = () => {
           </ProtectedRoute>
         }
       >
+        <Route path="menu" element={<ParentMenu />} />
         <Route path="dashboard" element={<ParentDashboard />} />
         <Route path="assignment" element={<ParentAssignment />} />
         <Route path="assignment/result" element={<ParentAssignmentResult />} />
+        <Route path="timetable" element={<ReadTimetable />} />
+        {/* <Route
+          path="timetable"
+          element={
+            <ReadTimetable
+              preselectedClassId={student.classId}
+              preselectedDetailId={student.detailId}
+              showClassSelector={false}
+            />
+          }
+        /> */}
 
         <Route path="*" element={<Navigate to="/parent/dashboard" />} />
       </Route>
