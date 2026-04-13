@@ -83,7 +83,7 @@ const Topbar = ({ toggleSidebar }) => {
         </button>
 
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-lg shadow">
+          <div className="w-10 h-10 rounded-xl bg-linear-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-lg shadow">
             🎓
           </div>
 
@@ -108,13 +108,13 @@ const Topbar = ({ toggleSidebar }) => {
             <FaBell className="text-gray-600" />
           </div>
 
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 py-[1px] rounded-full shadow">
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 py-px rounded-full shadow">
             147
           </span>
         </div>
 
         {/* Role */}
-        <select className="hidden md:block bg-gray-100 px-3 py-2 rounded-lg text-sm text-gray-700 focus:outline-none">
+        <select className="hidden md:block bg-gray-100 px-3 py-2 rounded-lg text-sm text-gray-700 focus:outline-none capitalize">
           <option>{role.replace("_", " ")}</option>
         </select>
 
@@ -134,7 +134,7 @@ const Topbar = ({ toggleSidebar }) => {
               </p>
             </div>
 
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center justify-center text-sm font-bold shadow">
+            <div className="w-10 h-10 rounded-full bg-linear-to-r from-indigo-500 to-purple-500 text-white flex items-center justify-center text-sm font-bold shadow">
               {initials}
             </div>
           </div>
