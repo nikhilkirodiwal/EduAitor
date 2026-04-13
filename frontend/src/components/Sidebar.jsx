@@ -220,7 +220,10 @@ const Sidebar = ({ closeSidebar }) => {
     {
       name: "Exams",
       icon: <GiOpenBook />,
-      children: [{ name: "Marks Entry", path: "/teacher/marks-entry" }],
+      children: [
+        { name: "Marks Entry", path: "/teacher/marks-entry" },
+        { name: "Exam Report", path: "/teacher/exam-report" },
+      ],
     },
 
     { name: "Timetable", icon: <FaClock />, path: "/teacher/timetable" },

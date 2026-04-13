@@ -60,6 +60,7 @@ import ParentMenu from "./pages/ParentMenu";
 import TeacherMenu from "./pages/TeacherMenu";
 import SuperAdminMenu from "./pages/SuperAdminMenu";
 import ReadTimetable from "./pages/ReadTimetable";
+import TeacherStudents from "./pages/TeacherStudents";
 
 const App = () => {
   return (
@@ -148,6 +149,8 @@ const App = () => {
       >
         <Route path="menu" element={<TeacherMenu />} />
         <Route path="dashboard" element={<TeacherDashboard />} />
+        <Route path="students" element={<TeacherStudents />} />
+        <Route path="student-view/:id" element={<StudentView />} />
         <Route path="assignment" element={<Assignment />} />
         <Route path="assignment/result" element={<TeacherAssignmentResult />} />
         <Route path="attendance/mark" element={<Attendance />} />

@@ -1,5 +1,8 @@
+import mongoose from "mongoose";
 import Student from "../models/student.js";
 import Group from "../models/group.js";
+import Teacher from "../models/teacher.js";
+import Class from "../models/class.js";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import { deleteFromCloudinary } from "../utils/deleteFromCloudinary.js";
 import {
@@ -381,5 +384,80 @@ export const getAllStudents = async (req, res) => {
       success: false,
       message: error.message || "Failed to fetch students",
     });
+  }
+};
+
+/* ================= GET STUDENTS FOR TEACHER ================= */
+export const getStudentsByTeacher = async (req, res) => {
+  try {
+    const schoolId = req.user?.school_id;
+    const rawTeacherId = req.user?.teacher_id;
+
+    if (!schoolId || !rawTeacherId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing credentials" });
+    }
+
+    const teacherObjId = new mongoose.Types.ObjectId(rawTeacherId);
+    const schoolObjId = new mongoose.Types.ObjectId(schoolId);
+
+    // Source 1 & 2: classes where teacher appears in details.teacherId OR subjectTeachers
+    const classesFromClassDoc = await Class.find({
+      schoolId: schoolObjId,
+      $or: [
+        { "details.teacherId": teacherObjId },
+        { "details.subjectTeachers.teacherId": teacherObjId },
+      ],
+    }).select("_id");
+
+    // Source 3: Teacher.assignedClasses[]
+    const teacher =
+      await Teacher.findById(teacherObjId).select("assignedClasses");
+
+    if (!teacher) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Teacher not found" });
+    }
+
+    // Merge and deduplicate all class IDs
+    const allClassIds = new Set([
+      ...classesFromClassDoc.map((c) => c._id.toString()),
+      ...(teacher.assignedClasses || []).map((id) => id.toString()),
+    ]);
+
+    if (allClassIds.size === 0) {
+      return res.json({ success: true, data: [], assignedClasses: [] });
+    }
+
+    const classIdArray = [...allClassIds].map(
+      (id) => new mongoose.Types.ObjectId(id),
+    );
+
+    // Fetch students in those classes
+    const students = await Student.find({
+      schoolId: schoolObjId,
+      classId: { $in: classIdArray },
+    })
+      .populate("classId", "name")
+      .populate("sectionId", "name")
+      .sort({ createdAt: -1 });
+
+    // Fetch all class docs for the dropdown (includes empty classes)
+    const allClassDocs = await Class.find({
+      _id: { $in: classIdArray },
+    })
+      .select("_id name")
+      .sort({ name: 1 });
+
+    res.json({
+      success: true,
+      data: students,
+      assignedClasses: allClassDocs,
+    });
+  } catch (error) {
+    console.error("getStudentsByTeacher error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };

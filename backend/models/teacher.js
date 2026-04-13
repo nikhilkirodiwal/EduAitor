@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+delete mongoose.models.Teacher;
+
 const teacherSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true },
@@ -11,9 +13,15 @@ const teacherSchema = new mongoose.Schema(
     governmentId: String,
 
     photo: {
-      url: String,
-      public_id: String,
-      type: String,
+      type: new mongoose.Schema(
+        {
+          url: String,
+          public_id: String,
+          type: String,
+        },
+        { _id: false },
+      ),
+      default: null,
     },
 
     qualification: String,
@@ -65,7 +73,7 @@ const teacherSchema = new mongoose.Schema(
       type: String,
       default: "Present",
     },
-    
+
     temp_password: {
       type: String,
     },
@@ -76,4 +84,7 @@ const teacherSchema = new mongoose.Schema(
 // unique index scoped to school
 teacherSchema.index({ schoolId: 1, teacherId: 1 }, { unique: true });
 
-export default mongoose.model("Teacher", teacherSchema);
+const Teacher =
+  mongoose.models.Teacher || mongoose.model("Teacher", teacherSchema);
+
+export default Teacher;

@@ -3,6 +3,7 @@ import Teacher from "../models/teacher.js";
 import Student from "../models/student.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 
 const generateToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRET, {
@@ -19,7 +20,6 @@ const cookieOptions = {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     /* ---------- SUPER ADMIN ---------- */
     if (
       email === process.env.SUPER_ADMIN_EMAIL &&

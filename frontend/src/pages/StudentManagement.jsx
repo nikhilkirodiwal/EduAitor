@@ -364,17 +364,30 @@ const StudentManagement = () => {
     try {
       const data = new FormData();
 
+      const forbidden = [
+        "_id",
+        "__v",
+        "createdAt",
+        "updatedAt",
+        "studentId",
+        "documents",
+      ];
+
       Object.entries(form).forEach(([key, value]) => {
-        const forbidden = ["_id", "__v", "createdAt", "updatedAt", "studentId"];
-
         if (forbidden.includes(key)) return;
+        if (value === null || value === "") return;
 
-        if (value !== null && value !== "" && key !== "documents") {
-          if (typeof value === "object") {
-            data.append(key, JSON.stringify(value)); // ✅ FIX
-          } else {
-            data.append(key, value);
-          }
+        if (
+          value instanceof Blob ||
+          (typeof value === "object" &&
+            value?.name &&
+            value?.size !== undefined)
+        ) {
+          data.append(key, value);
+        } else if (typeof value === "object") {
+          data.append(key, JSON.stringify(value));
+        } else {
+          data.append(key, value);
         }
       });
 
@@ -391,8 +404,10 @@ const StudentManagement = () => {
       }
 
       navigate("/school/students");
-    } catch {
-      toast.error("Operation failed");
+    } catch (err) {
+      console.error("Submit error:", err);
+      console.error("Response data:", err?.response?.data);
+      toast.error(err?.response?.data?.message || "Operation failed");
     }
   };
 
@@ -413,7 +428,7 @@ const StudentManagement = () => {
     <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
-          <div className="pt-4">
+        <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl

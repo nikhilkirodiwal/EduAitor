@@ -254,31 +254,53 @@ const TeacherManagement = () => {
       const data = new FormData();
 
       Object.keys(form).forEach((key) => {
-        if (key === "subjects") {
-          data.append(key, JSON.stringify(form.subjects));
-        } else if (key === "assignedClasses") {
-          data.append(key, JSON.stringify(form[key]));
-        } else if (form[key] !== null && form[key] !== "") {
-          data.append(key, form[key]);
+        const value = form[key];
+
+        // skip these always
+        const forbidden = [
+          "_id",
+          "__v",
+          "createdAt",
+          "updatedAt",
+          "teacherId",
+          "photo",
+        ];
+        if (forbidden.includes(key)) return;
+
+        if (key === "subjects" || key === "assignedClasses") {
+          data.append(key, JSON.stringify(value));
+          return;
         }
+
+        if (value === null || value === "" || value === undefined) return;
+
+        data.append(key, value);
       });
+
+      // Only append photo if user picked a NEW file
+      if (
+        form.photo &&
+        typeof form.photo === "object" &&
+        form.photo instanceof Blob
+      ) {
+        data.append("photo", form.photo);
+      }
+      // if form.photo is the existing {url, public_id, type} object → don't send it at all
+      // backend will keep the existing photo as-is
 
       if (isEdit) {
         await axios.put(`${API}/teachers/${id}`, data, {
           withCredentials: true,
         });
-
         toast.success("Teacher updated successfully");
       } else {
         await axios.post(`${API}/teachers`, data, { withCredentials: true });
-
         toast.success("Teacher added successfully");
       }
 
       navigate("/school/teachers");
-    } catch (error) {
-      const message = error.response?.data?.message || "Operation failed";
-      toast.error(message);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Operation failed");
     }
   };
 
@@ -320,7 +342,7 @@ const TeacherManagement = () => {
       {/* HEADER */}
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
-          <div className="pt-4">
+        <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl

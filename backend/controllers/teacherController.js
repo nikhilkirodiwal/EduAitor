@@ -32,7 +32,7 @@ export const createTeacher = async (req, res) => {
 
     const files = req.files || {};
 
-    let photo = {};
+    let photo = null;
 
     if (files.photo) {
       const uploaded = await uploadToCloudinary(files.photo[0], "teachers");
@@ -183,12 +183,12 @@ export const updateTeacher = async (req, res) => {
 
     const safeSchoolId = Array.isArray(schoolId) ? schoolId[0] : schoolId;
 
+    const { photo: _photoFromBody, ...safeBody } = req.body;
+
     const teacher = await Teacher.findOne({
       _id: req.params.id,
       schoolId: safeSchoolId,
     });
-
-    const oldTeacher = teacher.toObject(); // for group sync comparison
 
     if (!teacher) {
       return res.status(404).json({
@@ -197,8 +197,10 @@ export const updateTeacher = async (req, res) => {
       });
     }
 
+    const oldTeacher = teacher.toObject(); // for group sync comparison
+
     const files = req.files || {};
-    let photo = teacher.photo;
+    let photo = teacher.photo?.url ? teacher.photo : null;
 
     if (files.photo) {
       // Delete old photo if exists
@@ -239,27 +241,32 @@ export const updateTeacher = async (req, res) => {
     delete req.body.schoolId;
 
     // Only hash password if a new one was actually provided
-    if (req.body.password && req.body.password.trim() !== "") {
-      req.body.temp_password = req.body.password;
-      req.body.password = await bcrypt.hash(req.body.password, 10);
+    if (safeBody.password && safeBody.password.trim() !== "") {
+      safeBody.temp_password = safeBody.password;
+      safeBody.password = await bcrypt.hash(safeBody.password, 10);
     } else {
-      delete req.body.password;
-      delete req.body.temp_password;
+      delete safeBody.password;
+      delete safeBody.temp_password;
     }
 
     // Prepare update data
     const updateData = {
-      ...req.body,
+      ...safeBody,
       subjects,
       schoolId: safeSchoolId,
-      photo,
       assignedClasses,
     };
 
+    if (photo !== null && photo !== undefined) {
+      updateData.photo = photo;
+    }
+
+    if (!photo) delete updateData.photo;
+
     const updatedTeacher = await Teacher.findByIdAndUpdate(
       req.params.id,
-      updateData,
-      { new: true },
+      { $set: updateData }, // ← keep $set
+      { returnDocument: "after" }, // ← also fixes the deprecation warning
     ).populate("assignedClasses", "name className section");
 
     const classesChanged =

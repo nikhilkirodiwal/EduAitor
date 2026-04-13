@@ -3,15 +3,18 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FaArrowLeft } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 
 const API = import.meta.env.VITE_API_URL;
 
 const StudentView = () => {
+  const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [randomImg, setRandomImg] = useState(null);
 
   const fetchStudent = async () => {
     try {
@@ -30,6 +33,21 @@ const StudentView = () => {
     fetchStudent();
   }, [id]);
 
+  const getRandomStudentImage = (gender) => {
+    const randomIndex = Math.floor(Math.random() * 100);
+
+    if (gender?.toLowerCase() === "female") {
+      return `https://randomuser.me/api/portraits/women/${randomIndex}.jpg`;
+    }
+
+    return `https://randomuser.me/api/portraits/men/${randomIndex}.jpg`;
+  };
+  useEffect(() => {
+    if (student?.gender) {
+      setRandomImg(getRandomStudentImage(student.gender));
+    }
+  }, [student]);
+
   if (loading) return <Loader />;
   if (!student) return <Empty />;
 
@@ -39,7 +57,15 @@ const StudentView = () => {
     <div className=" min-h-screen">
       {/* /*HEADER */}
       <button
-        onClick={() => navigate("/school/students")}
+        onClick={() => {
+          if (!user?.role) return;
+
+          navigate(
+            user.role === "teacher_admin"
+              ? "/teacher/students"
+              : "/school/students",
+          );
+        }}
         className="flex items-center gap-2 text-indigo-600 mb-4 cursor-pointer"
       >
         <FaArrowLeft />
@@ -53,12 +79,14 @@ const StudentView = () => {
               Student Profile
             </p>
           </div>
-          <button
-            onClick={() => navigate(`/school/student-manage/${student._id}`)}
-            className="px-4 py-2 bg-white text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-50 transition"
-          >
-            Edit Student
-          </button>
+          {user?.role === "school_admin" && (
+            <button
+              onClick={() => navigate(`/school/student-manage/${student._id}`)}
+              className="px-4 py-2 bg-white text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-50 transition"
+            >
+              Edit Student
+            </button>
+          )}
         </div>
       </div>
 
@@ -66,7 +94,10 @@ const StudentView = () => {
         {/* PROFILE CARD */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
           <img
-            src={docs.studentPhoto?.url || "https://via.placeholder.com/120"}
+            src={docs.studentPhoto?.url || randomImg || undefined}
+            onError={(e) => {
+              e.target.src = getRandomStudentImage(student?.gender);
+            }}
             alt="student"
             className="w-24 h-24 rounded-full object-cover ring-4 ring-indigo-100 shrink-0"
           />
@@ -122,34 +153,36 @@ const StudentView = () => {
         </div>
 
         {/* FEE SUMMARY STRIP */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <StatCard
-            label="Total Fee"
-            value={`₹${Number(student.totalFee || 0).toLocaleString("en-IN")}`}
-            color="bg-blue-100 text-blue-900"
-          />
-          <StatCard
-            label="Discount"
-            value={
-              student.discountValue
-                ? student.discountType === "Percentage"
-                  ? `${student.discountValue}%`
-                  : `₹${student.discountValue}`
-                : "—"
-            }
-            color="bg-amber-100 text-amber-900"
-          />
-          <StatCard
-            label="Final Fee"
-            value={`₹${Number(student.finalFee || 0).toLocaleString("en-IN")}`}
-            color="bg-green-100 text-green-900"
-          />
-          <StatCard
-            label="Total Paid"
-            value={`₹${Number(student.totalPaid || 0).toLocaleString("en-IN")}`}
-            color="bg-indigo-100 text-indigo-900"
-          />
-        </div>
+        {user?.role === "school_admin" && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <StatCard
+              label="Total Fee"
+              value={`₹${Number(student.totalFee || 0).toLocaleString("en-IN")}`}
+              color="bg-blue-100 text-blue-900"
+            />
+            <StatCard
+              label="Discount"
+              value={
+                student.discountValue
+                  ? student.discountType === "Percentage"
+                    ? `${student.discountValue}%`
+                    : `₹${student.discountValue}`
+                  : "—"
+              }
+              color="bg-amber-100 text-amber-900"
+            />
+            <StatCard
+              label="Final Fee"
+              value={`₹${Number(student.finalFee || 0).toLocaleString("en-IN")}`}
+              color="bg-green-100 text-green-900"
+            />
+            <StatCard
+              label="Total Paid"
+              value={`₹${Number(student.totalPaid || 0).toLocaleString("en-IN")}`}
+              color="bg-indigo-100 text-indigo-900"
+            />
+          </div>
+        )}
 
         {/* MAIN GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-4">
@@ -167,24 +200,28 @@ const StudentView = () => {
           </Section>
 
           {/* Class Details */}
-          <Section title="Class Details" icon="🏫">
-            <Row label="Class" value={student.classId?.name} />
-            <Row label="Section" value={student.sectionId?.name} />
-            <Row label="Roll Number" value={student.rollNo} />
-            <Row label="Student Type" value={student.studentType} />
-          </Section>
+          {user?.role === "school_admin" && (
+            <Section title="Class Details" icon="🏫">
+              <Row label="Class" value={student.classId?.name} />
+              <Row label="Section" value={student.sectionId?.name} />
+              <Row label="Roll Number" value={student.rollNo} />
+              <Row label="Student Type" value={student.studentType} />
+            </Section>
+          )}
 
           {/* Documents */}
-          <Section title="Documents" icon="📄">
-            <DocRow label="Birth Certificate" file={docs.birthCertificate} />
-            <DocRow
-              label="Transfer Certificate"
-              file={docs.transferCertificate}
-            />
-            <DocRow label="Student Aadhar" file={docs.studentAadhar} />
-            <DocRow label="Father Aadhar" file={docs.fatherAadhar} />
-            <DocRow label="Mother Aadhar" file={docs.motherAadhar} />
-          </Section>
+          {user?.role === "school_admin" && (
+            <Section title="Documents" icon="📄">
+              <DocRow label="Birth Certificate" file={docs.birthCertificate} />
+              <DocRow
+                label="Transfer Certificate"
+                file={docs.transferCertificate}
+              />
+              <DocRow label="Student Aadhar" file={docs.studentAadhar} />
+              <DocRow label="Father Aadhar" file={docs.fatherAadhar} />
+              <DocRow label="Mother Aadhar" file={docs.motherAadhar} />
+            </Section>
+          )}
 
           {/* Father Details */}
           <Section title="Father Details" icon="👨">
@@ -217,44 +254,48 @@ const StudentView = () => {
           </Section>
 
           {/* Guardian Details */}
-          <Section title="Guardian Details" icon="🧑">
-            <Row label="Guardian Name" value={student.guardianName} />
-            <Row label="Mobile" value={student.guardianMobile} />
-            <Row label="Relation" value={student.guardianRelation} />
-            <Row label="Address" value={student.address} />
-          </Section>
+          {user?.role === "school_admin" && (
+            <Section title="Guardian Details" icon="🧑">
+              <Row label="Guardian Name" value={student.guardianName} />
+              <Row label="Mobile" value={student.guardianMobile} />
+              <Row label="Relation" value={student.guardianRelation} />
+              <Row label="Address" value={student.address} />
+            </Section>
+          )}
         </div>
 
         {/* PARENT LOGIN — full width */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-base">🔐</span>
-            <h3 className="text-base font-semibold text-gray-800">
-              Parent Login
-            </h3>
-            <span className="ml-auto text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-              Dev visible
-            </span>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-              <p className="text-xs text-indigo-400 uppercase tracking-wide mb-1">
-                Username
-              </p>
-              <p className="text-base font-semibold text-indigo-800">
-                {student.username || "—"}
-              </p>
+        {user?.role === "school_admin" && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-base">🔐</span>
+              <h3 className="text-base font-semibold text-gray-800">
+                Parent Login
+              </h3>
+              <span className="ml-auto text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                Dev visible
+              </span>
             </div>
-            <div className="flex-1 bg-purple-50 border border-purple-100 rounded-xl p-4">
-              <p className="text-xs text-purple-400 uppercase tracking-wide mb-1">
-                Password (temp)
-              </p>
-              <p className="text-base font-semibold text-purple-800 tracking-widest">
-                {student.temp_password || "—"}
-              </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex-1 bg-indigo-50 border border-indigo-100 rounded-xl p-4">
+                <p className="text-xs text-indigo-400 uppercase tracking-wide mb-1">
+                  Username
+                </p>
+                <p className="text-base font-semibold text-indigo-800">
+                  {student.username || "—"}
+                </p>
+              </div>
+              <div className="flex-1 bg-purple-50 border border-purple-100 rounded-xl p-4">
+                <p className="text-xs text-purple-400 uppercase tracking-wide mb-1">
+                  Password (temp)
+                </p>
+                <p className="text-base font-semibold text-purple-800 tracking-widest">
+                  {student.temp_password || "—"}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

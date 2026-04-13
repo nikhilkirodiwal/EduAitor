@@ -8,6 +8,7 @@ import {
   updateStudent,
   deleteStudent,
   getAllStudents,
+  getStudentsByTeacher,
 } from "../controllers/studentController.js";
 
 const router = express.Router();
@@ -56,6 +57,8 @@ router.put(
 );
 
 router.get("/", authMiddleware, getStudents);
+
+router.get("/teacher/my-students", authMiddleware, getStudentsByTeacher);
 
 router.get("/:id", authMiddleware, getStudent);
 
