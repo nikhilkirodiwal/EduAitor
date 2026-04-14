@@ -1,15 +1,18 @@
+// models/Exam.js
 import mongoose from "mongoose";
 
 const ExamSchema = new mongoose.Schema({
-  schoolId: { type: String, required: true }, // Filter for multi-school
+  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  termId: { type: mongoose.Schema.Types.ObjectId, ref: 'Term', required: true }, // Added Term
   className: { type: mongoose.Schema.Types.ObjectId, ref: 'Class', required: true },
-  subject: { type: String, required: true },
+  subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true },
+  teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', required: true }, // Added Teacher
   examDate: { type: Date, required: true },
-  dayOfWeek: { type: String }, // e.g., "Monday"
-  startTime: { type: String, required: true }, // e.g., "09:00 AM"
-  endTime: { type: String, required: true },   // e.g., "12:00 PM"
+  dayOfWeek: { type: String },
+  startTime: { type: String, required: true },
+  endTime: { type: String, required: true },
   totalMarks: { type: Number, required: true },
   passingMarks: { type: Number, required: true }
 });
 
-export default  mongoose.model('Exam', ExamSchema);
+export default mongoose.model('Exam', ExamSchema);

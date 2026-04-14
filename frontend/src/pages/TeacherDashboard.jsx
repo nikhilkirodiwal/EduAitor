@@ -397,7 +397,7 @@ const TeacherDashboard = () => {
         )}
 
         {/* Command banner + Alert panel */}
-        <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
+        {/* <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
           <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-sky-950 to-cyan-900 p-6 text-white shadow-xl">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-sky-200">
               Overview
@@ -476,10 +476,10 @@ const TeacherDashboard = () => {
               />
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* Assignment Types Row */}
-        {visibility.assignments && (
+        {/* {visibility.assignments && (
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <AssignmentTypeCard
               label="Homework"
@@ -500,10 +500,10 @@ const TeacherDashboard = () => {
               icon={<FaClipboardList />}
             />
           </section>
-        )}
+        )} */}
 
         {/* Assignments Table + Diary */}
-        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        {/* <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           {visibility.assignments && (
             <SectionCard
               title="Recent Assignments"
@@ -603,10 +603,10 @@ const TeacherDashboard = () => {
               </div>
             </SectionCard>
           )}
-        </div>
+        </div> */}
 
         {/* Syllabus + Quick Actions */}
-        <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+        {/* <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
           {visibility.syllabus && (
             <SectionCard
               title="My Classes"
@@ -686,10 +686,10 @@ const TeacherDashboard = () => {
               </div>
             </SectionCard>
           )}
-        </div>
+        </div> */}
 
         {/* Groups + Notices/Events */}
-        <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+        {/* <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
           {visibility.groups && (
             <SectionCard
               title="My Groups"
@@ -774,7 +774,7 @@ const TeacherDashboard = () => {
               </MiniPanel>
             </div>
           </SectionCard>
-        </div>
+        </div> */}
       </div>
     </div>
   );

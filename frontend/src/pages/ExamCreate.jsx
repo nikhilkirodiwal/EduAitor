@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 function ExamCreate() {
-  const navigate = useNavigate();
+   const navigate = useNavigate();
   const isMobile = window.innerWidth <= 768;
   const [exams, setExams] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -14,6 +14,25 @@ function ExamCreate() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
+
+  const [filteredSubjects, setFilteredSubjects] = useState([]);
+const [filteredTeachers, setFilteredTeachers] = useState([]);
+  const [terms, setTerms] = useState([]);
+
+
+    const fetchTerms = async () => {
+    try {
+      const res = await axios.get(`${API}/terms`, { withCredentials: true });
+      setTerms(res.data.terms);
+    } catch (err) {
+      toast.error("Failed to fetch terms");
+    }
+  };
+
+  useEffect(() => {
+    fetchTerms();
+  }, []);
+
 
   const [formData, setFormData] = useState({
     className: "",
@@ -69,6 +88,7 @@ function ExamCreate() {
         selectedClassFilter ? `?classId=${selectedClassFilter}` : ""
       }`;
       const res = await axios.get(url, { withCredentials: true });
+      console.log("Fetched Exams:", res.data);
       setExams(res.data);
     } catch (err) {
       console.error(err);
@@ -77,6 +97,55 @@ function ExamCreate() {
     }
   };
 
+
+  // Handle Class Change
+const handleClassChange = (classId) => {
+  const selectedClass = classes.find(c => c._id === classId);
+
+  if (selectedClass) {
+    const subjectsMap = [];
+    const teachersMap = [];
+
+    selectedClass.details.forEach(detail => {
+      detail.subjectTeachers.forEach((st) => {
+        if (st.subjectId) {
+          subjectsMap.push({
+            _id: st.subjectId._id,
+            name: st.subjectId.name,
+          });
+        }
+
+        if (st.teacherId) {
+          teachersMap.push({
+            _id: st.teacherId._id,
+            name: st.teacherId.fullName,
+          });
+        }
+      });
+    });
+
+    // ✅ REMOVE DUPLICATES (correct way)
+    const uniqueSubjects = [
+      ...new Map(subjectsMap.map(item => [item._id, item])).values()
+    ];
+
+    const uniqueTeachers = [
+      ...new Map(teachersMap.map(item => [item._id, item])).values()
+    ];
+
+    setFilteredSubjects(uniqueSubjects);
+    setFilteredTeachers(uniqueTeachers);
+
+  } else {
+    setFilteredSubjects([]);
+    setFilteredTeachers([]);
+  }
+
+  setFormData((prev) => ({
+    ...prev,
+    className: classId,
+  }));
+};
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     type: "", // 'delete' or 'update'
@@ -84,10 +153,15 @@ function ExamCreate() {
   });
   // 1. CLICK ACTIONS: Just prepare the data or open the form
   const handleEditClick = (exam) => {
+    
     setEditingId(exam._id);
+    handleClassChange(exam.className?._id);
+    console.log("Editing Exam:", exam._id);
     setFormData({
       className: exam.className?._id || "",
-      subject: exam.subject,
+      subject: exam.subject?._id || "",
+      teacherId: exam.teacherId?._id || "",
+      termId: exam.termId?._id || "",
       examDate: exam.examDate.split("T")[0],
       dayOfWeek: exam.dayOfWeek,
       startTime: exam.startTime,
@@ -181,20 +255,20 @@ function ExamCreate() {
 
   return (
     <div className="p-4 md:p-8 bg-slate-50 min-h-screen font-sans text-slate-900">
-      {/* 🔙 BACK BUTTON */}
-      {isMobile && (
-          <div className="pt-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+       {/* 🔙 BACK BUTTON */}
+{isMobile && (
+  <div className="px-4 pt-4">
+    <button
+      onClick={() => navigate(-1)}
+      className="flex items-center gap-2 px-3 py-1.5 rounded-xl
                  bg-white shadow-sm border border-slate-100
                  text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
-          >
-            <FaArrowLeft size={16} />
-            Back
-          </button>
-        </div>
-      )}
+    >
+      <FaArrowLeft size={16} />
+      Back
+    </button>
+  </div>
+)}
       {/* Header */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
@@ -246,6 +320,7 @@ function ExamCreate() {
                 <th className="p-4">Date & Day</th>
                 <th className="p-4">Time</th>
                 <th className="p-4">Marks</th>
+                <th className="p-4">Term / Teacher</th>
                 <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -257,7 +332,7 @@ function ExamCreate() {
                 >
                   <td className="p-4">
                     <div className="font-bold text-slate-800">
-                      {exam.subject}
+                      {exam.subject.name || exam.subject}
                     </div>
                     <div className="text-xs text-slate-500">
                       Class {exam.className?.name}
@@ -282,6 +357,15 @@ function ExamCreate() {
                     <span className="text-slate-300 mx-1">/</span>
                     <span className="font-bold">{exam.totalMarks}</span>
                   </td>
+                  <td  className="p-4">
+<div className="text-xs text-indigo-500">
+  {exam.termId?.name}
+</div>
+
+<div className="text-xs text-slate-400">
+  {exam.teacherId?.fullName}
+</div>
+</td>
                   <td className="p-4 text-right space-x-2">
                     <button
                       onClick={() => handleEditClick(exam)}
@@ -312,7 +396,7 @@ function ExamCreate() {
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="font-black text-lg text-slate-800">
-                    {exam.subject}
+                    {exam.subject.name || exam.subject}
                   </h3>
                   <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-bold uppercase">
                     Class {exam.className?.name}
@@ -377,46 +461,72 @@ function ExamCreate() {
               className="p-6 space-y-4 overflow-y-auto"
             >
               <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">
-                    Class
-                  </label>
-                  <select
-                    required
-                    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl outline-none"
-                    value={formData.className}
-                    onChange={(e) =>
-                      setFormData({ ...formData, className: e.target.value })
-                    }
-                  >
-                    <option value="">Pick Class</option>
-                    {classes.map((c) => (
-                      <option key={c._id} value={c._id}>
-                        Class {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-span-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">
-                    Subject
-                  </label>
-                  <select
-                    required
-                    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl outline-none"
-                    value={formData.subject}
-                    onChange={(e) =>
-                      setFormData({ ...formData, subject: e.target.value })
-                    }
-                  >
-                    <option value="">Pick Subject</option>
-                    {subjects.map((s) => (
-                      <option key={s._id} value={s.name}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="col-span-2">
+  <label className="text-[10px] font-bold text-slate-400 uppercase">Exam Term</label>
+  <select
+    required
+    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl outline-none"
+    value={formData.termId}
+    onChange={(e) => setFormData({ ...formData, termId: e.target.value })}
+  >
+    <option value="">Select Term (e.g. Final, Half Yearly)</option>
+    {terms.map((t) => (
+      <option key={t._id} value={t._id}>{t.name} ({t.academicYear})</option>
+    ))}
+  </select>
+</div>
+
+<div className="grid grid-cols-2 gap-4">
+  {/* Class Selection */}
+  <div className="col-span-1">
+    <label className="text-[10px] font-bold text-slate-400 uppercase">Class</label>
+    <select
+      required
+      className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+      value={formData.className}
+      onChange={(e) => handleClassChange(e.target.value)}
+    >
+      <option value="">Pick Class</option>
+      {classes.map((c) => (
+        <option key={c._id} value={c._id}>Class {c.name}</option>
+      ))}
+    </select>
+  </div>
+
+  {/* Subject Selection - Now Filtered */}
+  <div className="col-span-1">
+    <label className="text-[10px] font-bold text-slate-400 uppercase">Subject</label>
+    <select
+      required
+      className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+      value={formData.subject}
+      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+      disabled={!formData.className}
+    >
+      <option value="">Pick Subject</option>
+      {filteredSubjects.map((s) => (
+        <option key={s._id} value={s._id}>{s.name}</option>
+      ))}
+    </select>
+  </div>
+</div>
+
+{/* Teacher Selection - New */}
+<div className="col-span-2">
+  <label className="text-[10px] font-bold text-slate-400 uppercase">Assign Teacher (Invigilator/Examiner)</label>
+  <select
+    required
+    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+    value={formData.teacherId}
+    onChange={(e) => setFormData({ ...formData, teacherId: e.target.value })}
+    disabled={!formData.className}
+  >
+    <option value="">Select Teacher</option>
+    {filteredTeachers.map((t) => (
+      <option key={t._id} value={t._id}>{t.name}</option>
+    ))}
+  </select>
+</div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -529,6 +639,7 @@ function ExamCreate() {
           </div>
         </div>
       )}
+
       {confirmModal.isOpen && (
         <div className="fixed inset-0 z-100 flex items-end md:items-center justify-center p-4">
           {/* Backdrop */}

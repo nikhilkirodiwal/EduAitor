@@ -61,6 +61,7 @@ import TeacherMenu from "./pages/TeacherMenu";
 import SuperAdminMenu from "./pages/SuperAdminMenu";
 import ReadTimetable from "./pages/ReadTimetable";
 import TeacherStudents from "./pages/TeacherStudents";
+import TeacherExam from "./pages/TeacherExam";
 
 const App = () => {
   return (
@@ -155,6 +156,7 @@ const App = () => {
         <Route path="class-view/:id" element={<ClassView />} />
         <Route path="assignment" element={<Assignment />} />
         <Route path="assignment/result" element={<TeacherAssignmentResult />} />
+        <Route path="exam" element={<TeacherExam />} />
         <Route path="attendance/mark" element={<Attendance />} />
         <Route path="attendance/report" element={<AttendanceReportTeacher />} />
         <Route path="syllabus" element={<Syllabus />} />

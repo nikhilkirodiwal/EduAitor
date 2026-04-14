@@ -1,8 +1,10 @@
 import Exam from "../models/exam.js";
 import subject from "../models/subject.js";
+import Teacher from "../models/teacher.js";
 
 // Create Exam
 export const createExam = async (req, res) => {
+  console.log("Create Exam Request Body:", req.body); // Debug log to check incoming data
   try {
     const schoolId = req.user?.school_id;
     const {
@@ -13,6 +15,8 @@ export const createExam = async (req, res) => {
       endTime,
       totalMarks,
       passingMarks,
+      termId,
+      teacherId,
     } = req.body;
 
     const dateObj = new Date(examDate);
@@ -78,6 +82,8 @@ export const createExam = async (req, res) => {
       passingMarks,
       schoolId,
       dayOfWeek,
+      termId,
+      teacherId,
     });
 
     await newExam.save();
@@ -116,6 +122,9 @@ export const getExams = async (req, res) => {
   try {
     const exams = await Exam.find(query)
       .populate("className")
+      .populate("subject", "name") 
+      .populate("termId", "name academicYear")   
+.populate("teacherId", "fullName") 
       .sort({ examDate: 1, startTime: 1 })
       .lean();
     res.json(exams);
@@ -185,7 +194,10 @@ export const updateExam = async (req, res) => {
       id,
       { ...req.body, dayOfWeek },
       { new: true, runValidators: true },
-    ).populate("className", "name");
+    ).populate("className", "name")
+.populate("subject", "name")
+.populate("termId", "name academicYear")
+.populate("teacherId", "fullName");
 
     if (!updatedExam) {
       return res.status(404).json({ message: "Exam not found" });
@@ -218,34 +230,28 @@ export const deleteExam = async (req, res) => {
   }
 };
 
-//  subjects
-export const getSubjects = async (req, res) => {
-  try {
-    const schoolId = req.user?.school_id;
-    const { ids } = req.query;
 
-    // 1. Validation: If no IDs are sent, return empty array immediately
-    if (!ids) {
-      return res.status(200).json({ subjects: [] });
+export const getTeacherExams = async (req, res) => {
+  try {
+    const teacherId = req.user?.teacher_id; // logged-in teacher
+    const schoolId = req.user?.school_id;
+
+    if (!teacherId) {
+      return res.status(400).json({ message: "Teacher not found" });
     }
 
-    // 2. Normalize: Ensure 'ids' is an array (Express sometimes parses single items as strings)
-    const idArray = Array.isArray(ids) ? ids : [ids];
-
-    // 3. Query: Find Active subjects belonging to the specific school
-    const subjects = await Subject.find({
-      _id: { $in: idArray },
-      schoolId: schoolId,
-      status: "Active", // Only show active subjects for exams
+    const exams = await Exam.find({
+      schoolId,
+      teacherId, // ✅ filter by teacher
     })
-      .select("name _id") // Keep the payload small for mobile performance
-      .sort({ name: 1 }); // Alphabetical order looks better in dropdowns
+      .populate("className", "name")
+      .populate("subject", "name")
+      .populate("termId", "name academicYear")
+      .sort({ examDate: 1, startTime: 1 });
 
-    res.status(200).json({ subjects });
-  } catch (error) {
-    console.error("Backend Subject Fetch Error:", error);
-    res.status(500).json({ message: "Failed to fetch subject details" });
+    res.status(200).json(exams);
+  } catch (err) {
+    console.error("Teacher Exam Fetch Error:", err);
+    res.status(500).json({ message: "Failed to fetch exams" });
   }
 };
-
-// Delete and Edit would follow standard findByIdAndDelete / findByIdAndUpdate
