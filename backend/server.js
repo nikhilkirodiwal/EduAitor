@@ -11,7 +11,12 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: [
+      process.env.CLIENT_URL,
+      "capacitor://localhost",
+      "http://localhost",
+      "http://10.0.2.2", // emulator support
+    ],
     credentials: true,
   }),
 );
