@@ -151,14 +151,17 @@ const App = () => {
         <Route path="dashboard" element={<TeacherDashboard />} />
         <Route path="students" element={<TeacherStudents />} />
         <Route path="student-view/:id" element={<StudentView />} />
+        <Route path="class" element={<Class />} />
+        <Route path="class-view/:id" element={<ClassView />} />
         <Route path="assignment" element={<Assignment />} />
         <Route path="assignment/result" element={<TeacherAssignmentResult />} />
         <Route path="attendance/mark" element={<Attendance />} />
         <Route path="attendance/report" element={<AttendanceReportTeacher />} />
         <Route path="syllabus" element={<Syllabus />} />
         <Route path="diary" element={<DiaryTeacher />} />
-        <Route path="event" element={<TeacherEvent />} />
-        <Route path="notice" element={<TeacherNotice />} />
+        <Route path="event" element={<Event />} />
+        <Route path="event/:id" element={<EventView />} />
+        <Route path="notice" element={<Notice />} />
         <Route path="calendar" element={<TeacherCalendar />} />
         <Route path="group" element={<Group />} />
         <Route path="timetable" element={<ReadTimetable />} />

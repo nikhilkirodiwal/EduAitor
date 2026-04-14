@@ -205,7 +205,7 @@ function TeacherEventContent() {
                 {/* ── View-only action row ── */}
                 <div className="flex items-center mt-4 pt-4 border-t border-gray-100">
                   <button
-                    onClick={() => navigate(`/school/event/${ev._id}`)}
+                    onClick={() => navigate(`/teacher/event/${ev._id}`)}
                     className="flex items-center gap-1.5 text-xs font-medium text-indigo-500 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition"
                   >
                     <FiEye size={13} /> View Details

@@ -395,3 +395,54 @@ export const getAllClasses = async (req, res) => {
     });
   }
 };
+
+/* ── GET CLASSES FOR TEACHER ── */
+export const getTeacherClasses = async (req, res) => {
+  try {
+    const schoolId = req.user?.school_id;
+    const rawTeacherId = req.user?.teacher_id;
+
+    if (!schoolId || !rawTeacherId) {
+      return res.status(400).json({ success: false, message: "Missing credentials" });
+    }
+
+    const teacherObjId = new mongoose.Types.ObjectId(rawTeacherId);
+    const schoolObjId = new mongoose.Types.ObjectId(schoolId);
+
+    // Get teacher's assignedClasses
+    const teacher = await Teacher.findById(teacherObjId).select("assignedClasses");
+
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: "Teacher not found" });
+    }
+
+    // Also find classes where teacher appears in details
+    const classesFromDetails = await Class.find({
+      schoolId: schoolObjId,
+      $or: [
+        { "details.teacherId": teacherObjId },
+        { "details.subjectTeachers.teacherId": teacherObjId },
+      ],
+    }).select("_id");
+
+    const allClassIds = new Set([
+      ...(teacher.assignedClasses || []).map((id) => id.toString()),
+      ...classesFromDetails.map((c) => c._id.toString()),
+    ]);
+
+    const classes = await Class.find({
+      _id: { $in: [...allClassIds] },
+      schoolId: schoolObjId,
+    })
+      .populate("details.sectionId", "name status")
+      .populate("details.teacherId", "fullName")
+      .populate("details.subjectTeachers.subjectId", "name")
+      .populate("details.subjectTeachers.teacherId", "fullName")
+      .sort({ name: 1 })
+      .lean();
+
+    res.json({ success: true, classes });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

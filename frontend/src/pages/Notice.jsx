@@ -17,6 +17,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -74,9 +75,10 @@ const EMPTY_FORM = {
 
 /* ════════════════════════════════════════════════════ */
 export default function Notice() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [notices, setNotices] = useState([]);
   const [classes, setClasses] = useState([]);
-  const navigate = useNavigate();
   const isMobile = window.innerWidth <= 768;
   const [stats, setStats] = useState({
     total: 0,
@@ -302,9 +304,17 @@ export default function Notice() {
     <div>
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
-          <div className="pt-4">
+        <div className="pt-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (!user?.role) return;
+
+              navigate(
+                user.role === "school_admin"
+                  ? "/school/notice"
+                  : "/teacher/notice",
+              );
+            }}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
                  bg-white shadow-sm border border-slate-100
                  text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
@@ -363,12 +373,14 @@ export default function Notice() {
             </button>
           ))}
         </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shrink-0"
-        >
-          <FiPlus size={15} /> Create Notice
-        </button>
+        {user?.role === "school_admin" && (
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shrink-0"
+          >
+            <FiPlus size={15} /> Create Notice
+          </button>
+        )}
       </div>
 
       {/* ── Notice Cards ── */}
@@ -469,18 +481,22 @@ export default function Notice() {
                   >
                     <FiEye size={13} /> View
                   </button>
-                  <button
-                    onClick={() => openEdit(n)}
-                    className="flex items-center gap-1.5 text-xs font-medium text-amber-500 hover:bg-amber-50 px-3 py-1.5 rounded-lg transition"
-                  >
-                    <FiEdit2 size={13} /> Edit
-                  </button>
-                  <button
-                    onClick={() => setDeleteId(n._id)}
-                    className="flex items-center gap-1.5 text-xs font-medium text-red-400 hover:bg-red-50 px-3 py-1.5 rounded-lg transition ml-auto"
-                  >
-                    <FiTrash2 size={13} /> Delete
-                  </button>
+                  {user?.role === "school_admin" && (
+                    <>
+                      <button
+                        onClick={() => openEdit(n)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-amber-500 hover:bg-amber-50 px-3 py-1.5 rounded-lg transition"
+                      >
+                        <FiEdit2 size={13} /> Edit
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(n._id)}
+                        className="flex items-center gap-1.5 text-xs font-medium text-red-400 hover:bg-red-50 px-3 py-1.5 rounded-lg transition ml-auto"
+                      >
+                        <FiTrash2 size={13} /> Delete
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             );

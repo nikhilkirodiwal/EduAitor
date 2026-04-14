@@ -30,13 +30,6 @@ const sectionDetailSchema = new mongoose.Schema(
       default: 0,
     },
 
-    // subjects: [
-    //   {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: "Subject",
-    //   },
-    // ],
-
     subjectTeachers: [
       {
         subjectId: {

@@ -13,6 +13,7 @@ import {
   FiAward,
 } from "react-icons/fi";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -82,6 +83,7 @@ const calcTimeLeft = (target) => {
 
 /* ══════════════════════════════════════════════════════════ */
 export default function EventView() {
+  const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
@@ -131,7 +133,15 @@ export default function EventView() {
         <FiAlertCircle size={36} />
         <p className="text-sm">Event not found.</p>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (!user?.role) return;
+
+            navigate(
+              user.role === "teacher_admin"
+                ? "/teacher/event"
+                : "/school/event",
+            );
+          }}
           className="text-indigo-500 text-sm hover:underline"
         >
           Go back
@@ -149,7 +159,13 @@ export default function EventView() {
     <div className="w-full pb-12">
       {/* ── Back ── */}
       <button
-        onClick={() => navigate(-1)}
+        onClick={() => {
+          if (!user?.role) return;
+
+          navigate(
+            user.role === "teacher_admin" ? "/teacher/event" : "/school/event",
+          );
+        }}
         className="flex items-center gap-2 text-sm text-indigo-500 hover:text-indigo-700 mb-6 transition"
       >
         <FiArrowLeft size={15} /> Back to Events

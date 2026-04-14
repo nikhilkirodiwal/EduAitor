@@ -283,7 +283,6 @@ export default function DiaryTeacher() {
   const fetchClasses = async () => {
     try {
       const res = await axios.get(`${API}/classes/all`, { withCredentials: true });
-      console.log("Classes:", res.data.classes);
       setClasses(res.data.classes);
     } catch {
       toast.error("Failed to load classes");

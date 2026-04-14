@@ -18,6 +18,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { FiAlertTriangle } from "react-icons/fi";
 import { FaArrowLeft } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -54,6 +55,7 @@ const getStatus = (ev) => {
 
 export default function EventsPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const isMobile = window.innerWidth <= 768;
 
   const [events, setEvents] = useState([]);
@@ -258,7 +260,15 @@ export default function EventsPage() {
       {isMobile && (
         <div className="pt-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (!user?.role) return;
+
+              navigate(
+                user.role === "school_admin"
+                  ? "/school/event"
+                  : "/teacher/event",
+              );
+            }}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
                  bg-white shadow-sm border border-slate-100
                  text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
@@ -302,15 +312,17 @@ export default function EventsPage() {
       </div>
 
       {/* ── List header ── */}
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-lg font-semibold text-gray-800">All Events</h2>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition"
-        >
-          <FiPlus size={15} /> Create Event
-        </button>
-      </div>
+      {user?.role === "school_admin" && (
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-semibold text-gray-800">All Events</h2>
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition"
+          >
+            <FiPlus size={15} /> Create Event
+          </button>
+        </div>
+      )}
 
       {/* ── Event Cards ── */}
       {loading ? (
@@ -383,14 +395,22 @@ export default function EventsPage() {
                 <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
                   {/* View — always visible */}
                   <button
-                    onClick={() => navigate(`/school/event/${ev._id}`)}
+                    onClick={() => {
+                      if (!user?.role) return;
+
+                      navigate(
+                        user.role === "school_admin"
+                          ? `/school/event/${ev._id}`
+                          : `/teacher/event/${ev._id}`,
+                      );
+                    }}
                     className="flex items-center gap-1.5 text-xs font-medium text-indigo-500 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition"
                   >
                     <FiEye size={13} /> View
                   </button>
 
                   {/* Edit + Delete — hidden when Completed */}
-                  {!isCompleted && (
+                  {user?.role === "school_admin" && !isCompleted && (
                     <>
                       <button
                         onClick={() => openEdit(ev)}

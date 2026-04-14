@@ -13,11 +13,13 @@ import {
 } from "react-icons/fa";
 import { FiUsers } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
 
 const API = import.meta.env.VITE_API_URL;
 
 export default function ClassView() {
   const { id } = useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [classData, setClassData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -53,7 +55,15 @@ export default function ClassView() {
         <FaSchool size={36} />
         <p className="text-sm">Class not found.</p>
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => {
+            if (!user?.role) return;
+
+            navigate(
+              user.role === "teacher_admin"
+                ? "/teacher/class"
+                : "/school/class",
+            );
+          }}
           className="text-indigo-500 text-sm hover:underline"
         >
           Go back
@@ -76,7 +86,15 @@ export default function ClassView() {
     <div className="w-full pb-12 space-y-6">
       {/* ── Back ── */}
       <button
-        onClick={() => navigate("/school/class")}
+        onClick={() => {
+          if (!user?.role) return;
+
+          navigate(
+            user.role === "teacher_admin"
+              ? "/teacher/class"
+              : "/school/class",
+          );
+        }}
         className="flex items-center gap-2 text-sm text-indigo-500 hover:text-indigo-600 transition"
       >
         <FaArrowLeft size={13} /> Back to Classes

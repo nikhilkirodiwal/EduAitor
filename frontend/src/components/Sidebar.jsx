@@ -205,7 +205,7 @@ const Sidebar = ({ closeSidebar }) => {
     {
       name: "My Classes",
       icon: <HiAcademicCap />,
-      path: "/teacher/classes",
+      path: "/teacher/class",
     },
     { name: "Syllabus", icon: <FaBookDead />, path: "/teacher/syllabus" },
     {
