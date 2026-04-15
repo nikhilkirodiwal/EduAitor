@@ -258,6 +258,11 @@ const Sidebar = ({ closeSidebar }) => {
         { name: "Assignment Result", path: "/parent/assignment/result" },
       ],
     },
+    {
+      name: "Exam Results",
+      icon: <GiSchoolBag />,
+      path: "/parent/exam-result",
+    },
     { name: "Calendar", icon: <FaCalendarAlt />, path: "/parent/calendar" },
     { name: "Timetable", icon: <FaClock />, path: "/parent/timetable" },
     { name: "Notices", icon: <FaBell />, path: "/parent/notice" },

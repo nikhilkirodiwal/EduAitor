@@ -12,7 +12,8 @@ const ExamSchema = new mongoose.Schema({
   startTime: { type: String, required: true },
   endTime: { type: String, required: true },
   totalMarks: { type: Number, required: true },
-  passingMarks: { type: Number, required: true }
-});
+  passingMarks: { type: Number, required: true },
+  sectionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Section' }, // Added Section
+}, { timestamps: true });
 
 export default mongoose.model('Exam', ExamSchema);

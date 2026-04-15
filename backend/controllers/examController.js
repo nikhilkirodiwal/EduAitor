@@ -1,6 +1,8 @@
 import Exam from "../models/exam.js";
 import subject from "../models/subject.js";
 import Teacher from "../models/teacher.js";
+import Student from "../models/student.js";
+import Result from "../models/result.js";
 
 // Create Exam
 export const createExam = async (req, res) => {
@@ -17,6 +19,7 @@ export const createExam = async (req, res) => {
       passingMarks,
       termId,
       teacherId,
+      sectionId,
     } = req.body;
 
     const dateObj = new Date(examDate);
@@ -84,6 +87,7 @@ export const createExam = async (req, res) => {
       dayOfWeek,
       termId,
       teacherId,
+      sectionId,
     });
 
     await newExam.save();
@@ -253,5 +257,347 @@ export const getTeacherExams = async (req, res) => {
   } catch (err) {
     console.error("Teacher Exam Fetch Error:", err);
     res.status(500).json({ message: "Failed to fetch exams" });
+  }
+};
+
+
+
+const GRADE_SCALE = [
+  { min: 90, grade: "A+" },
+  { min: 80, grade: "A" },
+  { min: 70, grade: "B+" },
+  { min: 60, grade: "B" },
+  { min: 50, grade: "C" },
+  { min: 40, grade: "D" },
+  { min: 0,  grade: "F" },
+];
+ 
+const calculateGrade = (percentage) => {
+  for (const { min, grade } of GRADE_SCALE) {
+    if (percentage >= min) return grade;
+  }
+  return "F";
+};
+ 
+/**
+ * Edit window: teacher can enter/edit marks from exam date
+ * up to end-of-day 2 days after exam. (e.g. exam on Mon → deadline Wed 23:59)
+ */
+const getEditDeadline = (examDate) => {
+  const d = new Date(examDate);
+  d.setDate(d.getDate() + 2);
+  d.setHours(23, 59, 59, 999);
+  return d;
+};
+ 
+const isEditAllowed = (examDate) => new Date() <= getEditDeadline(examDate);
+ 
+const isExamPast = (examDate) => {
+  const exam = new Date(examDate);
+  exam.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return today >= exam;
+};
+ 
+// ─── Controllers ────────────────────────────────────────────────────────────
+ 
+/**
+ * GET /result/exam/:examId/students
+ * Teacher: fetch students for a specific exam (class + section filtered)
+ * Returns students with their existing result (if any)
+ */
+export const getExamStudents = async (req, res) => {
+  try {
+    const { examId } = req.params;
+    const teacherId = req.user?.teacher_id;
+    const schoolId = req.user?.school_id;
+ 
+    // Verify teacher is assigned to this exam
+    const exam = await Exam.findOne({ _id: examId, schoolId, teacherId })
+      .populate("className", "name")
+      .populate("subject", "name")
+      .populate("termId", "name academicYear")
+      .populate("sectionId", "name");
+ 
+    if (!exam) {
+      return res.status(403).json({ message: "Not authorized for this exam" });
+    }
+ 
+    // Build student query: same class, same section (if section exists)
+    const studentQuery = { schoolId, classId: exam.className._id };
+    if (exam.sectionId) studentQuery.sectionId = exam.sectionId._id;
+ 
+    const students = await Student.find(studentQuery)
+      .select("firstName lastName rollNo studentId sectionId gender")
+      .sort({ rollNo: 1 });
+ 
+    // Attach existing results
+    const existingResults = await Result.find({ examId, schoolId });
+    const resultMap = {};
+    existingResults.forEach((r) => {
+      resultMap[r.studentId.toString()] = r;
+    });
+ 
+    const studentsWithResults = students.map((s) => ({
+      ...s.toObject(),
+      result: resultMap[s._id.toString()] || null,
+    }));
+ 
+    const examDatePast = isExamPast(exam.examDate);
+    const editAllowed = isEditAllowed(exam.examDate);
+    const editDeadline = getEditDeadline(exam.examDate);
+ 
+    res.status(200).json({
+      exam,
+      students: studentsWithResults,
+      canEdit: examDatePast && editAllowed,
+      examDatePast,
+      editDeadline,
+      totalStudents: students.length,
+      marksEntered: existingResults.length,
+    });
+  } catch (err) {
+    console.error("getExamStudents Error:", err);
+    res.status(500).json({ message: "Failed to fetch students" });
+  }
+};
+ 
+/**
+ * POST /result/exam/:examId/submit
+ * Teacher: bulk submit/update marks
+ * Body: { results: [{ studentId, attendanceStatus, marksObtained, remarks }] }
+ */
+export const submitMarks = async (req, res) => {
+  try {
+    const { examId } = req.params;
+    const teacherId = req.user?.teacher_id;
+    const schoolId = req.user?.school_id;
+    const { results } = req.body;
+ 
+    if (!Array.isArray(results) || results.length === 0) {
+      return res.status(400).json({ message: "No results data provided" });
+    }
+ 
+    // Verify ownership
+    const exam = await Exam.findOne({ _id: examId, schoolId, teacherId });
+    if (!exam) {
+      return res.status(403).json({ message: "Not authorized for this exam" });
+    }
+ 
+    // Must be on or after exam date
+    if (!isExamPast(exam.examDate)) {
+      return res
+        .status(400)
+        .json({ message: "Cannot enter marks before the exam date" });
+    }
+ 
+    // Must be within edit window
+    if (!isEditAllowed(exam.examDate)) {
+      return res
+        .status(400)
+        .json({ message: "Edit window has closed. Results are locked." });
+    }
+ 
+    const now = new Date();
+ 
+    const bulkOps = await Promise.all(
+      results.map(async (r) => {
+        const isPresent = r.attendanceStatus === "Present";
+        let percentage = null;
+        let grade = null;
+        let isPassed = null;
+ 
+        if (
+          isPresent &&
+          r.marksObtained !== null &&
+          r.marksObtained !== undefined
+        ) {
+          percentage = parseFloat(
+            ((r.marksObtained / exam.totalMarks) * 100).toFixed(2)
+          );
+          grade = calculateGrade(percentage);
+          isPassed = r.marksObtained >= exam.passingMarks;
+        }
+ 
+        // Get previous result for edit history
+        const prev = await Result.findOne({
+          examId,
+          studentId: r.studentId,
+          schoolId,
+        });
+ 
+        const historyEntry =
+          prev
+            ? {
+                editedBy: teacherId,
+                editedAt: now,
+                previousMarks: prev.marksObtained,
+                previousStatus: prev.attendanceStatus,
+              }
+            : null;
+ 
+        return {
+          updateOne: {
+            filter: { examId, studentId: r.studentId, schoolId },
+            update: {
+              $set: {
+                schoolId,
+                examId,
+                studentId: r.studentId,
+                classId: exam.className,
+                sectionId: exam.sectionId || null,
+                termId: exam.termId,
+                subjectId: exam.subject,
+                teacherId: exam.teacherId,
+                attendanceStatus: r.attendanceStatus || "Present",
+                marksObtained: isPresent ? (r.marksObtained ?? null) : null,
+                totalMarks: exam.totalMarks,
+                passingMarks: exam.passingMarks,
+                percentage,
+                grade,
+                isPassed,
+                remarks: r.remarks || "",
+                isLocked: false,
+                enteredBy: teacherId,
+                enteredAt: prev ? prev.enteredAt : now,
+                lastEditedAt: now,
+              },
+              ...(historyEntry && {
+                $push: { editHistory: historyEntry },
+              }),
+            },
+            upsert: true,
+          },
+        };
+      })
+    );
+ 
+    await Result.bulkWrite(bulkOps);
+ 
+    res.status(200).json({
+      message: "Marks saved successfully",
+      saved: results.length,
+    });
+  } catch (err) {
+    console.error("submitMarks Error:", err);
+    res.status(500).json({ message: "Failed to save marks" });
+  }
+};
+ 
+/**
+ * GET /result/exam/:examId
+ * Teacher / Principal: view all results for an exam
+ */
+export const getExamResults = async (req, res) => {
+  try {
+    const { examId } = req.params;
+    const schoolId = req.user?.school_id;
+ 
+    const results = await Result.find({ examId, schoolId })
+      .populate("studentId", "firstName lastName rollNo studentId gender")
+      .populate("subjectId", "name")
+      .populate("classId", "name")
+      .populate("sectionId", "name")
+      .populate("termId", "name")
+      .sort({ createdAt: 1 });
+ 
+    // Summary stats
+    const present = results.filter((r) => r.attendanceStatus === "Present");
+    const passed = present.filter((r) => r.isPassed === true);
+    const highest = present.reduce(
+      (max, r) => (r.marksObtained > max ? r.marksObtained : max),
+      0
+    );
+    const avgMarks =
+      present.length > 0
+        ? (
+            present.reduce((s, r) => s + (r.marksObtained || 0), 0) /
+            present.length
+          ).toFixed(1)
+        : 0;
+ 
+    res.status(200).json({
+      results,
+      stats: {
+        total: results.length,
+        present: present.length,
+        absent: results.filter((r) => r.attendanceStatus === "Absent").length,
+        leave: results.filter((r) =>
+          ["Leave", "MedicalLeave"].includes(r.attendanceStatus)
+        ).length,
+        exempted: results.filter((r) => r.attendanceStatus === "Exempted")
+          .length,
+        passed: passed.length,
+        failed: present.length - passed.length,
+        passPercentage:
+          present.length > 0
+            ? ((passed.length / present.length) * 100).toFixed(1)
+            : 0,
+        highestMarks: highest,
+        averageMarks: avgMarks,
+      },
+    });
+  } catch (err) {
+    console.error("getExamResults Error:", err);
+    res.status(500).json({ message: "Failed to fetch results" });
+  }
+};
+ 
+/**
+ * GET /result/student/:studentId
+ * Parent / Principal: view all results for a student
+ * Query: ?termId=xxx
+ */
+export const getStudentResults = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const schoolId = req.user?.school_id;
+    const { termId } = req.query;
+
+    const query = { studentId, schoolId };
+    if (termId) query.termId = termId;
+ 
+    const results = await Result.find(query)
+      .populate({
+        path: "examId",
+        select: "examDate subject totalMarks passingMarks startTime endTime",
+        populate: { path: "subject", select: "name" },
+      })
+      .populate("subjectId", "name")
+      .populate("termId", "name academicYear")
+      .populate("classId", "name")
+      .sort({ "examId.examDate": -1 });
+ 
+    res.status(200).json(results);
+  } catch (err) {
+    console.error("getStudentResults Error:", err);
+    res.status(500).json({ message: "Failed to fetch student results" });
+  }
+};
+ 
+/**
+ * GET /result/class/:classId/term/:termId
+ * Principal: full class report card
+ */
+export const getClassResults = async (req, res) => {
+  try {
+    const { classId, termId } = req.params;
+    const schoolId = req.user?.school_id;
+    const { sectionId } = req.query;
+ 
+    const query = { schoolId, classId, termId };
+    if (sectionId) query.sectionId = sectionId;
+ 
+    const results = await Result.find(query)
+      .populate("studentId", "firstName lastName rollNo studentId")
+      .populate("subjectId", "name")
+      .populate("examId", "examDate")
+      .sort({ "studentId.rollNo": 1 });
+ 
+    res.status(200).json(results);
+  } catch (err) {
+    console.error("getClassResults Error:", err);
+    res.status(500).json({ message: "Failed to fetch class results" });
   }
 };

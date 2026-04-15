@@ -53,8 +53,6 @@ import ParentAssignment from "./pages/ParentAssignment";
 import SchoolMenu from "./pages/SchoolMenu";
 import TeacherAssignmentResult from "./pages/TeacherAssignmentResult";
 import ParentAssignmentResult from "./pages/ParentAssignmentResult";
-import TeacherEvent from "./pages/TeacherEvent";
-import TeacherNotice from "./pages/TeacherNotice";
 import TeacherCalendar from "./pages/TeacherCalendar";
 import ParentMenu from "./pages/ParentMenu";
 import TeacherMenu from "./pages/TeacherMenu";
@@ -62,6 +60,8 @@ import SuperAdminMenu from "./pages/SuperAdminMenu";
 import ReadTimetable from "./pages/ReadTimetable";
 import TeacherStudents from "./pages/TeacherStudents";
 import TeacherExam from "./pages/TeacherExam";
+import PrincipalResultView from "./pages/PrincipalResultView";
+import ParentResultView from "./pages/ParentResultView";
 
 const App = () => {
   return (
@@ -135,6 +135,7 @@ const App = () => {
         <Route path="transport-bus" element={<BusManagement />} />
         <Route path="transport-route" element={<RouteManagement />} />
         <Route path="exam-structure" element={<ExamCreate />} />
+        <Route path="exam-marks" element={<PrincipalResultView />} />
         <Route path="library" element={<LibraryManagement />} />
 
         <Route path="*" element={<Navigate to="/school/dashboard" />} />
@@ -184,6 +185,7 @@ const App = () => {
         <Route path="assignment" element={<ParentAssignment />} />
         <Route path="assignment/result" element={<ParentAssignmentResult />} />
         <Route path="timetable" element={<ReadTimetable />} />
+        <Route path="exam-result" element={<ParentResultView />} />
         {/* <Route
           path="timetable"
           element={

@@ -38,6 +38,9 @@ const [filteredTeachers, setFilteredTeachers] = useState([]);
     className: "",
     subject: "",
     examDate: "",
+    termId: "",
+    teacherId:"",
+    sectionId:"",
     dayOfWeek: "",
     startTime: "",
     endTime: "",
@@ -100,50 +103,54 @@ const [filteredTeachers, setFilteredTeachers] = useState([]);
 
   // Handle Class Change
 const handleClassChange = (classId) => {
-  const selectedClass = classes.find(c => c._id === classId);
+  setFormData((prev) => ({
+    ...prev,
+    className: classId,
+    sectionId: "",
+    subject: "",
+    teacherId: "",
+  }));
 
-  if (selectedClass) {
-    const subjectsMap = [];
-    const teachersMap = [];
+  setFilteredSubjects([]);
+  setFilteredTeachers([]);
+};
+// handle section change
+const handleSectionChange = (sectionId) => {
+  const selectedClass = classes.find(c => c._id === formData.className);
 
-    selectedClass.details.forEach(detail => {
-      detail.subjectTeachers.forEach((st) => {
-        if (st.subjectId) {
-          subjectsMap.push({
-            _id: st.subjectId._id,
-            name: st.subjectId.name,
-          });
-        }
+  const selectedSection = selectedClass?.details.find(
+    (d) => d.sectionId._id === sectionId
+  );
 
-        if (st.teacherId) {
-          teachersMap.push({
-            _id: st.teacherId._id,
-            name: st.teacherId.fullName,
-          });
-        }
-      });
+  if (selectedSection) {
+    const subjects = [];
+    const teachers = [];
+
+    selectedSection.subjectTeachers.forEach((st) => {
+      if (st.subjectId) {
+        subjects.push({
+          _id: st.subjectId._id,
+          name: st.subjectId.name,
+        });
+      }
+
+      if (st.teacherId) {
+        teachers.push({
+          _id: st.teacherId._id,
+          name: st.teacherId.fullName,
+        });
+      }
     });
 
-    // ✅ REMOVE DUPLICATES (correct way)
-    const uniqueSubjects = [
-      ...new Map(subjectsMap.map(item => [item._id, item])).values()
-    ];
-
-    const uniqueTeachers = [
-      ...new Map(teachersMap.map(item => [item._id, item])).values()
-    ];
-
-    setFilteredSubjects(uniqueSubjects);
-    setFilteredTeachers(uniqueTeachers);
-
-  } else {
-    setFilteredSubjects([]);
-    setFilteredTeachers([]);
+    setFilteredSubjects(subjects);
+    setFilteredTeachers(teachers);
   }
 
   setFormData((prev) => ({
     ...prev,
-    className: classId,
+    sectionId,
+    subject: "",
+    teacherId: "",
   }));
 };
   const [confirmModal, setConfirmModal] = useState({
@@ -156,7 +163,7 @@ const handleClassChange = (classId) => {
     
     setEditingId(exam._id);
     handleClassChange(exam.className?._id);
-    console.log("Editing Exam:", exam._id);
+    console.log("Editing Exam:", exam?.sectionId);
     setFormData({
       className: exam.className?._id || "",
       subject: exam.subject?._id || "",
@@ -168,6 +175,7 @@ const handleClassChange = (classId) => {
       endTime: exam.endTime,
       totalMarks: exam.totalMarks,
       passingMarks: exam.passingMarks,
+      sectionId: exam.sectionId || "",
     });
     setIsModalOpen(true);
   };
@@ -369,13 +377,28 @@ const handleClassChange = (classId) => {
                   <td className="p-4 text-right space-x-2">
                     <button
                       onClick={() => handleEditClick(exam)}
-                      className="text-indigo-600   bg-slate-100 font-bold text-xs hover:underline cursor-pointer"
+                     className={`font-bold text-xs px-2 py-1 rounded 
+    ${
+      exam.examDate && new Date(exam.examDate) < new Date()
+        ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+        : "bg-slate-100 text-indigo-600 hover:underline cursor-pointer"
+    }
+  `}
+                       disabled={exam.examDate < new Date()}
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDeleteClick(exam._id)}
-                      className="text-red-400 bg-red-50 font-bold text-xs hover:underline cursor-pointer"
+
+                      className={`font-bold text-xs px-2 py-1 rounded 
+    ${
+      exam.examDate && new Date(exam.examDate) < new Date()
+        ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+        : "bg-slate-100 text-indigo-600 hover:underline cursor-pointer"
+    }
+  `}
+                       disabled={exam.examDate < new Date()}
                     >
                       Delete
                     </button>
@@ -492,6 +515,28 @@ const handleClassChange = (classId) => {
       ))}
     </select>
   </div>
+  <div>
+  <label className="text-[10px] font-bold text-slate-400 uppercase">
+    Section
+  </label>
+
+  <select
+    value={formData.sectionId}
+    onChange={(e) => handleSectionChange(e.target.value)}
+    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+    disabled={!formData.className}
+  >
+    <option value="">Select Section</option>
+
+    {classes
+      .find(c => c._id === formData.className)
+      ?.details.map((d) => (
+        <option key={d.sectionId._id} value={d.sectionId._id}>
+          {d.sectionId.name}
+        </option>
+      ))}
+  </select>
+</div>
 
   {/* Subject Selection - Now Filtered */}
   <div className="col-span-1">
