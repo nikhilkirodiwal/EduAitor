@@ -29,6 +29,7 @@ export const loginUser = async (req, res) => {
       res.cookie("token", token, cookieOptions);
       return res.json({
         success: true,
+        token,
         message: "Super Admin login successful",
         data: { role: "super_admin", email: process.env.SUPER_ADMIN_EMAIL },
       });
@@ -50,6 +51,7 @@ export const loginUser = async (req, res) => {
       res.cookie("token", token, cookieOptions);
       return res.json({
         success: true,
+        token,
         message: "Teacher login successful",
         data: {
           role: "teacher_admin",
@@ -75,6 +77,7 @@ export const loginUser = async (req, res) => {
       res.cookie("token", token, cookieOptions);
       return res.json({
         success: true,
+        token,
         message: "Parent login successful",
         data: {
           role: "student_admin",
@@ -105,6 +108,7 @@ export const loginUser = async (req, res) => {
     res.cookie("token", token, cookieOptions);
     return res.json({
       success: true,
+      token,
       message: "School Admin login successful",
       data: {
         role: "school_admin",
