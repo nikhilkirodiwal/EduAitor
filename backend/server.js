@@ -11,12 +11,21 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: [
-      process.env.CLIENT_URL,
-      "capacitor://localhost",
-      "http://localhost",
-      "http://10.0.2.2", // emulator support
-    ],
+    origin: function (origin, callback) {
+      const allowed = [
+        process.env.CLIENT_URL,
+        "capacitor://localhost",
+        "http://localhost",
+        "http://localhost:5173",
+        "http://10.0.2.2",
+      ];
+      // Allow requests with no origin (native Android WebView sends null/no origin)
+      if (!origin || allowed.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS: " + origin));
+      }
+    },
     credentials: true,
   }),
 );
