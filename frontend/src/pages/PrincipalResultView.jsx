@@ -367,29 +367,29 @@ export default function PrincipalResultView() {
                       {/* Sticky columns */}
                       <th className="p-3 text-[10px] font-black text-slate-400
                                      uppercase tracking-wider sticky left-0 bg-slate-50
-                                     min-w-[48px]">
+                                     min-w-12">
                         Roll
                       </th>
                       <th className="p-3 text-[10px] font-black text-slate-400
-                                     uppercase tracking-wider sticky left-[48px]
-                                     bg-slate-50 min-w-[140px]">
+                                     uppercase tracking-wider sticky left-12
+                                     bg-slate-50 min-w-35">
                         Student
                       </th>
                       {/* Subject columns */}
                       {subjects.map((sub) => (
                         <th key={sub._id}
                             className="p-3 text-[10px] font-black text-slate-400
-                                       uppercase tracking-wider text-center min-w-[100px]">
+                                       uppercase tracking-wider text-center min-w-25">
                           {sub.name}
                         </th>
                       ))}
                       {/* Aggregate */}
                       <th className="p-3 text-[10px] font-black text-indigo-400
-                                     uppercase tracking-wider text-center min-w-[80px]">
+                                     uppercase tracking-wider text-center min-w-20">
                         Overall %
                       </th>
                       <th className="p-3 text-[10px] font-black text-indigo-400
-                                     uppercase tracking-wider text-center min-w-[70px]">
+                                     uppercase tracking-wider text-center min-w-17.5">
                         Grade
                       </th>
                     </tr>
@@ -418,7 +418,7 @@ export default function PrincipalResultView() {
                             {stu.rollNo || "—"}
                           </td>
                           {/* Name */}
-                          <td className="p-3 sticky left-[48px] bg-white">
+                          <td className="p-3 sticky left-12 bg-white">
                             <div className="font-bold text-slate-800 text-sm leading-tight">
                               {stu.firstName} {stu.lastName}
                             </div>

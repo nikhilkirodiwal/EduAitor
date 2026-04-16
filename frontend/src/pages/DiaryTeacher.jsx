@@ -3,9 +3,8 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../context/AuthContext";
-import {FaArrowLeft} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-
+import { FaArrowLeft } from "react-icons/fa";
 
 
 const API = import.meta.env.VITE_API_URL;
@@ -121,7 +120,6 @@ function EditModal({ entry, classes, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-sm p-0 sm:p-4">
-      
       <div className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
@@ -165,7 +163,7 @@ function EditModal({ entry, classes, onClose, onSaved }) {
             >
               <option value="">Select section</option>
               {sections.map((s) => (
-                <option key={s._id} value={s._id}>
+                <option key={s._id} value={s.sectionId?._id}>
                   {s.sectionId?.name} (Room {s.roomNumber})
                 </option>
               ))}
@@ -274,15 +272,16 @@ export default function DiaryTeacher() {
   const [deleting, setDeleting] = useState(false);
   const [editEntry, setEditEntry] = useState(null);
   const { user, loading, setUser } = useAuth();
-    const navigate = useNavigate();
-  const isMobile = window.innerWidth <= 768;
 
+    const navigate = useNavigate();
+    const isMobile = window.innerWidth <= 768;
 
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
   const fetchClasses = async () => {
     try {
       const res = await axios.get(`${API}/classes/all`, { withCredentials: true });
+      console.log("Classes:", res.data.classes);
       setClasses(res.data.classes);
     } catch {
       toast.error("Failed to load classes");
@@ -315,7 +314,9 @@ export default function DiaryTeacher() {
   const handleSectionChange = (sectionId) => {
     setForm({ ...form, sectionId, subjectId: "" });
     setErrors((e) => ({ ...e, sectionId: undefined }));
-    const sec = sections.find((s) => s._id === sectionId);
+   const sec = sections.find(
+  (s) => s.sectionId?._id?.toString() === sectionId
+);
     const filteredSubjects = sec?.subjectTeachers?.filter(
   (st) => st.teacherId?._id?.toString() === user?.teacher_id?.toString()
 );
@@ -368,30 +369,22 @@ export default function DiaryTeacher() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-
-      {/* 🔙 BACK BUTTON */}
-      {isMobile && (
-          <div className="pt-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
-          >
-            <FaArrowLeft size={16} />
-            Back
-          </button>
-        </div>
-      )}
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar closeOnClick pauseOnHover />
 
-      {/* ── Header ───────────────────────────────────────────────────────────
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <h1 className="text-base font-semibold text-slate-800">Class Diary</h1>
-          <p className="text-xs text-slate-400 mt-0.5">Homework · Classwork · Remarks</p>
-        </div>
-      </div> */}
+         {/* 🔙 BACK BUTTON */}
+{isMobile && (
+  <div className="px-4 pt-4">
+    <button
+      onClick={() => navigate(-1)}
+      className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-white shadow-sm border border-slate-100
+                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+    >
+      <FaArrowLeft size={16} />
+      Back
+    </button>
+  </div>
+)}
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
 
@@ -444,7 +437,7 @@ export default function DiaryTeacher() {
                 >
                   <option value="">Select section</option>
                   {sections.map((s) => (
-                    <option key={s._id} value={s._id}>
+                    <option key={s._id} value={s.sectionId?._id}>
                       {s.sectionId?.name} (Room {s.roomNumber})
                     </option>
                   ))}

@@ -133,21 +133,41 @@ import axios from "axios";
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const ATTENDANCE_OPTIONS = [
-  { value: "Present",      label: "Present",       color: "text-emerald-600 bg-emerald-50 border-emerald-200" },
-  { value: "Absent",       label: "Absent",        color: "text-rose-600 bg-rose-50 border-rose-200" },
-  { value: "Leave",        label: "Leave",         color: "text-amber-600 bg-amber-50 border-amber-200" },
-  { value: "MedicalLeave", label: "Medical Leave", color: "text-purple-600 bg-purple-50 border-purple-200" },
-  { value: "Exempted",     label: "Exempted",      color: "text-slate-500 bg-slate-50 border-slate-200" },
+  {
+    value: "Present",
+    label: "Present",
+    color: "text-emerald-600 bg-emerald-50 border-emerald-200",
+  },
+  {
+    value: "Absent",
+    label: "Absent",
+    color: "text-rose-600 bg-rose-50 border-rose-200",
+  },
+  {
+    value: "Leave",
+    label: "Leave",
+    color: "text-amber-600 bg-amber-50 border-amber-200",
+  },
+  {
+    value: "MedicalLeave",
+    label: "Medical Leave",
+    color: "text-purple-600 bg-purple-50 border-purple-200",
+  },
+  {
+    value: "Exempted",
+    label: "Exempted",
+    color: "text-slate-500 bg-slate-50 border-slate-200",
+  },
 ];
 
 const GRADE_COLORS = {
   "A+": "bg-emerald-100 text-emerald-700",
-  "A":  "bg-green-100 text-green-700",
+  A: "bg-green-100 text-green-700",
   "B+": "bg-teal-100 text-teal-700",
-  "B":  "bg-sky-100 text-sky-700",
-  "C":  "bg-yellow-100 text-yellow-700",
-  "D":  "bg-orange-100 text-orange-700",
-  "F":  "bg-rose-100 text-rose-700",
+  B: "bg-sky-100 text-sky-700",
+  C: "bg-yellow-100 text-yellow-700",
+  D: "bg-orange-100 text-orange-700",
+  F: "bg-rose-100 text-rose-700",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -173,16 +193,28 @@ const getExamStatus = (exam) => {
   today.setHours(0, 0, 0, 0);
 
   if (today < examDate)
-    return { label: "Upcoming", color: "bg-slate-100 text-slate-500", canEnter: false };
+    return {
+      label: "Upcoming",
+      color: "bg-slate-100 text-slate-500",
+      canEnter: false,
+    };
 
   const deadline = new Date(exam.examDate);
   deadline.setDate(deadline.getDate() + 2);
   deadline.setHours(23, 59, 59, 999);
 
   if (new Date() <= deadline)
-    return { label: "Enter Marks", color: "bg-indigo-100 text-indigo-700", canEnter: true };
+    return {
+      label: "Enter Marks",
+      color: "bg-indigo-100 text-indigo-700",
+      canEnter: true,
+    };
 
-  return { label: "Locked", color: "bg-rose-100 text-rose-600", canEnter: false };
+  return {
+    label: "Locked",
+    color: "bg-rose-100 text-rose-600",
+    canEnter: false,
+  };
 };
 
 const getAttendanceBadge = (status) =>
@@ -193,7 +225,9 @@ const getAttendanceBadge = (status) =>
 const StatCard = ({ label, value, sub, color = "bg-white" }) => (
   <div className={`${color} rounded-xl p-3 text-center border`}>
     <div className="text-xl font-black text-slate-800">{value}</div>
-    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{label}</div>
+    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+      {label}
+    </div>
     {sub && <div className="text-xs text-slate-400 mt-0.5">{sub}</div>}
   </div>
 );
@@ -219,13 +253,18 @@ const ExamList = ({ exams, loading, onSelect, onViewResult }) => (
   <div className="max-w-3xl mx-auto">
     <div className="mb-6">
       <h1 className="text-2xl font-black text-slate-800">My Exams</h1>
-      <p className="text-sm text-slate-400 mt-0.5">Tap an exam to enter marks</p>
+      <p className="text-sm text-slate-400 mt-0.5">
+        Tap an exam to enter marks
+      </p>
     </div>
 
     {loading ? (
       <div className="flex flex-col gap-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 bg-slate-100 rounded-2xl animate-pulse" />
+          <div
+            key={i}
+            className="h-24 bg-slate-100 rounded-2xl animate-pulse"
+          />
         ))}
       </div>
     ) : exams.length === 0 ? (
@@ -250,10 +289,14 @@ const ExamList = ({ exams, loading, onSelect, onViewResult }) => (
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
                     Class {exam.className?.name}
-                    {exam.sectionId?.name ? ` – Sec ${exam.sectionId.name}` : ""}
+                    {exam.sectionId?.name
+                      ? ` – Sec ${exam.sectionId.name}`
+                      : ""}
                   </p>
                 </div>
-                <span className={`text-xs font-bold px-3 py-1 rounded-full ${status.color}`}>
+                <span
+                  className={`text-xs font-bold px-3 py-1 rounded-full ${status.color}`}
+                >
                   {status.label}
                 </span>
               </div>
@@ -261,7 +304,9 @@ const ExamList = ({ exams, loading, onSelect, onViewResult }) => (
               {/* Meta */}
               <div className="flex items-center gap-4 px-4 pb-3 text-xs text-slate-500">
                 <span>📅 {formatDate(exam.examDate)}</span>
-                <span>⏰ {formatTime(exam.startTime)} – {formatTime(exam.endTime)}</span>
+                <span>
+                  ⏰ {formatTime(exam.startTime)} – {formatTime(exam.endTime)}
+                </span>
                 <span>📝 {exam.totalMarks} marks</span>
               </div>
 
@@ -311,7 +356,7 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
   });
 
   const [rows, setRows] = useState(() =>
-    students.map((s) => ({ ...initRow(s), _student: s }))
+    students.map((s) => ({ ...initRow(s), _student: s })),
   );
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
@@ -327,7 +372,7 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
           updated.marksObtained = "";
         }
         return updated;
-      })
+      }),
     );
   };
 
@@ -337,7 +382,7 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
         ...r,
         attendanceStatus: status,
         marksObtained: status !== "Present" ? "" : r.marksObtained,
-      }))
+      })),
     );
 
   const handleSave = async () => {
@@ -346,7 +391,10 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
       if (row.attendanceStatus === "Present") {
         const m = parseFloat(row.marksObtained);
         if (row.marksObtained === "" || isNaN(m)) {
-          setToast({ msg: `Enter marks for ${row._student.firstName}`, type: "error" });
+          setToast({
+            msg: `Enter marks for ${row._student.firstName}`,
+            type: "error",
+          });
           return;
         }
         if (m < 0 || m > exam.totalMarks) {
@@ -369,9 +417,13 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
         remarks: r.remarks,
       }));
 
-      await axios.post(`${API}/exam/${exam._id}/submit`, { results: payload }, {
-        withCredentials: true,
-      });
+      await axios.post(
+        `${API}/exam/${exam._id}/submit`,
+        { results: payload },
+        {
+          withCredentials: true,
+        },
+      );
 
       setToast({ msg: "Marks saved successfully!", type: "success" });
       setTimeout(() => onSaved(), 1500);
@@ -385,12 +437,21 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
     }
   };
 
-  const filtered = filter === "All" ? rows : rows.filter((r) => r.attendanceStatus === filter);
-  const presentCount = rows.filter((r) => r.attendanceStatus === "Present").length;
+  const filtered =
+    filter === "All" ? rows : rows.filter((r) => r.attendanceStatus === filter);
+  const presentCount = rows.filter(
+    (r) => r.attendanceStatus === "Present",
+  ).length;
 
   return (
     <div className="max-w-3xl mx-auto">
-      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+      {toast && (
+        <Toast
+          msg={toast.msg}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
@@ -405,7 +466,8 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
             {exam.subject?.name}
           </h1>
           <p className="text-xs text-slate-400">
-            Class {exam.className?.name} · {formatDate(exam.examDate)} · {exam.totalMarks} marks
+            Class {exam.className?.name} · {formatDate(exam.examDate)} ·{" "}
+            {exam.totalMarks} marks
           </p>
         </div>
       </div>
@@ -416,7 +478,10 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
           ⏳ Edit window open until{" "}
           <span className="font-bold">
             {new Date(editDeadline).toLocaleString("en-GB", {
-              day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",
+              day: "2-digit",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
             })}
           </span>
         </div>
@@ -432,14 +497,28 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
       <div className="grid grid-cols-4 gap-2 mb-4">
         <StatCard label="Total" value={rows.length} />
         <StatCard label="Present" value={presentCount} color="bg-emerald-50" />
-        <StatCard label="Absent" value={rows.filter((r) => r.attendanceStatus === "Absent").length} color="bg-rose-50" />
-        <StatCard label="Leave" value={rows.filter((r) => ["Leave","MedicalLeave"].includes(r.attendanceStatus)).length} color="bg-amber-50" />
+        <StatCard
+          label="Absent"
+          value={rows.filter((r) => r.attendanceStatus === "Absent").length}
+          color="bg-rose-50"
+        />
+        <StatCard
+          label="Leave"
+          value={
+            rows.filter((r) =>
+              ["Leave", "MedicalLeave"].includes(r.attendanceStatus),
+            ).length
+          }
+          color="bg-amber-50"
+        />
       </div>
 
       {/* Quick actions */}
       {canEdit && (
         <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-          <span className="text-xs text-slate-400 self-center shrink-0">Mark all:</span>
+          <span className="text-xs text-slate-400 self-center shrink-0">
+            Mark all:
+          </span>
           {["Present", "Absent", "Leave"].map((s) => (
             <button
               key={s}
@@ -454,19 +533,22 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
 
       {/* Filter tabs */}
       <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
-        {["All", "Present", "Absent", "Leave", "MedicalLeave", "Exempted"].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors
-              ${filter === f
-                ? "bg-indigo-600 text-white"
-                : "bg-white border text-slate-500 hover:bg-slate-50"
+        {["All", "Present", "Absent", "Leave", "MedicalLeave", "Exempted"].map(
+          (f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors
+              ${
+                filter === f
+                  ? "bg-indigo-600 text-white"
+                  : "bg-white border text-slate-500 hover:bg-slate-50"
               }`}
-          >
-            {f === "All" ? `All (${rows.length})` : f}
-          </button>
-        ))}
+            >
+              {f === "All" ? `All (${rows.length})` : f}
+            </button>
+          ),
+        )}
       </div>
 
       {/* Student rows */}
@@ -499,7 +581,9 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
                   <div className="text-xs text-slate-400">
                     ID: {student.studentId}
                     {hasResult && (
-                      <span className="ml-2 text-emerald-500 font-semibold">● Saved</span>
+                      <span className="ml-2 text-emerald-500 font-semibold">
+                        ● Saved
+                      </span>
                     )}
                   </div>
                 </div>
@@ -507,17 +591,22 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
 
               {/* Attendance selector */}
               <div className="px-4 pb-2">
-                <div className="text-xs text-slate-400 mb-1.5 font-medium">Attendance</div>
+                <div className="text-xs text-slate-400 mb-1.5 font-medium">
+                  Attendance
+                </div>
                 <div className="flex gap-1.5 flex-wrap">
                   {ATTENDANCE_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
                       disabled={!canEdit}
-                      onClick={() => updateRow(realIdx, "attendanceStatus", opt.value)}
+                      onClick={() =>
+                        updateRow(realIdx, "attendanceStatus", opt.value)
+                      }
                       className={`text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all
-                        ${row.attendanceStatus === opt.value
-                          ? opt.color + " ring-1 ring-offset-1"
-                          : "bg-white border-slate-200 text-slate-400"
+                        ${
+                          row.attendanceStatus === opt.value
+                            ? opt.color + " ring-1 ring-offset-1"
+                            : "bg-white border-slate-200 text-slate-400"
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       {opt.label}
@@ -532,7 +621,10 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
                   <div className="flex items-center gap-3">
                     <div className="flex-1">
                       <div className="text-xs text-slate-400 mb-1 font-medium">
-                        Marks Obtained <span className="text-slate-300">/ {exam.totalMarks}</span>
+                        Marks Obtained{" "}
+                        <span className="text-slate-300">
+                          / {exam.totalMarks}
+                        </span>
                       </div>
                       <input
                         type="number"
@@ -540,7 +632,9 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
                         max={exam.totalMarks}
                         disabled={!canEdit}
                         value={row.marksObtained}
-                        onChange={(e) => updateRow(realIdx, "marksObtained", e.target.value)}
+                        onChange={(e) =>
+                          updateRow(realIdx, "marksObtained", e.target.value)
+                        }
                         placeholder={`0 – ${exam.totalMarks}`}
                         className="w-full border rounded-xl px-3 py-2 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50 disabled:text-slate-400"
                       />
@@ -549,7 +643,9 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
                     {/* Live percentage preview */}
                     {perc !== null && (
                       <div className="shrink-0 text-center">
-                        <div className="text-lg font-black text-slate-700">{perc}%</div>
+                        <div className="text-lg font-black text-slate-700">
+                          {perc}%
+                        </div>
                         <div
                           className={`text-xs font-bold px-2 py-0.5 rounded-lg mt-0.5
                             ${m >= exam.passingMarks ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"}`}
@@ -568,7 +664,9 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
                   type="text"
                   disabled={!canEdit}
                   value={row.remarks}
-                  onChange={(e) => updateRow(realIdx, "remarks", e.target.value)}
+                  onChange={(e) =>
+                    updateRow(realIdx, "remarks", e.target.value)
+                  }
                   placeholder="Remarks (optional)"
                   className="w-full border border-dashed rounded-xl px-3 py-1.5 text-xs text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-200 disabled:bg-transparent disabled:border-transparent"
                 />
@@ -586,7 +684,9 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
             disabled={saving}
             className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-base"
           >
-            {saving ? "Saving..." : `💾 Save All Marks (${rows.length} students)`}
+            {saving
+              ? "Saving..."
+              : `💾 Save All Marks (${rows.length} students)`}
           </button>
         </div>
       )}
@@ -621,12 +721,20 @@ const ResultsView = ({ exam, onBack }) => {
     return (
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center gap-3 mb-6">
-          <button onClick={onBack} className="w-9 h-9 rounded-xl bg-white border shadow-sm flex items-center justify-center text-slate-500">←</button>
+          <button
+            onClick={onBack}
+            className="w-9 h-9 rounded-xl bg-white border shadow-sm flex items-center justify-center text-slate-500"
+          >
+            ←
+          </button>
           <div className="h-6 w-40 bg-slate-100 rounded-lg animate-pulse" />
         </div>
         <div className="flex flex-col gap-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-16 bg-slate-100 rounded-2xl animate-pulse" />
+            <div
+              key={i}
+              className="h-16 bg-slate-100 rounded-2xl animate-pulse"
+            />
           ))}
         </div>
       </div>
@@ -636,7 +744,12 @@ const ResultsView = ({ exam, onBack }) => {
     return (
       <div className="max-w-3xl mx-auto text-center py-16 text-slate-400">
         <p>No results found</p>
-        <button onClick={onBack} className="mt-4 text-indigo-600 font-semibold text-sm">← Back</button>
+        <button
+          onClick={onBack}
+          className="mt-4 text-indigo-600 font-semibold text-sm"
+        >
+          ← Back
+        </button>
       </div>
     );
 
@@ -665,11 +778,19 @@ const ResultsView = ({ exam, onBack }) => {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-2 mb-4">
         <StatCard label="Total Students" value={stats.total} />
-        <StatCard label="Pass %" value={`${stats.passPercentage}%`} color="bg-emerald-50" />
+        <StatCard
+          label="Pass %"
+          value={`${stats.passPercentage}%`}
+          color="bg-emerald-50"
+        />
         <StatCard label="Passed" value={stats.passed} color="bg-emerald-50" />
         <StatCard label="Failed" value={stats.failed} color="bg-rose-50" />
         <StatCard label="Absent" value={stats.absent} color="bg-slate-50" />
-        <StatCard label="Avg Marks" value={stats.averageMarks} sub={`/ ${exam.totalMarks}`} />
+        <StatCard
+          label="Avg Marks"
+          value={stats.averageMarks}
+          sub={`/ ${exam.totalMarks}`}
+        />
       </div>
 
       {/* Result rows */}
@@ -683,7 +804,8 @@ const ResultsView = ({ exam, onBack }) => {
           results.map((r) => {
             const student = r.studentId;
             const badge = getAttendanceBadge(r.attendanceStatus);
-            const gradeColor = GRADE_COLORS[r.grade] || "bg-slate-100 text-slate-500";
+            const gradeColor =
+              GRADE_COLORS[r.grade] || "bg-slate-100 text-slate-500";
             return (
               <div
                 key={r._id}
@@ -697,29 +819,38 @@ const ResultsView = ({ exam, onBack }) => {
                     {student?.firstName} {student?.lastName}
                   </div>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${badge.color}`}>
+                    <span
+                      className={`text-xs font-semibold px-2 py-0.5 rounded-md border ${badge.color}`}
+                    >
                       {badge.label}
                     </span>
-                    {r.attendanceStatus === "Present" && r.marksObtained !== null && (
-                      <>
-                        <span className="text-xs text-slate-500">
-                          {r.marksObtained}/{exam.totalMarks}
-                        </span>
-                        <span className="text-xs text-slate-400">{r.percentage}%</span>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${gradeColor}`}>
-                          {r.grade}
-                        </span>
-                        <span
-                          className={`text-xs font-bold px-2 py-0.5 rounded-md
+                    {r.attendanceStatus === "Present" &&
+                      r.marksObtained !== null && (
+                        <>
+                          <span className="text-xs text-slate-500">
+                            {r.marksObtained}/{exam.totalMarks}
+                          </span>
+                          <span className="text-xs text-slate-400">
+                            {r.percentage}%
+                          </span>
+                          <span
+                            className={`text-xs font-bold px-2 py-0.5 rounded-md ${gradeColor}`}
+                          >
+                            {r.grade}
+                          </span>
+                          <span
+                            className={`text-xs font-bold px-2 py-0.5 rounded-md
                           ${r.isPassed ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-600"}`}
-                        >
-                          {r.isPassed ? "Pass" : "Fail"}
-                        </span>
-                      </>
-                    )}
+                          >
+                            {r.isPassed ? "Pass" : "Fail"}
+                          </span>
+                        </>
+                      )}
                   </div>
                   {r.remarks && (
-                    <div className="text-xs text-slate-400 mt-1 italic">"{r.remarks}"</div>
+                    <div className="text-xs text-slate-400 mt-1 italic">
+                      "{r.remarks}"
+                    </div>
                   )}
                 </div>
               </div>
@@ -751,7 +882,7 @@ export default function TeacherExam() {
       });
       // Sort latest to oldest
       const sorted = [...res.data].sort(
-        (a, b) => new Date(b.examDate) - new Date(a.examDate)
+        (a, b) => new Date(b.examDate) - new Date(a.examDate),
       );
       setExams(sorted);
     } catch (err) {
@@ -802,14 +933,20 @@ export default function TeacherExam() {
   return (
     <div className="min-h-screen bg-slate-50">
       {toast && (
-        <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />
+        <Toast
+          msg={toast.msg}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
 
       {studentLoading && (
         <div className="fixed inset-0 bg-white/70 backdrop-blur-sm z-40 flex items-center justify-center">
           <div className="flex flex-col items-center gap-2">
             <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm font-semibold text-slate-600">Loading students…</p>
+            <p className="text-sm font-semibold text-slate-600">
+              Loading students…
+            </p>
           </div>
         </div>
       )}

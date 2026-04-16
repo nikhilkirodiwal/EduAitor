@@ -3,6 +3,7 @@ import Login from "./components/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminLayout from "./components/AdminLayout";
 
+import SuperAdminMenu from "./pages/SuperAdminMenu";
 import Dashboard from "./pages/Dashboard";
 import AccessControl from "./pages/AccessControl";
 import RoleManagement from "./pages/RoleManagement";
@@ -10,7 +11,10 @@ import Schools from "./pages/Schools";
 import SchoolManagement from "./pages/SchoolManagement";
 import SchoolSubscription from "./pages/SchoolSubscription";
 import SchoolView from "./components/SchoolView";
+import SchoolDetail from "./pages/SchoolDetail";
+import AddSchool from "./pages/AddSchool";
 
+import SchoolMenu from "./pages/SchoolMenu";
 import SchoolDashboard from "./pages/SchoolDashboard";
 import Students from "./pages/Students";
 import StudentManagement from "./pages/StudentManagement";
@@ -36,32 +40,31 @@ import BusManagement from "./pages/BusManagement";
 import RouteManagement from "./pages/RouteManagement";
 import ExamCreate from "./pages/ExamCreate";
 import LibraryManagement from "./pages/LibraryManagement";
-import SchoolDetail from "./pages/SchoolDetail";
-import TeacherDashboard from "./pages/TeacherDashboard";
 import Syllabus from "./pages/Syllabus";
-import Assignment from "./pages/Assignment";
-import Calendar from "./pages/Calendar";
-import Attendance from "./pages/Attendance";
-import AttendanceReportTeacher from "./pages/AttendanceReportTeacher";
 import AttendanceReportPrincipal from "./pages/AttendanceReportPrincipal";
-import AddSchool from "./pages/AddSchool";
+import Calendar from "./pages/Calendar";
 import Group from "./pages/Group";
 import DiaryPrincipal from "./pages/DiaryPrincipal";
+import PrincipalResultView from "./pages/PrincipalResultView";
+
+import TeacherMenu from "./pages/TeacherMenu";
+import TeacherDashboard from "./pages/TeacherDashboard";
+import TeacherStudents from "./pages/TeacherStudents";
+import Assignment from "./pages/Assignment";
+import Attendance from "./pages/Attendance";
+import AttendanceReportTeacher from "./pages/AttendanceReportTeacher";
 import DiaryTeacher from "./pages/DiaryTeacher";
+import TeacherAssignmentResult from "./pages/TeacherAssignmentResult";
+import ReadTimetable from "./pages/ReadTimetable";
+import TeacherExam from "./pages/TeacherExam";
+
+import ParentMenu from "./pages/ParentMenu";
 import ParentDashboard from "./pages/ParentDashboard";
 import ParentAssignment from "./pages/ParentAssignment";
-import SchoolMenu from "./pages/SchoolMenu";
-import TeacherAssignmentResult from "./pages/TeacherAssignmentResult";
 import ParentAssignmentResult from "./pages/ParentAssignmentResult";
 import TeacherCalendar from "./pages/TeacherCalendar";
-import ParentMenu from "./pages/ParentMenu";
-import TeacherMenu from "./pages/TeacherMenu";
-import SuperAdminMenu from "./pages/SuperAdminMenu";
-import ReadTimetable from "./pages/ReadTimetable";
-import TeacherStudents from "./pages/TeacherStudents";
-import TeacherExam from "./pages/TeacherExam";
-import PrincipalResultView from "./pages/PrincipalResultView";
 import ParentResultView from "./pages/ParentResultView";
+import DiaryParent from "./pages/DiaryParent";
 
 const App = () => {
   return (
@@ -186,6 +189,7 @@ const App = () => {
         <Route path="assignment/result" element={<ParentAssignmentResult />} />
         <Route path="timetable" element={<ReadTimetable />} />
         <Route path="exam-result" element={<ParentResultView />} />
+        <Route path="diary" element={<DiaryParent />} />
         {/* <Route
           path="timetable"
           element={

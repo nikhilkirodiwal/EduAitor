@@ -23,10 +23,12 @@ const diarySchema = new mongoose.Schema(
     sectionId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
+      ref: "Section",
     },
 
     subjectId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "Subject",
     },
 
     type: {
@@ -47,7 +49,7 @@ const diarySchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Diary", diarySchema);

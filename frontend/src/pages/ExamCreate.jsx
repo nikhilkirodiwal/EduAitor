@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { FaArrowLeft} from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 function ExamCreate() {
-   const navigate = useNavigate();
+  const navigate = useNavigate();
   const isMobile = window.innerWidth <= 768;
   const [exams, setExams] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -16,11 +16,10 @@ function ExamCreate() {
   const [editingId, setEditingId] = useState(null);
 
   const [filteredSubjects, setFilteredSubjects] = useState([]);
-const [filteredTeachers, setFilteredTeachers] = useState([]);
+  const [filteredTeachers, setFilteredTeachers] = useState([]);
   const [terms, setTerms] = useState([]);
 
-
-    const fetchTerms = async () => {
+  const fetchTerms = async () => {
     try {
       const res = await axios.get(`${API}/terms`, { withCredentials: true });
       setTerms(res.data.terms);
@@ -33,14 +32,13 @@ const [filteredTeachers, setFilteredTeachers] = useState([]);
     fetchTerms();
   }, []);
 
-
   const [formData, setFormData] = useState({
     className: "",
     subject: "",
     examDate: "",
     termId: "",
-    teacherId:"",
-    sectionId:"",
+    teacherId: "",
+    sectionId: "",
     dayOfWeek: "",
     startTime: "",
     endTime: "",
@@ -100,59 +98,58 @@ const [filteredTeachers, setFilteredTeachers] = useState([]);
     }
   };
 
-
   // Handle Class Change
-const handleClassChange = (classId) => {
-  setFormData((prev) => ({
-    ...prev,
-    className: classId,
-    sectionId: "",
-    subject: "",
-    teacherId: "",
-  }));
+  const handleClassChange = (classId) => {
+    setFormData((prev) => ({
+      ...prev,
+      className: classId,
+      sectionId: "",
+      subject: "",
+      teacherId: "",
+    }));
 
-  setFilteredSubjects([]);
-  setFilteredTeachers([]);
-};
-// handle section change
-const handleSectionChange = (sectionId) => {
-  const selectedClass = classes.find(c => c._id === formData.className);
+    setFilteredSubjects([]);
+    setFilteredTeachers([]);
+  };
+  // handle section change
+  const handleSectionChange = (sectionId) => {
+    const selectedClass = classes.find((c) => c._id === formData.className);
 
-  const selectedSection = selectedClass?.details.find(
-    (d) => d.sectionId._id === sectionId
-  );
+    const selectedSection = selectedClass?.details.find(
+      (d) => d.sectionId._id === sectionId,
+    );
 
-  if (selectedSection) {
-    const subjects = [];
-    const teachers = [];
+    if (selectedSection) {
+      const subjects = [];
+      const teachers = [];
 
-    selectedSection.subjectTeachers.forEach((st) => {
-      if (st.subjectId) {
-        subjects.push({
-          _id: st.subjectId._id,
-          name: st.subjectId.name,
-        });
-      }
+      selectedSection.subjectTeachers.forEach((st) => {
+        if (st.subjectId) {
+          subjects.push({
+            _id: st.subjectId._id,
+            name: st.subjectId.name,
+          });
+        }
 
-      if (st.teacherId) {
-        teachers.push({
-          _id: st.teacherId._id,
-          name: st.teacherId.fullName,
-        });
-      }
-    });
+        if (st.teacherId) {
+          teachers.push({
+            _id: st.teacherId._id,
+            name: st.teacherId.fullName,
+          });
+        }
+      });
 
-    setFilteredSubjects(subjects);
-    setFilteredTeachers(teachers);
-  }
+      setFilteredSubjects(subjects);
+      setFilteredTeachers(teachers);
+    }
 
-  setFormData((prev) => ({
-    ...prev,
-    sectionId,
-    subject: "",
-    teacherId: "",
-  }));
-};
+    setFormData((prev) => ({
+      ...prev,
+      sectionId,
+      subject: "",
+      teacherId: "",
+    }));
+  };
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
     type: "", // 'delete' or 'update'
@@ -160,7 +157,6 @@ const handleSectionChange = (sectionId) => {
   });
   // 1. CLICK ACTIONS: Just prepare the data or open the form
   const handleEditClick = (exam) => {
-    
     setEditingId(exam._id);
     handleClassChange(exam.className?._id);
     console.log("Editing Exam:", exam?.sectionId);
@@ -263,20 +259,20 @@ const handleSectionChange = (sectionId) => {
 
   return (
     <div className="p-4 md:p-8 bg-slate-50 min-h-screen font-sans text-slate-900">
-       {/* 🔙 BACK BUTTON */}
-{isMobile && (
-  <div className="px-4 pt-4">
-    <button
-      onClick={() => navigate(-1)}
-      className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+      {/* 🔙 BACK BUTTON */}
+      {isMobile && (
+        <div className="px-4 pt-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
                  bg-white shadow-sm border border-slate-100
                  text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
-    >
-      <FaArrowLeft size={16} />
-      Back
-    </button>
-  </div>
-)}
+          >
+            <FaArrowLeft size={16} />
+            Back
+          </button>
+        </div>
+      )}
       {/* Header */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
@@ -365,32 +361,18 @@ const handleSectionChange = (sectionId) => {
                     <span className="text-slate-300 mx-1">/</span>
                     <span className="font-bold">{exam.totalMarks}</span>
                   </td>
-                  <td  className="p-4">
-<div className="text-xs text-indigo-500">
-  {exam.termId?.name}
-</div>
+                  <td className="p-4">
+                    <div className="text-xs text-indigo-500">
+                      {exam.termId?.name}
+                    </div>
 
-<div className="text-xs text-slate-400">
-  {exam.teacherId?.fullName}
-</div>
-</td>
+                    <div className="text-xs text-slate-400">
+                      {exam.teacherId?.fullName}
+                    </div>
+                  </td>
                   <td className="p-4 text-right space-x-2">
                     <button
                       onClick={() => handleEditClick(exam)}
-                     className={`font-bold text-xs px-2 py-1 rounded 
-    ${
-      exam.examDate && new Date(exam.examDate) < new Date()
-        ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-        : "bg-slate-100 text-indigo-600 hover:underline cursor-pointer"
-    }
-  `}
-                       disabled={exam.examDate < new Date()}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClick(exam._id)}
-
                       className={`font-bold text-xs px-2 py-1 rounded 
     ${
       exam.examDate && new Date(exam.examDate) < new Date()
@@ -398,7 +380,20 @@ const handleSectionChange = (sectionId) => {
         : "bg-slate-100 text-indigo-600 hover:underline cursor-pointer"
     }
   `}
-                       disabled={exam.examDate < new Date()}
+                      disabled={exam.examDate < new Date()}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(exam._id)}
+                      className={`font-bold text-xs px-2 py-1 rounded 
+    ${
+      exam.examDate && new Date(exam.examDate) < new Date()
+        ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+        : "bg-slate-100 text-indigo-600 hover:underline cursor-pointer"
+    }
+  `}
+                      disabled={exam.examDate < new Date()}
                     >
                       Delete
                     </button>
@@ -484,94 +479,118 @@ const handleSectionChange = (sectionId) => {
               className="p-6 space-y-4 overflow-y-auto"
             >
               <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2">
-  <label className="text-[10px] font-bold text-slate-400 uppercase">Exam Term</label>
-  <select
-    required
-    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl outline-none"
-    value={formData.termId}
-    onChange={(e) => setFormData({ ...formData, termId: e.target.value })}
-  >
-    <option value="">Select Term (e.g. Final, Half Yearly)</option>
-    {terms.map((t) => (
-      <option key={t._id} value={t._id}>{t.name} ({t.academicYear})</option>
-    ))}
-  </select>
-</div>
+                <div className="col-span-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">
+                    Exam Term
+                  </label>
+                  <select
+                    required
+                    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl outline-none"
+                    value={formData.termId}
+                    onChange={(e) =>
+                      setFormData({ ...formData, termId: e.target.value })
+                    }
+                  >
+                    <option value="">
+                      Select Term (e.g. Final, Half Yearly)
+                    </option>
+                    {terms.map((t) => (
+                      <option key={t._id} value={t._id}>
+                        {t.name} ({t.academicYear})
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-<div className="grid grid-cols-2 gap-4">
-  {/* Class Selection */}
-  <div className="col-span-1">
-    <label className="text-[10px] font-bold text-slate-400 uppercase">Class</label>
-    <select
-      required
-      className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
-      value={formData.className}
-      onChange={(e) => handleClassChange(e.target.value)}
-    >
-      <option value="">Pick Class</option>
-      {classes.map((c) => (
-        <option key={c._id} value={c._id}>Class {c.name}</option>
-      ))}
-    </select>
-  </div>
-  <div>
-  <label className="text-[10px] font-bold text-slate-400 uppercase">
-    Section
-  </label>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Class Selection */}
+                  <div className="col-span-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">
+                      Class
+                    </label>
+                    <select
+                      required
+                      className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                      value={formData.className}
+                      onChange={(e) => handleClassChange(e.target.value)}
+                    >
+                      <option value="">Pick Class</option>
+                      {classes.map((c) => (
+                        <option key={c._id} value={c._id}>
+                          Class {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">
+                      Section
+                    </label>
 
-  <select
-    value={formData.sectionId}
-    onChange={(e) => handleSectionChange(e.target.value)}
-    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
-    disabled={!formData.className}
-  >
-    <option value="">Select Section</option>
+                    <select
+                      value={formData.sectionId}
+                      onChange={(e) => handleSectionChange(e.target.value)}
+                      className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                      disabled={!formData.className}
+                    >
+                      <option value="">Select Section</option>
 
-    {classes
-      .find(c => c._id === formData.className)
-      ?.details.map((d) => (
-        <option key={d.sectionId._id} value={d.sectionId._id}>
-          {d.sectionId.name}
-        </option>
-      ))}
-  </select>
-</div>
+                      {classes
+                        .find((c) => c._id === formData.className)
+                        ?.details.map((d) => (
+                          <option key={d.sectionId._id} value={d.sectionId._id}>
+                            {d.sectionId.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
 
-  {/* Subject Selection - Now Filtered */}
-  <div className="col-span-1">
-    <label className="text-[10px] font-bold text-slate-400 uppercase">Subject</label>
-    <select
-      required
-      className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
-      value={formData.subject}
-      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-      disabled={!formData.className}
-    >
-      <option value="">Pick Subject</option>
-      {filteredSubjects.map((s) => (
-        <option key={s._id} value={s._id}>{s.name}</option>
-      ))}
-    </select>
-  </div>
-</div>
+                  {/* Subject Selection - Now Filtered */}
+                  <div className="col-span-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">
+                      Subject
+                    </label>
+                    <select
+                      required
+                      className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                      value={formData.subject}
+                      onChange={(e) =>
+                        setFormData({ ...formData, subject: e.target.value })
+                      }
+                      disabled={!formData.className}
+                    >
+                      <option value="">Pick Subject</option>
+                      {filteredSubjects.map((s) => (
+                        <option key={s._id} value={s._id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-{/* Teacher Selection - New */}
-<div className="col-span-2">
-  <label className="text-[10px] font-bold text-slate-400 uppercase">Assign Teacher (Invigilator/Examiner)</label>
-  <select
-    required
-    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
-    value={formData.teacherId}
-    onChange={(e) => setFormData({ ...formData, teacherId: e.target.value })}
-    disabled={!formData.className}
-  >
-    <option value="">Select Teacher</option>
-    {filteredTeachers.map((t) => (
-      <option key={t._id} value={t._id}>{t.name}</option>
-    ))}
-  </select>
-</div>
+                {/* Teacher Selection - New */}
+                <div className="col-span-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">
+                    Assign Teacher (Invigilator/Examiner)
+                  </label>
+                  <select
+                    required
+                    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                    value={formData.teacherId}
+                    onChange={(e) =>
+                      setFormData({ ...formData, teacherId: e.target.value })
+                    }
+                    disabled={!formData.className}
+                  >
+                    <option value="">Select Teacher</option>
+                    {filteredTeachers.map((t) => (
+                      <option key={t._id} value={t._id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

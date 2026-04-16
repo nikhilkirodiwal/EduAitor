@@ -18,7 +18,9 @@ app.use(
         "http://localhost",
         "https://localhost",
         "http://localhost:5173",
+        "http://localhost:5174",
         "https://localhost:5173",
+        "https://localhost:5174",
         "http://10.0.2.2",
       ];
       // Allow requests with no origin (native Android WebView sends null/no origin)

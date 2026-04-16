@@ -1,10 +1,9 @@
 import Diary from "../models/diary.js";
 import Class from "../models/class.js";
+import Student from "../models/student.js";
 import mongoose from "mongoose";
 
 export const createDiary = async (req, res) => {
-  console.log(req.body);
-  console.log(req.user);
   try {
     const data = await Diary.create({
       ...req.body,
@@ -202,3 +201,36 @@ export const getPrincipalDiaryFilters = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+
+export const getStudentDiary = async (req, res) => {
+  try {
+    const studentId = req.params.studentId;
+    console.log("Fetching diary for student ID:", studentId);
+
+    // Find the class and section of the student
+    const studentClass = await Student.findOne({ _id: studentId }).select("classId sectionId").lean();
+
+    if (!studentClass) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    const { classId, sectionId } = studentClass;
+    console.log(`Student classId: ${classId}, sectionId: ${sectionId}`);
+    // Find diary entries for the student's class and section
+    const diaryEntries = await Diary.find({
+      classId,
+      sectionId,
+    })
+      .populate("teacherId", "fullName email")
+      .populate("subjectId", "name code")
+      .populate("classId", "name")
+.populate("sectionId", "name")
+      .sort({ date: -1, createdAt: -1 })
+      .lean();
+console.log("Diary entries found:", diaryEntries.length);
+    res.json(diaryEntries);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
