@@ -65,6 +65,8 @@ import ParentAssignmentResult from "./pages/ParentAssignmentResult";
 import TeacherCalendar from "./pages/TeacherCalendar";
 import ParentResultView from "./pages/ParentResultView";
 import DiaryParent from "./pages/DiaryParent";
+import ParentFee from "./pages/ParentFee";
+import AttendanceParent from "./pages/AttendanceParent";
 
 const App = () => {
   return (
@@ -190,6 +192,13 @@ const App = () => {
         <Route path="timetable" element={<ReadTimetable />} />
         <Route path="exam-result" element={<ParentResultView />} />
         <Route path="diary" element={<DiaryParent />} />
+        <Route path="event" element={<Event />} />
+        <Route path="event/:id" element={<EventView />} />
+        <Route path="notice" element={<Notice />} />
+        <Route path="group" element={<Group />} />
+        <Route path="calendar" element={<TeacherCalendar />} />
+        <Route path="attendance" element={<AttendanceParent />} />
+        <Route path="fees" element={<ParentFee />} />
         {/* <Route
           path="timetable"
           element={

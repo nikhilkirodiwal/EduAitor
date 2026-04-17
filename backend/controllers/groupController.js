@@ -9,17 +9,28 @@ import Class from "../models/class.js";
 // role values: "super_admin" | "school_admin" | "teacher_admin"
 
 const normalizeUser = (jwtUser) => {
-  const userType =
-    jwtUser.role === "teacher_admin"
-      ? "teacher"
-      : jwtUser.role === "school_admin"
-        ? "admin"
-        : null; // super_admin has no schoolId — block at route level
+  let userType = null;
+  let userId = null;
 
-  const userId = jwtUser.teacher_id || jwtUser.school_id;
-  const schoolId = jwtUser.school_id;
+  if (jwtUser.role === "teacher_admin") {
+    userType = "teacher";
+    userId = jwtUser.teacher_id;
+  } else if (jwtUser.role === "school_admin") {
+    userType = "admin";
+    userId = jwtUser.school_id;
+  } else if (jwtUser.role === "student_admin") {
+    userType = "student";
+    userId = jwtUser.student_id;
+  } else if (jwtUser.role === "parent_admin") {
+    userType = "parent";
+    userId = jwtUser.student_id; // parent mapped to child
+  }
 
-  return { userId, userType, schoolId };
+  return {
+    userId,
+    userType,
+    schoolId: jwtUser.school_id,
+  };
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

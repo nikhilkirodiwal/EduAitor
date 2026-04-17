@@ -91,6 +91,10 @@ export default function EventView() {
   const [timeLeft, setTimeLeft] = useState(null);
   const [cdLabel, setCdLabel] = useState("");
 
+  const isAdmin = user?.role === "school_admin";
+  const isTeacher = user?.role === "teacher_admin";
+  const isStudent = user?.role === "student_admin";
+
   /* ── fetch event ── */
   useEffect(() => {
     axios
@@ -136,11 +140,9 @@ export default function EventView() {
           onClick={() => {
             if (!user?.role) return;
 
-            navigate(
-              user.role === "teacher_admin"
-                ? "/teacher/event"
-                : "/school/event",
-            );
+            if (isAdmin) navigate("/school/event");
+            else if (isTeacher) navigate("/teacher/event");
+            else if (isStudent) navigate("/parent/event");
           }}
           className="text-indigo-500 text-sm hover:underline"
         >
@@ -162,9 +164,9 @@ export default function EventView() {
         onClick={() => {
           if (!user?.role) return;
 
-          navigate(
-            user.role === "teacher_admin" ? "/teacher/event" : "/school/event",
-          );
+          if (isAdmin) navigate("/school/event");
+          else if (isTeacher) navigate("/teacher/event");
+          else if (isStudent) navigate("/parent/event");
         }}
         className="flex items-center gap-2 text-sm text-indigo-500 hover:text-indigo-700 mb-6 transition"
       >

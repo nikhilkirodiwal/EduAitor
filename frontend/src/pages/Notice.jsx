@@ -97,6 +97,10 @@ export default function Notice() {
   const [confirmSave, setConfirmSave] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
+  const isAdmin = user?.role === "school_admin";
+  const isTeacher = user?.role === "teacher_admin";
+  const isStudent = user?.role === "student_admin";
+
   /* ── fetch notices ── */
   const loadNotices = async () => {
     try {
@@ -309,11 +313,9 @@ export default function Notice() {
             onClick={() => {
               if (!user?.role) return;
 
-              navigate(
-                user.role === "school_admin"
-                  ? "/school/notice"
-                  : "/teacher/notice",
-              );
+              if (isAdmin) navigate("/school/notice");
+              else if (isTeacher) navigate("/teacher/notice");
+              else if (isStudent) navigate("/parent/notice");
             }}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
                  bg-white shadow-sm border border-slate-100
@@ -328,7 +330,13 @@ export default function Notice() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Notices</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Manage and publish notices for students, parents, and staff.
+          {isAdmin
+            ? `Manage and publish notices for students, parents, and staff.`
+            : isTeacher
+              ? `See the notice for student, parent, staff.`
+              : isStudent
+                ? `See the notice for the student.`
+                : `No notice available`}
         </p>
       </div>
 
@@ -358,21 +366,23 @@ export default function Notice() {
 
       {/* ── Toolbar ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <div className="flex items-center gap-2 flex-wrap">
-          {["All", "Parents", "Staff", "High"].map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition ${
-                filter === f
-                  ? "bg-indigo-500 text-white border-indigo-500"
-                  : "bg-white text-gray-500 border-gray-200 hover:border-indigo-300 hover:text-indigo-500"
-              }`}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
+        {!isStudent && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {["All", "Parents", "Staff", "High"].map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition ${
+                  filter === f
+                    ? "bg-indigo-500 text-white border-indigo-500"
+                    : "bg-white text-gray-500 border-gray-200 hover:border-indigo-300 hover:text-indigo-500"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        )}
         {user?.role === "school_admin" && (
           <button
             onClick={openCreate}

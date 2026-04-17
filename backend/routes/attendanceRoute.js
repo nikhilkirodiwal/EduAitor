@@ -9,6 +9,8 @@ import {
   saveAttendance,
   updateAttendance,
   getStudentAttendanceReport,
+  getParentAttendanceReport,
+  getparentReport,
 } from "../controllers/attendanceController.js";
 
 router.get("/meta", authMiddleware, getMetaData);
@@ -17,5 +19,9 @@ router.get("/existing", authMiddleware, getExistingAttendance);
 router.post("/save", authMiddleware, saveAttendance);
 router.put("/update", authMiddleware, updateAttendance);
 router.get("/report", authMiddleware, getStudentAttendanceReport);
+
+// parent attendance report
+router.get("/parent/report", authMiddleware, getparentReport); // for /attendance/parent/report
+router.get("/parent/student-meta", authMiddleware, getParentAttendanceReport);
 
 export default router;

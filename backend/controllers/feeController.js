@@ -785,3 +785,61 @@ export const getAllStudentAdminHistory = async (req, res) => {
     });
   }
 };
+
+export const getStudentFeeDetails = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const schoolId  = req.user.school_id; // from auth token
+
+    // Fetch student with class info
+    const student = await Student.findById(studentId)
+      .populate({ path: "classId", select: "name" })
+      .populate({ path: "sectionId", select: "name" })
+      .lean();
+
+    if (!student) return res.status(404).json({ message: "Student not found" });
+
+    
+
+    // Fetch fee structure for student's class
+    const feeStructure = await FeeStructure.findOne({
+      class: student.classId._id,
+      schoolId,
+    }).lean();
+
+    console.log("student.classId._id:", student.classId._id);
+console.log("schoolId:", schoolId);
+console.log("feeStructure:", feeStructure);
+
+    // Fetch all payments for this student
+    const payments = await Payment.find({ studentId, schoolId })
+      .sort({ paidDate: -1 })
+      .lean();
+
+    const totalFees = feeStructure
+      ? feeStructure.fees.reduce((sum, f) => sum + f.amount, 0)
+      : 0;
+
+    const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
+    const balanceDue = Math.max(0, totalFees - totalPaid);
+
+    res.json({
+      student: {
+        name: student.firstName + " " + student.lastName,
+        className: student.classId?.name,
+        section: student.sectionId?.name,
+        rollNo: student.rollNo,
+      },
+      feeStructure: feeStructure?.fees || [],
+      totalFees,
+      totalPaid,
+      balanceDue,
+      paidPercent: totalFees > 0 ? Math.round((totalPaid / totalFees) * 100) : 0,
+      payments,
+    });
+  } catch (err) {
+    console.error("getStudentFeeDetails error:", err.message);
+    res.status(500).json({ message: err.message });
+
+  }
+};

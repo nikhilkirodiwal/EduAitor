@@ -349,8 +349,6 @@ export const getStudentAttendanceReport = async (req, res) => {
     const schoolId = req.user.school_id;
     const { classId, sectionId, subjectId, date, month, year } = req.query;
 
-    console.log("QUERY:", req.query);
-
     if (!classId || !sectionId || !subjectId) {
       return res.status(400).json({
         success: false,
@@ -454,3 +452,87 @@ export const getStudentAttendanceReport = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+
+/* ═══════════════════════════════════════════════════════════════
+parent attendace report 
+==================================================================*/
+export const getParentAttendanceReport = async (req, res) => {
+   try {
+      // Example: parent doc has `children: [ObjectId]`
+      const parentDoc = req.user; // already populated by auth middleware
+ 
+      const studentId = parentDoc.children?.[0]; // single child; loop if multi-child
+ 
+      const student = await Student.findById(req.user.student_id)
+        .populate("classId",   "name")
+        .populate("sectionId", "name")
+        .lean();
+ 
+      if (!student) return res.status(404).json({ message: "Student not found" });
+ 
+      // Gather distinct subjects from this student's class assignments
+      // Adjust: you may store subjects directly on the class or on the student
+      const subjects = await Attendance.distinct("subjectId", {
+        studentId: student._id,
+      });
+ 
+      // Populate subject names
+      const populatedSubjects = await Subject.find({ _id: { $in: subjects } })
+        .select("name code")
+        .lean();
+ 
+      return res.status(200).json({
+        success: true,
+        student: {
+          _id:         student._id,
+          name:        `${student.firstName} ${student.lastName ?? ""}`.trim(),
+          rollNumber:  student.rollNo,
+          className:   student.classId?.name   ?? "—",
+          sectionName: student.sectionId?.name ?? "—",
+        },
+        subjects: populatedSubjects,
+      });
+    } catch (err) {
+      console.error("student-meta error:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+  }
+
+
+  export const getparentReport = async (req, res) => {
+     try {
+      const { studentId, month, year, subjectId } = req.query;
+ 
+      if (!studentId || !month || !year) {
+        return res.status(400).json({ message: "studentId, month, and year are required" });
+      }
+ 
+      /* ── Optional: verify the logged-in parent owns this student ── */
+      // const parent = req.user;            // set by protect middleware
+      // if (!parent.children.includes(studentId)) {
+      //   return res.status(403).json({ message: "Access denied" });
+      // }
+ 
+      const filter = {
+        studentId,
+        month:  Number(month),
+        year:   Number(year),
+      };
+ 
+      if (subjectId) filter.subjectId = subjectId;
+ 
+      const records = await Attendance.find(filter)
+        .populate("subjectId", "name code")   // name + code for display
+        .sort({ date: -1 })                   // newest first
+        .lean();
+ 
+      return res.status(200).json({
+        success: true,
+        data: records,
+      });
+    } catch (err) {
+      console.error("parent/report error:", err);
+      return res.status(500).json({ message: "Server error" });
+    }
+  }

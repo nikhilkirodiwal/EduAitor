@@ -76,6 +76,10 @@ export default function EventsPage() {
   const [confirmSave, setConfirmSave] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
+  const isAdmin = user?.role === "school_admin";
+  const isTeacher = user?.role === "teacher_admin";
+  const isStudent = user?.role === "student_admin";
+
   /* ─── load ─── */
   const loadEvents = async () => {
     try {
@@ -105,7 +109,7 @@ export default function EventsPage() {
 
   useEffect(() => {
     loadEvents();
-    fetchClasses();
+    if (isAdmin) fetchClasses();
   }, []);
 
   /* ─── modal helpers ─── */
@@ -263,11 +267,9 @@ export default function EventsPage() {
             onClick={() => {
               if (!user?.role) return;
 
-              navigate(
-                user.role === "school_admin"
-                  ? "/school/event"
-                  : "/teacher/event",
-              );
+              if (isAdmin) navigate("/school/event");
+              else if (isTeacher) navigate("/teacher/event");
+              else if (isStudent) navigate("/parent/event");
             }}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
                  bg-white shadow-sm border border-slate-100
@@ -283,7 +285,7 @@ export default function EventsPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Events</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Good Afternoon, Dr. Rajesh Kumar! Welcome to the Events panel.
+          Good Afternoon, Welcome to the Events panel.
         </p>
       </div>
 
@@ -331,7 +333,7 @@ export default function EventsPage() {
         </div>
       ) : events.length === 0 ? (
         <div className="text-center py-20 text-gray-400 text-sm">
-          No events found. Create your first event!
+          No events found.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -398,11 +400,9 @@ export default function EventsPage() {
                     onClick={() => {
                       if (!user?.role) return;
 
-                      navigate(
-                        user.role === "school_admin"
-                          ? `/school/event/${ev._id}`
-                          : `/teacher/event/${ev._id}`,
-                      );
+                      if (isAdmin) navigate(`/school/event/${ev._id}`);
+                      else if (isTeacher) navigate(`/teacher/event/${ev._id}`);
+                      else if (isStudent) navigate(`/parent/event/${ev._id}`);
                     }}
                     className="flex items-center gap-1.5 text-xs font-medium text-indigo-500 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition"
                   >

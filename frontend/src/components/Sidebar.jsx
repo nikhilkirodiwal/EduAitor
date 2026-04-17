@@ -138,7 +138,7 @@ const Sidebar = ({ closeSidebar }) => {
       ],
     },
 
-    { name: "Attendance", icon: <FiUsers />, path: "/school/attendance" },
+    { name: "Attendance", icon: <FaUserAlt />, path: "/school/attendance" },
     {
       name: "Exam Management",
       icon: <GiOpenBook />,
@@ -264,9 +264,12 @@ const Sidebar = ({ closeSidebar }) => {
       path: "/parent/exam-result",
     },
     { name: "Calendar", icon: <FaCalendarAlt />, path: "/parent/calendar" },
+    { name: "Transport", icon: <FaBusAlt />, path: "/parent/transport" },
     { name: "Timetable", icon: <FaClock />, path: "/parent/timetable" },
     { name: "Notices", icon: <FaBell />, path: "/parent/notice" },
     { name: "Events", icon: <FaCalendar />, path: "/parent/event" },
+    { name: "Group", icon: <FaUserGroup />, path: "/parent/group" },
+    { name: "Library", icon: <FaBookJournalWhills />, path: "/parent/library" },
   ];
 
   let menu = [];

@@ -1,14 +1,56 @@
 import Notice from "../models/notice.js";
+import Student from "../models/student.js";
 
 export const getAllNotices = async (req, res) => {
   try {
     const schoolId = req.user?.school_id;
-    const notices = await Notice.find({ schoolId }).sort({ createdAt: -1 });
+    const role = req.user?.role;
 
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "School ID required",
+      });
+    }
+
+    let query = { schoolId, isActive: true };
+
+    // 🔹 STUDENT / PARENT
+    if (role === "student_admin" || role === "parent_admin") {
+      let className = null;
+
+      const studentId = req.user?.student_id;
+
+      if (studentId) {
+        const student = await Student.findById(studentId).populate(
+          "classId",
+          "name",
+        );
+
+        className = student?.classId?.name || null;
+      }
+
+      query.$or = [
+        { audience: "All" },
+        { audience: "Parents" },
+        ...(className ? [{ audience: "Class", assignedClass: className }] : []),
+      ];
+    }
+
+    // 🔹 TEACHER
+    else if (role === "teacher_admin") {
+      query.$or = [{ audience: "All" }, { audience: "Staff" }];
+    }
+
+    // 🔹 ADMIN → no extra filter (sees all)
+
+    const notices = await Notice.find(query).sort({ createdAt: -1 });
+
+    // 🔹 Stats
     const total = notices.length;
     const active = notices.filter((n) => n.isActive).length;
     const highPriority = notices.filter((n) => n.priority === "High").length;
-    const audiences = [...new Set(notices.map((n) => n.audience))].length;
+    const audiences = new Set(notices.map((n) => n.audience)).size;
 
     res.status(200).json({
       success: true,
@@ -16,7 +58,10 @@ export const getAllNotices = async (req, res) => {
       notices,
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
 

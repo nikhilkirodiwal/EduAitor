@@ -16,8 +16,8 @@ router.get("/all/admin", authMiddleware, getAllAdminNotices);
 
 // NOTICE ROUTES
 router.get("/", authMiddleware, getAllNotices);
-router.get("/detail/:id", getNoticeById);
 router.post("/create", authMiddleware , createNotice);
+router.get("/detail/:id", getNoticeById);
 router.put("/:id", updateNotice);
 router.delete("/:id", deleteNotice);
 

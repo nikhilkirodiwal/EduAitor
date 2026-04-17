@@ -1,28 +1,75 @@
 import Event from "../models/event.js";
+import Student from "../models/student.js";
 
 // GET all events for a school
 export const getAllEvents = async (req, res) => {
   try {
     const schoolId = req.user?.school_id;
-    const events = await Event.find({ schoolId }).sort({ createdAt: -1 });
+    const role = req.user?.role;
 
-    const total = events.length;
-    const completed = events.filter((e) => {
-      const end = e.endDate || e.startDate;
-      return new Date(end) < new Date();
-    }).length;
-    const upcoming = events.filter(
-      (e) => new Date(e.startDate) > new Date(),
-    ).length;
-    const categories = [...new Set(events.map((e) => e.type))].length;
+    if (!schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "School ID required",
+      });
+    }
+
+    let className = null;
+
+    if (role === "student_admin") {
+      const studentId = req.user?.student_id;
+
+      if (studentId) {
+        const student = await Student.findById(studentId).populate(
+          "classId",
+          "name",
+        );
+
+        className = student?.classId?.name || null;
+      }
+    }
+
+    // 🔹 Build query
+    let query = { schoolId };
+
+    if (className) {
+      query.$or = [{ assignClass: "All Classes" }, { assignClass: className }];
+    }
+
+    const events = await Event.find(query).sort({ startDate: -1 });
+
+    // 🔹 Stats calculation
+    const now = new Date();
+
+    let completed = 0;
+    let upcoming = 0;
+    const categorySet = new Set();
+
+    events.forEach((e) => {
+      const end = new Date(e.endDate || e.startDate);
+      const start = new Date(e.startDate);
+
+      if (end < now) completed++;
+      if (start > now) upcoming++;
+
+      if (e.type) categorySet.add(e.type);
+    });
 
     res.status(200).json({
       success: true,
-      stats: { total, completed, upcoming, categories },
       events,
+      stats: {
+        total: events.length,
+        completed,
+        upcoming,
+        categories: categorySet.size,
+      },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
 
