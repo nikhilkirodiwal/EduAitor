@@ -537,3 +537,39 @@ export const getAdminBookIssues = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const getStudentIssuesBooks = async (req, res) => {
+  try {
+    const schoolId = req.user?.school_id;
+    const studentId = req.user?.student_id;
+    const { status = "active" } = req.query;
+
+    if (!schoolId || !studentId) {
+      return res.status(400).json({ error: "schoolId and studentId are required" });
+    }
+
+    const issueDocs = await Issue.find({
+      schoolId,
+      studentId,
+      ...(status === "active"
+        ? { returnDate: null 
+        }        : status === "returned"
+          ? { status: "Returned" }
+          : {}),
+    })
+      .populate({ path: "bookId", select: "title author isbn category" })
+      .populate({
+        path: "studentId",
+        select: "name admissionNumber",
+      });
+   
+    const myIssues = issueDocs.map(serializeIssue);
+    res.json({
+      success: true,
+      message: "Your issue records fetched successfully",
+      myIssues,
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}

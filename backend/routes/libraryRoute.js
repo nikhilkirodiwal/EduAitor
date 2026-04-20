@@ -12,6 +12,7 @@ import {
   deleteBook,
   getAdminBooks,
   getAdminBookIssues,
+  getStudentIssuesBooks,
 } from "../controllers/libraryController.js";
 import { authMiddleware } from "../auth/auth.js";
 
@@ -25,6 +26,7 @@ router.post("/books", authMiddleware, addBook);
 router.put("/books/:id", authMiddleware, updateBook);
 router.delete("/books/:id", authMiddleware, deleteBook);
 
+router.get("/issues/my", authMiddleware, getStudentIssuesBooks);
 router.get("/issues", authMiddleware, getIssueBooks);
 router.post("/issues", authMiddleware, issueBook);
 router.post("/issues/:issueId/return", authMiddleware, returnBook);
