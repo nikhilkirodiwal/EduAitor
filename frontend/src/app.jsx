@@ -69,6 +69,7 @@ import ParentFee from "./pages/ParentFee";
 import AttendanceParent from "./pages/AttendanceParent";
 import MyChild from "./pages/MyChild";
 import ParentLibrary from "./pages/ParentLibrary";
+import ParentTransport from "./pages/ParentTransport";
 
 const App = () => {
   return (
@@ -203,6 +204,7 @@ const App = () => {
         <Route path="attendance" element={<AttendanceParent />} />
         <Route path="fees" element={<ParentFee />} />
         <Route path="library" element={<ParentLibrary />} />
+        <Route path="transport" element={<ParentTransport />} />
         {/* <Route
           path="timetable"
           element={

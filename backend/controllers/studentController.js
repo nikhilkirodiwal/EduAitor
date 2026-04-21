@@ -11,6 +11,29 @@ import {
 } from "../utils/groupSync.js";
 import bcrypt from "bcryptjs";
 
+const normalizeStudentFeeFields = (safeBody) => {
+  if (safeBody.transport === "") {
+    safeBody.transport = null;
+  }
+
+  if (typeof safeBody.selectedOptionalFees === "string") {
+    try {
+      safeBody.selectedOptionalFees = JSON.parse(safeBody.selectedOptionalFees);
+    } catch {
+      safeBody.selectedOptionalFees = [];
+    }
+  }
+
+  if (!Array.isArray(safeBody.selectedOptionalFees)) {
+    safeBody.selectedOptionalFees = [];
+  }
+
+  safeBody.busFeeFrequency =
+    safeBody.busFeeFrequency === "quarterly" ? "quarterly" : "annually";
+  safeBody.busFeeQuarter =
+    safeBody.busFeeFrequency === "quarterly" ? safeBody.busFeeQuarter || "" : "";
+};
+
 /* ================= GENERATE STUDENT ID ================= */
 
 const generateStudentId = async (schoolId) => {
@@ -27,6 +50,7 @@ export const createStudent = async (req, res) => {
   try {
     const schoolId = req.user?.school_id;
     const { ...safeBody } = req.body;
+    normalizeStudentFeeFields(safeBody);
 
     const totalDue = Number(safeBody.finalFee) || 0;
 
@@ -120,6 +144,7 @@ export const getStudents = async (req, res) => {
     const students = await Student.find({ schoolId })
       .populate("classId", "name className")
       .populate("sectionId", "name sectionName")
+      .populate("transport", "name routeId")
       .sort({ createdAt: -1 });
 
     res.json({
@@ -154,7 +179,8 @@ export const getStudent = async (req, res) => {
       schoolId,
     })
       .populate("classId", "name className")
-      .populate("sectionId", "name sectionName");
+      .populate("sectionId", "name sectionName")
+      .populate("transport", "name routeId");
 
     if (!student) {
       return res.status(404).json({
@@ -190,6 +216,8 @@ export const updateStudent = async (req, res) => {
         message: "School ID is required",
       });
     }
+
+    normalizeStudentFeeFields(safeBody);
 
     const student = await Student.findOne({
       _id: req.params.id,
@@ -247,16 +275,25 @@ export const updateStudent = async (req, res) => {
       delete safeBody.temp_password;
     }
 
+    const totalPaid = Number(student.totalPaid) || 0;
+    const finalFee = Number(safeBody.finalFee);
+
     const updatedStudent = await Student.findOneAndUpdate(
       { _id: req.params.id, schoolId },
       {
         ...safeBody,
+        ...(Number.isFinite(finalFee)
+          ? {
+              totalDue: Math.max(0, finalFee - totalPaid),
+            }
+          : {}),
         documents,
       },
       { new: true },
     )
       .populate("classId", "name className")
-      .populate("sectionId", "name sectionName");
+      .populate("sectionId", "name sectionName")
+      .populate("transport", "name routeId");
 
     const classChanged =
       oldStudent.classId?.toString() !== updatedStudent.classId?.toString();
@@ -371,6 +408,7 @@ export const getAllStudents = async (req, res) => {
     const students = await Student.find({ schoolId })
       .populate("classId", "name className")
       .populate("sectionId", "name sectionName")
+      .populate("transport", "name routeId")
       .sort({ createdAt: -1 });
 
     res.json({

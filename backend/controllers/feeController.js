@@ -6,6 +6,41 @@ import Payment from "../models/payment.js";
 import Counter from "../models/receiptCounter.js";
 import School from "../models/school.js";
 
+const isBusFeeComponent = (fee = {}) => {
+  const feeName = fee.name?.toLowerCase?.() || "";
+  return feeName.includes("bus fee") || feeName.includes("transport fee");
+};
+
+const isOptionalFeeSelected = (student, fee) => {
+  if (!fee?.isOptional) {
+    return true;
+  }
+
+  if (isBusFeeComponent(fee)) {
+    return Boolean(student.transport);
+  }
+
+  return (student.selectedOptionalFees || []).includes(String(fee._id));
+};
+
+const getAppliedFeeAmount = (student, fee) => {
+  const amount = Number(fee?.amount) || 0;
+
+  if (!isOptionalFeeSelected(student, fee)) {
+    return 0;
+  }
+
+  if (isBusFeeComponent(fee) && student.busFeeFrequency === "quarterly") {
+    if (!student.busFeeQuarter) {
+      return 0;
+    }
+
+    return amount / 3;
+  }
+
+  return amount;
+};
+
 //  Get fee structure for a class
 export const getFeeStructures = async (req, res) => {
   try {
@@ -789,7 +824,7 @@ export const getAllStudentAdminHistory = async (req, res) => {
 export const getStudentFeeDetails = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const schoolId  = req.user.school_id; // from auth token
+    const schoolId = req.user.school_id; // from auth token
 
     // Fetch student with class info
     const student = await Student.findById(studentId)
@@ -799,8 +834,6 @@ export const getStudentFeeDetails = async (req, res) => {
 
     if (!student) return res.status(404).json({ message: "Student not found" });
 
-    
-
     // Fetch fee structure for student's class
     const feeStructure = await FeeStructure.findOne({
       class: student.classId._id,
@@ -808,17 +841,24 @@ export const getStudentFeeDetails = async (req, res) => {
     }).lean();
 
     console.log("student.classId._id:", student.classId._id);
-console.log("schoolId:", schoolId);
-console.log("feeStructure:", feeStructure);
+    console.log("schoolId:", schoolId);
+    console.log("feeStructure:", feeStructure);
 
     // Fetch all payments for this student
     const payments = await Payment.find({ studentId, schoolId })
       .sort({ paidDate: -1 })
       .lean();
 
-    const totalFees = feeStructure
-      ? feeStructure.fees.reduce((sum, f) => sum + f.amount, 0)
-      : 0;
+    const applicableFees = (feeStructure?.fees || []).filter((fee) =>
+      isOptionalFeeSelected(student, fee),
+    );
+
+    const totalFees =
+      Number(student.finalFee) ||
+      applicableFees.reduce(
+        (sum, fee) => sum + getAppliedFeeAmount(student, fee),
+        0,
+      );
 
     const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
     const balanceDue = Math.max(0, totalFees - totalPaid);
@@ -830,16 +870,19 @@ console.log("feeStructure:", feeStructure);
         section: student.sectionId?.name,
         rollNo: student.rollNo,
       },
-      feeStructure: feeStructure?.fees || [],
+      feeStructure: applicableFees,
       totalFees,
       totalPaid,
       balanceDue,
-      paidPercent: totalFees > 0 ? Math.round((totalPaid / totalFees) * 100) : 0,
+      paidPercent:
+        totalFees > 0 ? Math.round((totalPaid / totalFees) * 100) : 0,
+      feeFrequency: student.feeFrequency || "annually",
+      busFeeFrequency: student.busFeeFrequency || "annually",
+      busFeeQuarter: student.busFeeQuarter || "",
       payments,
     });
   } catch (err) {
     console.error("getStudentFeeDetails error:", err.message);
     res.status(500).json({ message: err.message });
-
   }
 };

@@ -44,6 +44,24 @@ const studentSchema = new mongoose.Schema(
     },
     rollNo: String,
     studentType: String,
+    
+    transport: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TransportRoute",
+      default: null,
+    },
+    selectedOptionalFees: {
+      type: [String],
+      default: [],
+    },
+    busFeeFrequency: {
+      type: String,
+      default: "annually",
+    },
+    busFeeQuarter: {
+      type: String,
+      default: "",
+    },
 
     totalFee: Number,
     discountType: String,

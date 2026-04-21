@@ -30,10 +30,16 @@ import {
   getAdminBuses,
   getAdminRoutes,
   getAdminSummary,
+
+  // Parent
+  getParentTransport
 } from "../controllers/transportController.js";
 import { authMiddleware } from "../auth/auth.js";
 
 const router = express.Router();
+
+// ── PARENT ────────────────────────────────────────────────────────────────
+router.get("/parent/my-route", authMiddleware, getParentTransport);
 
 // ── SUPER ADMIN ────────────────────────────────────────────────────────────────
 

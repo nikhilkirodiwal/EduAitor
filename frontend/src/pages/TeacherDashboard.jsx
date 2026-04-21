@@ -497,10 +497,10 @@ const TeacherDashboard = () => {
               icon={<FaClipboardList />}
             />
           </section>
-        )} 
+        )}
 
         {/* Assignments Table + Diary */}
-         <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           {visibility.assignments && (
             <SectionCard
               title="Recent Assignments"
@@ -517,9 +517,7 @@ const TeacherDashboard = () => {
                     return (
                       <div
                         key={a._id}
-                        onClick={() =>
-                          navigate(`/teacher/assignment/result`)
-                        }
+                        onClick={() => navigate(`/teacher/assignment/result`)}
                         className="group flex cursor-pointer items-start justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 transition hover:border-slate-200 hover:bg-white hover:shadow-sm"
                       >
                         <div className="min-w-0 flex-1">
@@ -600,10 +598,10 @@ const TeacherDashboard = () => {
               </div>
             </SectionCard>
           )}
-        </div> 
+        </div>
 
         {/* Syllabus + Quick Actions */}
-         <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+        <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
           {visibility.syllabus && (
             <SectionCard
               title="My Classes"
@@ -683,7 +681,7 @@ const TeacherDashboard = () => {
               </div>
             </SectionCard>
           )}
-        </div> 
+        </div>
 
         {/* Groups + Notices/Events */}
         <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
@@ -771,7 +769,7 @@ const TeacherDashboard = () => {
               </MiniPanel>
             </div>
           </SectionCard>
-        </div> 
+        </div>
       </div>
     </div>
   );

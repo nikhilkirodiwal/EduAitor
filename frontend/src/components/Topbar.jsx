@@ -9,12 +9,53 @@ const Topbar = ({ toggleSidebar }) => {
   const [time, setTime] = useState({});
   const [openDropdown, setOpenDropdown] = useState(false);
 
+  // --- NEW NOTIFICATION STATES ---
+  const [notifications, setNotifications] = useState([]);
+  const [openNotifications, setOpenNotifications] = useState(false);
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
   const name = user?.name || user?.school_name || "User";
   const role = user?.role || "User";
+  const userId = user?._id || null;
+
+  // --- FETCH NOTIFICATIONS ---
+  const fetchNotifications = async () => {
+    try {
+      const res = await axios.get(`${API}/notifications`, {
+        withCredentials: true,
+      });
+
+      res.data.length > 0 ? setNotifications(res.data) : "";
+    } catch (err) {
+      console.error("Notification fetch error");
+    }
+  };
+
+  // --- MARK AS READ ---
+  const handleMarkAsRead = async (id) => {
+    try {
+      await axios.patch(
+        `${API}/notifications/${id}/read`,
+        {},
+        { withCredentials: true },
+      );
+      // Update local state so the badge disappears immediately
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n._id === id ? { ...n, readBy: [...n.readBy, user._id] } : n,
+        ),
+      );
+    } catch (err) {
+      console.error("Error marking read");
+    }
+  };
+
+  const unreadCount = notifications.filter(
+    (n) => !n.readBy?.includes(user?._id),
+  ).length;
 
   const getInitials = (name) => {
     if (!name) return "U";
@@ -35,41 +76,67 @@ const Topbar = ({ toggleSidebar }) => {
     } catch (err) {
       toast.error("Logout failed");
     }
-
     localStorage.clear();
     sessionStorage.clear();
     navigate("/admin/login", { replace: true });
   };
 
   useEffect(() => {
+    fetchNotifications();
     const updateTime = () => {
       const now = new Date();
-
-      const t = now.toLocaleTimeString("en-IN", {
-        hour: "2-digit",
-        minute: "2-digit",
+      setTime({
+        t: now.toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        d: now.toLocaleDateString("en-IN", {
+          weekday: "short",
+          day: "2-digit",
+          month: "short",
+        }),
       });
-
-      const d = now.toLocaleDateString("en-IN", {
-        weekday: "short",
-        day: "2-digit",
-        month: "short",
-      });
-
-      setTime({ t, d });
     };
-
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Close dropdown on outside click
+  setInterval(() => {
+    fetchNotifications();
+  }, 60000); // Refresh notifications every 60 seconds
+
+  // clear notification on clear button-
+  // ─── ADD this function alongside handleMarkAsRead ──────────────────────────
+  const handleClearAll = async (e) => {
+    e.stopPropagation();
+    try {
+      const res = await axios.patch(
+        `${API}/notifications/clear-all`,
+        {},
+        { withCredentials: true },
+      );
+      if (res.status === 200) {
+        toast.success("All notifications cleared");
+        setNotifications([]); // instantly empty the UI list
+        setOpenNotifications(false); // close the dropdown
+      }
+    } catch (err) {
+      toast.error("Failed to clear notifications");
+      console.error("Error clearing notifications");
+    }
+  };
+
+  // Close both dropdowns on outside click
   useEffect(() => {
-    const close = () => setOpenDropdown(false);
-    if (openDropdown) window.addEventListener("click", close);
+    const close = () => {
+      setOpenDropdown(false);
+      setOpenNotifications(false);
+    };
+    if (openDropdown || openNotifications)
+      window.addEventListener("click", close);
     return () => window.removeEventListener("click", close);
-  }, [openDropdown]);
+  }, [openDropdown, openNotifications]);
 
   return (
     <header className="h-16 bg-white/80 backdrop-blur border-b flex items-center justify-between px-5 sticky top-0 z-30 shadow-md">
@@ -81,12 +148,10 @@ const Topbar = ({ toggleSidebar }) => {
         >
           <FaBars size={18} />
         </button>
-
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 rounded-xl bg-linear-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-lg shadow">
             🎓
           </div>
-
           <div className="hidden sm:block">
             <h1 className="text-base font-bold text-indigo-600">EduAltor</h1>
             <p className="text-[11px] text-gray-400">Track. Assess. Improve.</p>
@@ -96,29 +161,110 @@ const Topbar = ({ toggleSidebar }) => {
 
       {/* RIGHT */}
       <div className="flex items-center gap-4">
-        {/* Time */}
         <div className="hidden md:block text-right">
           <p className="text-sm font-semibold text-gray-700">{time.t}</p>
           <p className="text-xs text-gray-400">{time.d}</p>
         </div>
 
-        {/* Notification */}
-        <div className="relative cursor-pointer">
-          <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition">
+        {/* --- NOTIFICATION ICON & DROPDOWN --- */}
+        <div className="relative">
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpenNotifications(!openNotifications);
+            }}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition cursor-pointer"
+          >
             <FaBell className="text-gray-600" />
           </div>
 
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 py-px rounded-full shadow">
-            147
-          </span>
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] px-1.5 py-px rounded-full shadow">
+              {unreadCount}
+            </span>
+          )}
+
+          {openNotifications && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="absolute right-0 mt-3 w-72 md:w-80 bg-white border border-gray-100 rounded-xl shadow-2xl overflow-hidden z-50 animate-fadeIn"
+            >
+              {/* ── HEADER ── */}
+              <div className="px-4 py-3 border-b bg-gray-50 flex justify-between items-center">
+                <span className="font-bold text-gray-700">Notifications</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] bg-indigo-100 text-indigo-600 px-2 py-0.5 rounded-full font-medium">
+                    {unreadCount} New
+                  </span>
+                  {/* ── CLEAR ALL BUTTON ── */}
+                  {notifications.length > 0 && (
+                    <button
+                      onClick={handleClearAll}
+                      className="text-[10px] text-red-400 hover:text-red-600 font-medium transition"
+                      title="Clear all notifications"
+                    >
+                      ✕ Clear All
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* ── LIST ── */}
+              <div className="max-h-80 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <p className="text-3xl mb-2">🔔</p>
+                    <p className="text-gray-400 text-sm">
+                      You're all caught up!
+                    </p>
+                  </div>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n._id}
+                      onClick={() => handleMarkAsRead(n._id)}
+                      className={`p-4 border-b cursor-pointer transition hover:bg-gray-50 
+              ${!n.readBy?.includes(user?._id) ? "bg-indigo-50/40 border-l-4 border-l-indigo-500" : ""}`}
+                    >
+                      <h4 className="text-sm font-bold text-gray-800">
+                        {n.title}
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        {n.message}
+                      </p>
+                      <span className="text-[10px] text-gray-400 mt-2 block italic">
+                        {new Date(n.createdAt).toLocaleDateString("en-IN")}
+                      </span>
+                      <span>
+                        {!n.readBy?.includes(user?._id) && (
+                          <span
+                            className="w-2 h-2 bg-blue-500 text-xs p-1 rounded-xl"
+                            title="Read"
+                          >
+                            {" "}
+                            mark as read
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* ── FOOTER ── */}
+              <button className="w-full py-2.5 text-xs text-indigo-600 font-semibold bg-gray-50 hover:bg-gray-100 border-t">
+                View All Notifications
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Role */}
+        {/* ROLE DROPDOWN */}
         <select className="hidden md:block bg-gray-100 px-3 py-2 rounded-lg text-sm text-gray-700 focus:outline-none capitalize">
           <option>{role.replace("_", " ")}</option>
         </select>
 
-        {/* USER */}
+        {/* USER DROPDOWN */}
         <div className="relative">
           <div
             onClick={(e) => {
@@ -133,20 +279,15 @@ const Topbar = ({ toggleSidebar }) => {
                 {role.replace("_", " ")}
               </p>
             </div>
-
             <div className="w-10 h-10 rounded-full bg-linear-to-r from-indigo-500 to-purple-500 text-white flex items-center justify-center text-sm font-bold shadow">
               {initials}
             </div>
           </div>
 
-          {/* DROPDOWN */}
           {openDropdown && (
             <div
               onClick={(e) => e.stopPropagation()}
-              className="absolute right-0 mt-3 w-48 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden"
-              style={{
-                animation: "fadeIn 0.2s ease-out",
-              }}
+              className="absolute right-0 mt-3 w-48 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden animate-fadeIn"
             >
               <div className="px-4 py-3 border-b">
                 <p className="text-sm font-semibold text-gray-800">{name}</p>
@@ -154,7 +295,6 @@ const Topbar = ({ toggleSidebar }) => {
                   {role.replace("_", " ")}
                 </p>
               </div>
-
               <button
                 onClick={logout}
                 className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-red-50 hover:text-red-500 transition"
@@ -166,21 +306,16 @@ const Topbar = ({ toggleSidebar }) => {
         </div>
       </div>
 
-      {/* INLINE ANIMATION */}
-      <style>
-        {`
-          @keyframes fadeIn {
-            from {
-              opacity: 0;
-              transform: translateY(-8px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-        `}
-      </style>
+      {/* ANIMATION STYLES */}
+      <style>{`
+        .animate-fadeIn {
+          animation: fadeIn 0.2s ease-out forwards;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </header>
   );
 };

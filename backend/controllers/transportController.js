@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Student from "../models/student.js"
 import { Driver, Bus, TransportRoute, Activity } from "../models/transport.js";
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
@@ -1072,5 +1073,80 @@ export const getAdminSummary = async (req, res) => {
     });
   } catch (err) {
     serverError(res, err);
+  }
+};
+
+export const getParentTransport = async (req, res) => {
+  try {
+    const studentId = req.user?.student_id;
+    const schoolId  = req.user?.school_id;
+ 
+    if (!studentId || !schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing credentials",
+      });
+    }
+ 
+    // 1. Fetch the student to get their transport (route) ref
+    const student = await Student.findOne({
+      _id: new mongoose.Types.ObjectId(studentId),
+      schoolId: new mongoose.Types.ObjectId(schoolId),
+    }).select("transport busFeeFrequency busFeeQuarter firstName lastName").lean();
+ 
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+ 
+    // 2. No transport assigned
+    if (!student.transport) {
+      return res.json({
+        success: true,
+        assigned: false,
+        data: null,
+      });
+    }
+ 
+    // 3. Fetch the route with full population
+    const route = await TransportRoute.findOne({
+      _id: student.transport,
+      schoolId: new mongoose.Types.ObjectId(schoolId),
+    })
+      .populate("bus",    "busId regNo model capacity status nextService")
+      .populate("driver", "name phone license licenseExpiry experience status photo")
+      .lean();
+ 
+    if (!route) {
+      return res.json({
+        success: true,
+        assigned: false,
+        data: null,
+      });
+    }
+ 
+    return res.json({
+      success: true,
+      assigned: true,
+      data: {
+        route: {
+          _id:        route._id,
+          routeId:    route.routeId,
+          name:       route.name,
+          status:     route.status,
+          stops:      route.stops,
+          students:   route.students,
+          startTime:  route.startTime,
+          endTime:    route.endTime,
+          stopsList:  route.stopsList || [],
+        },
+        bus: route.bus || null,
+        driver: route.driver || null,
+        busFeeFrequency: student.busFeeFrequency,
+        busFeeQuarter:   student.busFeeQuarter,
+      },
+    });
+  } catch (err) {
+    console.error("getParentTransport error:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

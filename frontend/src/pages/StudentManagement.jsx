@@ -16,6 +16,12 @@ const steps = [
   "Review",
 ];
 
+const busFeeQuarterOptions = [
+  { label: "April-July", value: "april-july" },
+  { label: "Aug-Nov", value: "august-november" },
+  { label: "Dec-March", value: "december-march" },
+];
+
 const emptyForm = {
   firstName: "",
   lastName: "",
@@ -42,6 +48,11 @@ const emptyForm = {
   sectionId: "",
   rollNo: "",
   studentType: "",
+  transport: "",
+  useTransport: false,
+  selectedOptionalFees: [],
+  busFeeFrequency: "annually",
+  busFeeQuarter: "",
 
   totalFee: "",
   discountType: "",
@@ -80,7 +91,8 @@ const StudentManagement = () => {
   const [sections, setSections] = useState([]);
 
   const [feeStructure, setFeeStructure] = useState([]);
-  const [freqFilter, setFreqFilter] = useState("monthly");
+  const [transportRoutes, setTransportRoutes] = useState([]);
+  const [freqFilter, setFreqFilter] = useState("annually");
 
   const isMobile = window.innerWidth <= 768;
 
@@ -88,16 +100,8 @@ const StudentManagement = () => {
     let value;
 
     switch (freqFilter) {
-      case "monthly":
-        value = amount / 12;
-        break;
-
       case "quarterly":
-        value = amount / 4;
-        break;
-
-      case "half-yearly":
-        value = amount / 2;
+        value = amount / 3;
         break;
 
       case "annually":
@@ -109,6 +113,82 @@ const StudentManagement = () => {
     }
 
     return Number(value).toFixed(2);
+  };
+
+  const calcBusFeeAmount = (amount) =>
+    Number(form.busFeeFrequency === "quarterly" ? amount / 3 : amount).toFixed(
+      2,
+    );
+
+  const isBusFeeComponent = (fee) => {
+    const feeName = fee?.name?.toLowerCase() || "";
+    return feeName.includes("bus fee") || feeName.includes("transport fee");
+  };
+
+  const isOptionalFeeSelected = (fee) => {
+    if (!fee?.isOptional) {
+      return true;
+    }
+
+    if (isBusFeeComponent(fee)) {
+      return form.useTransport;
+    }
+
+    return form.selectedOptionalFees.includes(String(fee._id));
+  };
+
+  const getDisplayAmount = (fee) => {
+    const amount = Number(fee?.amount) || 0;
+
+    if (isBusFeeComponent(fee) && form.useTransport) {
+      return calcBusFeeAmount(amount);
+    }
+
+    return calcAmount(amount);
+  };
+
+  const getIncludedAnnualTotal = () =>
+    feeStructure.reduce((sum, fee) => {
+      if (isOptionalFeeSelected(fee)) {
+        if (isBusFeeComponent(fee)) {
+          if (form.busFeeFrequency === "quarterly" && !form.busFeeQuarter) {
+            return sum;
+          }
+
+          return sum + Number(calcBusFeeAmount(fee.amount));
+        }
+
+        return sum + (Number(fee.amount) || 0);
+      }
+
+      return sum;
+    }, 0);
+
+  const getMandatoryAnnualTotal = () =>
+    feeStructure.reduce((sum, fee) => {
+      if (fee?.isOptional) {
+        return sum;
+      }
+
+      return sum + (Number(fee.amount) || 0);
+    }, 0);
+
+  const normalizeFeeFrequency = (value) =>
+    ["monthly", "quarterly", "half-yearly", "annually"].includes(value)
+      ? value
+      : "annually";
+
+  const optionalFees = feeStructure.filter((fee) => fee?.isOptional);
+
+  const toggleOptionalFee = (feeId) => {
+    const normalizedId = String(feeId);
+
+    setForm((prev) => ({
+      ...prev,
+      selectedOptionalFees: prev.selectedOptionalFees.includes(normalizedId)
+        ? prev.selectedOptionalFees.filter((id) => id !== normalizedId)
+        : [...prev.selectedOptionalFees, normalizedId],
+    }));
   };
 
   const progress = (step / steps.length) * 100;
@@ -129,6 +209,23 @@ const StudentManagement = () => {
     };
 
     fetchClasses();
+  }, []);
+
+  useEffect(() => {
+    const fetchTransportRoutes = async () => {
+      try {
+        const res = await axios.get(`${API}/transport/routes`, {
+          withCredentials: true,
+        });
+
+        setTransportRoutes(res.data.data || []);
+      } catch (err) {
+        console.error(err);
+        setTransportRoutes([]);
+      }
+    };
+
+    fetchTransportRoutes();
   }, []);
 
   /* FETCH SECTION CLASS BASED*/
@@ -200,11 +297,18 @@ const StudentManagement = () => {
           ...student,
           classId: student.classId?._id || student.classId,
           sectionId: student.sectionId?._id || student.sectionId,
+          transport: student.transport?._id || student.transport || "",
+          useTransport: Boolean(student.transport),
+          selectedOptionalFees: student.selectedOptionalFees || [],
+          busFeeFrequency:
+            student.busFeeFrequency === "quarterly" ? "quarterly" : "annually",
+          busFeeQuarter: student.busFeeQuarter || "",
           dob: student.dob ? student.dob.split("T")[0] : "",
           admissionDate: student.admissionDate
             ? student.admissionDate.split("T")[0]
             : "",
         });
+        setFreqFilter(normalizeFeeFrequency(student.feeFrequency));
       } catch {
         toast.error("Failed to load student");
       }
@@ -222,10 +326,18 @@ const StudentManagement = () => {
       [name]: value,
       ...(name === "classId" && {
         sectionId: "",
+        transport: "",
+        useTransport: false,
+        selectedOptionalFees: [],
+        busFeeFrequency: "annually",
+        busFeeQuarter: "",
         discountType: "",
         discountValue: "",
         totalFee: "",
         finalFee: "",
+      }),
+      ...(name === "busFeeFrequency" && {
+        busFeeQuarter: value === "quarterly" ? form.busFeeQuarter : "",
       }),
     }));
   };
@@ -248,14 +360,10 @@ const StudentManagement = () => {
     }));
   };
 
-  /* FEE CALCULATION */
   useEffect(() => {
-    const annual = feeStructure.reduce((sum, f) => {
-      if (f.isOptional) return sum;
-      return sum + (f.amount || 0); // ✅ correct
-    }, 0);
+    const annual = getIncludedAnnualTotal();
+    const discount = Number(form.discountValue) || 0;
 
-    let discount = Number(form.discountValue) || 0;
     let final = annual;
 
     if (form.discountType === "Percentage") {
@@ -266,13 +374,20 @@ const StudentManagement = () => {
       final = annual - discount;
     }
 
-    // 🔥 FORCE UPDATE (no condition)
     setForm((prev) => ({
       ...prev,
       totalFee: annual,
       finalFee: final >= 0 ? final : 0,
     }));
-  }, [feeStructure, form.discountType, form.discountValue]);
+  }, [
+    feeStructure,
+    form.discountType,
+    form.discountValue,
+    form.useTransport,
+    form.selectedOptionalFees,
+    form.busFeeFrequency,
+    form.busFeeQuarter,
+  ]);
 
   const isDirty = () =>
     Object.values(form).some((v) => v !== "" && v !== null && v !== undefined);
@@ -309,6 +424,18 @@ const StudentManagement = () => {
     if (step === 5) {
       if (form.totalFee === "" || form.totalFee === null) {
         errors.push("Total fee required");
+      }
+
+      if (form.useTransport && !form.transport) {
+        errors.push("Transport route required when bus service is selected");
+      }
+
+      if (
+        form.useTransport &&
+        form.busFeeFrequency === "quarterly" &&
+        !form.busFeeQuarter
+      ) {
+        errors.push("Select the bus fee quarter");
       }
     }
 
@@ -371,6 +498,7 @@ const StudentManagement = () => {
         "updatedAt",
         "studentId",
         "documents",
+        "useTransport",
       ];
 
       Object.entries(form).forEach(([key, value]) => {
@@ -426,7 +554,7 @@ const StudentManagement = () => {
 
   return (
     <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
-      {/* 🔙 BACK BUTTON */}
+      {/* BACK BUTTON */}
       {isMobile && (
         <div className="pt-4">
           <button
@@ -794,6 +922,102 @@ const StudentManagement = () => {
                   </select>
                 </div>
 
+                {optionalFees.length > 0 && (
+                  <div className="grid gap-3">
+                    {optionalFees.map((fee) =>
+                      isBusFeeComponent(fee) ? (
+                        <div
+                          key={fee._id}
+                          className="rounded-lg border border-gray-200 bg-gray-50 p-4"
+                        >
+                          <label className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={form.useTransport}
+                              onChange={(e) =>
+                                setForm((prev) => ({
+                                  ...prev,
+                                  useTransport: e.target.checked,
+                                  transport: e.target.checked
+                                    ? prev.transport
+                                    : "",
+                                  busFeeFrequency: e.target.checked
+                                    ? prev.busFeeFrequency || "annually"
+                                    : "annually",
+                                  busFeeQuarter:
+                                    e.target.checked &&
+                                    prev.busFeeFrequency === "quarterly"
+                                      ? prev.busFeeQuarter || ""
+                                      : "",
+                                }))
+                              }
+                              className="h-4 w-4"
+                            />
+                            <div>
+                              <div className="text-sm font-medium text-gray-800">
+                                Add {fee.name}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                Include this fee only when the student uses
+                                transport.
+                              </div>
+                            </div>
+                          </label>
+
+                          {form.useTransport && (
+                            <div className="mt-4 grid gap-4 md:grid-cols-2">
+                              <Select
+                                label="Transport Route"
+                                name="transport"
+                                value={form.transport}
+                                options={transportRoutes.map((route) => ({
+                                  label: route.name,
+                                  value: route._id,
+                                }))}
+                                onChange={handleChange}
+                              />
+
+                              <Select
+                                label="Bus Fee Type"
+                                name="busFeeFrequency"
+                                value={form.busFeeFrequency}
+                                options={[
+                                  { label: "Annually", value: "annually" },
+                                  { label: "Quarterly", value: "quarterly" },
+                                ]}
+                                onChange={handleChange}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <label
+                          key={fee._id}
+                          className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={form.selectedOptionalFees.includes(
+                              String(fee._id),
+                            )}
+                            onChange={() => toggleOptionalFee(fee._id)}
+                            className="h-4 w-4"
+                          />
+                          <div>
+                            <div className="text-sm font-medium text-gray-800">
+                              Add {fee.name}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Include this optional fee in the final annual
+                              total.
+                            </div>
+                          </div>
+                        </label>
+                      ),
+                    )}
+                  </div>
+                )}
+
                 {feeStructure.length > 0 && (
                   <div className="bg-gray-50 border rounded-lg p-4 mb-4">
                     <h3 className="font-semibold mb-2">Fee Breakdown</h3>
@@ -807,30 +1031,56 @@ const StudentManagement = () => {
                           {f.name}
                           {f.isOptional && (
                             <span className="text-xs text-gray-400 ml-2">
-                              (Optional)
+                              {isOptionalFeeSelected(f)
+                                ? "(Selected)"
+                                : "(Optional)"}
                             </span>
                           )}
                         </span>
 
-                        <span>₹{calcAmount(f.amount)}</span>
+                        <span>₹{getDisplayAmount(f)}</span>
                       </div>
                     ))}
 
                     <div className="flex justify-between font-bold border-t mt-2 pt-2">
                       <span>Annual Total</span>
                       <span>
-                        ₹
-                        {feeStructure.reduce(
-                          (s, f) => (f.isOptional ? s : s + (f.amount || 0)),
-                          0,
-                        )}
+                        ₹{Number(getMandatoryAnnualTotal()).toFixed(2)}
                       </span>
                     </div>
+
+                    {/* {freqFilter === "quarterly" && (
+                      <div className="mt-3 rounded-lg bg-white p-3 text-sm text-gray-600">
+                        {["April-July", "Aug-Nov", "Dec-March"].map(
+                          (months) => (
+                            <div
+                              key={months}
+                              className="flex justify-between py-1"
+                            >
+                              <span>{months}</span>
+                              <span>
+                                Rs. {calcAmount(getIncludedAnnualTotal())}
+                              </span>
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    )} */}
                   </div>
                 )}
 
+                {form.useTransport && form.busFeeFrequency === "quarterly" && (
+                  <Select
+                    label="Bus Fee Quarter"
+                    name="busFeeQuarter"
+                    value={form.busFeeQuarter}
+                    options={busFeeQuarterOptions}
+                    onChange={handleChange}
+                  />
+                )}
+
                 <Input
-                  label="Total Annual Fee (₹)"
+                  label="Total Annual Fee"
                   name="totalFee"
                   value={form.totalFee}
                   readOnly
@@ -873,7 +1123,14 @@ const StudentManagement = () => {
 
             {/* STEP 7 REVIEW */}
             {step === 7 && (
-              <ReviewStep form={form} classes={classes} sections={sections} />
+              <ReviewStep
+                form={form}
+                classes={classes}
+                sections={sections}
+                transportRoutes={transportRoutes}
+                feeStructure={feeStructure}
+                freqFilter={freqFilter}
+              />
             )}
 
             {/* NAV */}
@@ -1103,7 +1360,14 @@ const ParentLoginStep = ({ form, handleChange, isEdit }) => {
 };
 
 /* REVIEW STEP */
-const ReviewStep = ({ form, classes, sections }) => {
+const ReviewStep = ({
+  form,
+  classes,
+  sections,
+  transportRoutes,
+  feeStructure,
+  freqFilter,
+}) => {
   const className =
     classes.find((c) => c._id === form.classId)?.name ||
     classes.find((c) => c._id === form.classId)?.className ||
@@ -1113,6 +1377,20 @@ const ReviewStep = ({ form, classes, sections }) => {
     sections.find((s) => s.value === form.sectionId)?.label ||
     form.sectionId ||
     "—";
+
+  const transportName =
+    transportRoutes.find((route) => route._id === form.transport)?.name ||
+    form.transport?.name ||
+    "";
+  const selectedOptionalFeeNames = feeStructure
+    .filter((fee) =>
+      (form.selectedOptionalFees || []).includes(String(fee._id)),
+    )
+    .map((fee) => fee.name)
+    .join(", ");
+  const selectedBusQuarter =
+    busFeeQuarterOptions.find((option) => option.value === form.busFeeQuarter)
+      ?.label || "";
 
   const initials =
     `${form.firstName?.[0] || ""}${form.lastName?.[0] || ""}`.toUpperCase();
@@ -1199,9 +1477,31 @@ const ReviewStep = ({ form, classes, sections }) => {
         <Field label="Section" value={sectionName} />
         <Field label="Roll number" value={form.rollNo} />
         <Field label="Student type" value={form.studentType} />
+        <Field label="Transport route" value={transportName} />
       </Section>
 
       <Section title="Fee structure" headerClass="bg-amber-50">
+        <Field
+          label="Bus service"
+          value={form.useTransport ? "Included" : "Not selected"}
+        />
+        <Field
+          label="Bus fee type"
+          value={form.useTransport ? form.busFeeFrequency : null}
+        />
+        <Field
+          label="Bus fee quarter"
+          value={
+            form.useTransport && form.busFeeFrequency === "quarterly"
+              ? selectedBusQuarter || null
+              : null
+          }
+        />
+        <Field
+          label="Other optional fees"
+          value={selectedOptionalFeeNames || null}
+        />
+        <Field label="Fee frequency" value={freqFilter || null} />
         <Field
           label="Total annual fee"
           value={

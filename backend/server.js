@@ -77,6 +77,7 @@ import calendarRoute from "./routes/caledarRoute.js";
 import diaryRoute from "./routes/diaryRoute.js";
 import messageRoute from "./routes/messageRoute.js";
 import groupRoute from "./routes/groupRoute.js";
+import notificationRoute from "./routes/notificationRoute.js";
 
 import { authMiddleware } from "./auth/auth.js";
 
@@ -97,6 +98,7 @@ app.get("/api/auth/me", authMiddleware, (req, res) => {
         role: req.user.role,
         school_id: req.user.school_id,
         name: req.user.name,
+        _id: req.user._id,
       },
     });
   } else if (req.user.role === "teacher_admin") {
@@ -108,6 +110,7 @@ app.get("/api/auth/me", authMiddleware, (req, res) => {
         school_id: req.user.school_id,
         teacher_id: req.user.teacher_id,
         name: req.user.name,
+        _id: req.user._id,
       },
     });
   } else if (req.user.role === "student_admin") {
@@ -119,6 +122,7 @@ app.get("/api/auth/me", authMiddleware, (req, res) => {
         school_id: req.user.school_id,
         student_id: req.user.student_id,
         name: req.user.name,
+        _id: req.user._id,
       },
     });
   } else {
@@ -170,6 +174,7 @@ app.use("/api/calendar", calendarRoute);
 app.use("/api/diary", diaryRoute);
 app.use("/api/messages", messageRoute);
 app.use("/api/groups", groupRoute);
+app.use("/api/notifications", notificationRoute)
 
 // Server
 const PORT = process.env.PORT || 5000;
