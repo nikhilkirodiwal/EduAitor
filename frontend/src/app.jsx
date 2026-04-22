@@ -5,6 +5,7 @@ import AdminLayout from "./components/AdminLayout";
 
 import SuperAdminMenu from "./pages/SuperAdminMenu";
 import Dashboard from "./pages/Dashboard";
+import PlatformAnalytics from "./pages/PlatformAnalytics";
 import AccessControl from "./pages/AccessControl";
 import RoleManagement from "./pages/RoleManagement";
 import Schools from "./pages/Schools";
@@ -91,6 +92,7 @@ const App = () => {
       >
         <Route path="menu" element={<SuperAdminMenu />} />
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="platform-analytics" element={<PlatformAnalytics />} />
         <Route path="access-control" element={<AccessControl />} />
         <Route path="roles" element={<RoleManagement />} />
         <Route path="schools" element={<Schools />} />

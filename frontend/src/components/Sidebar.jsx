@@ -17,6 +17,7 @@ import {
   FaBookOpen,
   FaUserAlt,
   FaUsers,
+  FaChartLine,
 } from "react-icons/fa";
 
 import {
@@ -75,6 +76,11 @@ const Sidebar = ({ closeSidebar }) => {
       ? [{ name: "Menu", icon: <FaTachometerAlt />, path: "/admin/menu" }]
       : []),
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/admin/dashboard" },
+    {
+      name: "Platform Analytics",
+      icon: <FaChartLine />,
+      path: "/admin/platform-analytics",
+    },
 
     {
       name: "Access Control",

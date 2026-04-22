@@ -15,6 +15,7 @@ import {
   FaUserAlt,
   FaUserShield,
   FaSchool,
+  FaChartLine,
 } from "react-icons/fa";
 
 import {FaBookJournalWhills,
@@ -31,6 +32,7 @@ import axios from "axios";
 /* ─── Color map ─────────────────────────────────────────────── */
 const COLOR_MAP = {
   Dashboard: { bg: "#FFF7ED", icon: "#F97316", dot: "#FED7AA" },
+  "Platform Analytics": { bg: "#EEF2FF", icon: "#4F46E5", dot: "#C7D2FE" },
   Students: { bg: "#EFF6FF", icon: "#3B82F6", dot: "#BFDBFE" },
   Teachers: { bg: "#F0FDF4", icon: "#22C55E", dot: "#BBF7D0" },
   Classes: { bg: "#FAF5FF", icon: "#A855F7", dot: "#E9D5FF" },
@@ -258,33 +260,36 @@ export default function TeacherMenu() {
   };
 
   const menu =  [
-      { name: "Dashboard", icon: <FaTachometerAlt />, path: "/admin/dashboard" },
-  
-      {
-        name: "Access Control",
-        icon: <FaUserShield />,
-        children: [
-          { name: "Access", path: "/admin/access-control" },
-          { name: "Role Management", path: "/admin/roles" },
-        ],
-      },
-  
-      {
-        name: "School",
-        icon: <FaSchool />,
-        children: [
-          { name: "All Schools", path: "/admin/schools" },
-          { name: "Add School", path: "/admin/add-school" },
-          { name: "School Management", path: "/admin/school-manage" },
-          { name: "School Subscription Plan", path: "/admin/subscription-plan" },
-        ],
-      },
-      {
-        name: "School Detail",
-        icon: <FaSchoolFlag />,
-        path: "/admin/school-detail",
-      },
-    ];
+    { name: "Dashboard", icon: <FaTachometerAlt />, path: "/admin/dashboard" },
+    {
+      name: "Platform Analytics",
+      icon: <FaChartLine />,
+      path: "/admin/platform-analytics",
+    },
+    {
+      name: "Access Control",
+      icon: <FaUserShield />,
+      children: [
+        { name: "Access", path: "/admin/access-control" },
+        { name: "Role Management", path: "/admin/roles" },
+      ],
+    },
+    {
+      name: "School",
+      icon: <FaSchool />,
+      children: [
+        { name: "All Schools", path: "/admin/schools" },
+        { name: "Add School", path: "/admin/add-school" },
+        { name: "School Management", path: "/admin/school-manage" },
+        { name: "School Subscription Plan", path: "/admin/subscription-plan" },
+      ],
+    },
+    {
+      name: "School Detail",
+      icon: <FaSchoolFlag />,
+      path: "/admin/school-detail",
+    },
+  ];
   /* Group into rows of 2 — keeps grid columns stable */
   const rows = [];
   for (let i = 0; i < menu.length; i += 2) rows.push(menu.slice(i, i + 2));

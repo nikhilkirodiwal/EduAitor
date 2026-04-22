@@ -63,10 +63,17 @@ export const getSchool = async (req, res, next) => {
 
 export const updateSchool = async (req, res, next) => {
   try {
-    req.body.temp_password = req.body.admin_password;
-    let hashedPassword = await bcrypt.hash(req.body.admin_password, 10);
-    req.body.admin_password = hashedPassword;
-    const school = await School.findByIdAndUpdate(req.params.id, req.body, {
+    const updateData = { ...req.body };
+
+    if (updateData.admin_password) {
+      updateData.temp_password = updateData.admin_password;
+      updateData.admin_password = await bcrypt.hash(updateData.admin_password, 10);
+    } else {
+      delete updateData.admin_password;
+      delete updateData.temp_password;
+    }
+
+    const school = await School.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
     });
 

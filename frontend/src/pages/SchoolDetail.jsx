@@ -26,7 +26,7 @@ import {
 import { toast } from "react-toastify";
 import { FaStudiovinari } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import {FaArrowLeft} from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -65,6 +65,9 @@ const TABS = [
   { id: "transport", label: "Transport", icon: FaBus },
   { id: "library", label: "Library", icon: FaBookOpen },
   { id: "syllabus", label: "Syllabus", icon: FaStudiovinari },
+  { id: "setup", label: "Setup Checklist", icon: FaCircleCheck },
+  { id: "alerts", label: "Alerts", icon: FiAlertCircle },
+  { id: "subscription", label: "Subscription", icon: FaCreditCard },
 ];
 
 export default function SchoolDetail() {
@@ -74,8 +77,8 @@ export default function SchoolDetail() {
   const [loadingList, setLoadingList] = useState(true);
   const [loadingWS, setLoadingWS] = useState(false);
   const [ws, setWs] = useState(null);
-    const navigate = useNavigate();
-const isMobile = window.innerWidth <= 768;
+  const navigate = useNavigate();
+  const isMobile = window.innerWidth <= 768;
 
   useEffect(() => {
     axios
@@ -124,14 +127,20 @@ const isMobile = window.innerWidth <= 768;
         p(`${API}/subjects/all/admin`, { params: { schoolId: id } }),
         p(`${API}/notices/all/admin`, { params: { schoolId: id } }),
         p(`${API}/events/all/admin`, { params: { schoolId: id } }),
-        p(`${API}/fee-history/admin`, { params: { schoolId: id, page: 1, limit: 50 } }),
-        p(`${API}/fees/defaulters/admin`, { params: { schoolId: id, page: 1, limit: 50 } }),
+        p(`${API}/fee-history/admin`, {
+          params: { schoolId: id, page: 1, limit: 50 },
+        }),
+        p(`${API}/fees/defaulters/admin`, {
+          params: { schoolId: id, page: 1, limit: 50 },
+        }),
         p(`${API}/transport/buses/admin`, { params: { schoolId: id } }),
         p(`${API}/transport/drivers/admin`, { params: { schoolId: id } }),
         p(`${API}/transport/routes/admin`, { params: { schoolId: id } }),
         p(`${API}/transport/summary/admin`, { params: { schoolId: id } }),
         p(`${API}/library/books/admin`, { params: { schoolId: id } }),
-        p(`${API}/library/issues/admin`, { params: { schoolId: id, status: "all" } }),
+        p(`${API}/library/issues/admin`, {
+          params: { schoolId: id, status: "all" },
+        }),
         p(`${API}/syllabus/complete/`, { params: { schoolId: id } }),
       ]);
 
@@ -230,15 +239,244 @@ const isMobile = window.innerWidth <= 768;
     };
   }, [ws]);
 
+  const setupChecklist = useMemo(() => {
+    if (!ws || !metrics) return null;
+
+    const items = [
+      {
+        label: "School profile completed",
+        done: Boolean(
+          ws.school.school_name &&
+          ws.school.slug &&
+          ws.school.contact_email &&
+          ws.school.contact_phone &&
+          ws.school.address,
+        ),
+        note: "Basic institution record and contact details",
+      },
+      {
+        label: "Subscription assigned",
+        done: Boolean(ws.school.subscription_plan),
+        note: ws.school.subscription_plan?.name || "No active plan linked",
+      },
+      {
+        label: "Admin credentials set",
+        done: Boolean(ws.school.admin_name && ws.school.admin_email),
+        note: ws.school.admin_email || "Admin account missing",
+      },
+      {
+        label: "Classes created",
+        done: metrics.totalClasses > 0,
+        note: `${metrics.totalClasses} classes configured`,
+      },
+      {
+        label: "Sections created",
+        done: ws.sections.length > 0,
+        note: `${ws.sections.length} sections configured`,
+      },
+      {
+        label: "Subjects mapped",
+        done: metrics.totalSubjects > 0,
+        note: `${metrics.totalSubjects} subjects available`,
+      },
+      {
+        label: "Teachers onboarded",
+        done: metrics.totalTeachers > 0,
+        note: `${metrics.totalTeachers} teachers added`,
+      },
+      {
+        label: "Students onboarded",
+        done: metrics.totalStudents > 0,
+        note: `${metrics.totalStudents} students added`,
+      },
+      {
+        label: "Fee activity started",
+        done: ws.payments.length > 0,
+        note: `${ws.payments.length} payment records`,
+      },
+      {
+        label: "Transport module configured",
+        done:
+          ws.buses.length > 0 || ws.routes.length > 0 || ws.drivers.length > 0,
+        note: `${ws.buses.length} buses · ${ws.routes.length} routes · ${ws.drivers.length} drivers`,
+      },
+      {
+        label: "Library inventory added",
+        done: ws.books.length > 0,
+        note: `${ws.books.length} books in inventory`,
+      },
+      {
+        label: "Syllabus started",
+        done: ws.syllabusClasses.length > 0,
+        note: `${ws.syllabusClasses.length} classes with syllabus data`,
+      },
+    ];
+
+    const completed = items.filter((item) => item.done).length;
+    const percent = Math.round((completed / items.length) * 100);
+
+    return { items, completed, total: items.length, percent };
+  }, [metrics, ws]);
+
+  const alertSummary = useMemo(() => {
+    if (!ws || !metrics || !setupChecklist) return null;
+
+    const alerts = [];
+    const daysLeft = ws.school.end_date
+      ? Math.ceil((new Date(ws.school.end_date) - new Date()) / 86400000)
+      : null;
+    const noTeachersAssigned =
+      metrics.totalClasses > 0 && metrics.assignedTeachers === 0;
+    const enrollmentPressure =
+      metrics.totalCapacity > 0
+        ? Math.round((metrics.enrolledInClasses / metrics.totalCapacity) * 100)
+        : 0;
+
+    if (ws.school.status !== "Active") {
+      alerts.push({
+        title: "School is inactive",
+        severity: "high",
+        detail: "The school account is currently not active.",
+      });
+    }
+
+    if (daysLeft !== null && daysLeft < 0) {
+      alerts.push({
+        title: "Subscription expired",
+        severity: "high",
+        detail: `Plan expired on ${fmt(ws.school.end_date)}.`,
+      });
+    } else if (daysLeft !== null && daysLeft <= 30) {
+      alerts.push({
+        title: "Subscription expiring soon",
+        severity: "medium",
+        detail: `${daysLeft} day${daysLeft === 1 ? "" : "s"} remaining on the current plan.`,
+      });
+    }
+
+    if (metrics.totalStudents === 0) {
+      alerts.push({
+        title: "No students onboarded",
+        severity: "high",
+        detail: "Student records have not been added yet.",
+      });
+    }
+
+    if (metrics.totalTeachers === 0) {
+      alerts.push({
+        title: "No teachers onboarded",
+        severity: "high",
+        detail: "Teacher directory is empty.",
+      });
+    }
+
+    if (metrics.totalClasses === 0) {
+      alerts.push({
+        title: "No classes created",
+        severity: "high",
+        detail: "Academic structure is incomplete.",
+      });
+    }
+
+    if (noTeachersAssigned) {
+      alerts.push({
+        title: "Classes missing teacher assignment",
+        severity: "medium",
+        detail: "Classes exist but none are linked to teachers.",
+      });
+    }
+
+    if (metrics.totalDue > 0) {
+      alerts.push({
+        title: "Outstanding fee balance",
+        severity: ws.defaulters.length > 0 ? "high" : "medium",
+        detail: `${fmtCur(metrics.totalDue)} still pending across students.`,
+      });
+    }
+
+    if (ws.defaulters.length > 0) {
+      alerts.push({
+        title: "Students with pending dues",
+        severity: "medium",
+        detail: `${ws.defaulters.length} defaulter${ws.defaulters.length > 1 ? "s" : ""} detected.`,
+      });
+    }
+
+    if (ws.syllabusClasses.length === 0) {
+      alerts.push({
+        title: "Syllabus not started",
+        severity: "medium",
+        detail: "No syllabus structure is available yet.",
+      });
+    }
+
+    if (ws.noticeStats?.highPriority > 0) {
+      alerts.push({
+        title: "High-priority notices active",
+        severity: "low",
+        detail: `${ws.noticeStats.highPriority} high-priority notice${ws.noticeStats.highPriority > 1 ? "s are" : " is"} live.`,
+      });
+    }
+
+    if (
+      ws.transportSummary.maintenance > 0 ||
+      ws.transportSummary.suspended > 0 ||
+      ws.transportSummary.on_leave > 0
+    ) {
+      alerts.push({
+        title: "Transport operations need review",
+        severity: "medium",
+        detail: `${ws.transportSummary.maintenance || 0} maintenance · ${ws.transportSummary.suspended || 0} suspended · ${ws.transportSummary.on_leave || 0} on leave.`,
+      });
+    }
+
+    if (ws.issueSummary?.overdue > 0) {
+      alerts.push({
+        title: "Overdue library issues",
+        severity: "low",
+        detail: `${ws.issueSummary.overdue} books are overdue.`,
+      });
+    }
+
+    if (enrollmentPressure >= 90) {
+      alerts.push({
+        title: "Seat capacity nearly full",
+        severity: "medium",
+        detail: `${enrollmentPressure}% of total capacity is occupied.`,
+      });
+    }
+
+    if (setupChecklist.percent < 60) {
+      alerts.push({
+        title: "School setup incomplete",
+        severity: "high",
+        detail: `Only ${setupChecklist.percent}% of the recommended setup checklist is complete.`,
+      });
+    }
+
+    const grouped = {
+      high: alerts.filter((item) => item.severity === "high"),
+      medium: alerts.filter((item) => item.severity === "medium"),
+      low: alerts.filter((item) => item.severity === "low"),
+    };
+
+    return {
+      alerts,
+      grouped,
+      total: alerts.length,
+    };
+  }, [metrics, setupChecklist, ws]);
+
   const ps = ws ? planStatus(ws.school.end_date) : null;
 
   return (
     <div
       className="min-h-screen bg-[#F0F2F8]"
       style={{ fontFamily: "'Sora','Nunito',system-ui,sans-serif" }}
-    >{/* 🔙 BACK BUTTON */}
+    >
+      {/* 🔙 BACK BUTTON */}
       {isMobile && (
-          <div className="pt-4">
+        <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
@@ -1665,6 +1903,390 @@ const isMobile = window.innerWidth <= 768;
                 )}
               </div>
             )}
+
+            {/*=== setup checklist ==== */}
+            {tab === "setup" && setupChecklist && (
+              <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+                <Panel
+                  title="Implementation Checklist"
+                  subtitle="Super admin readiness tracker"
+                >
+                  <div className="mb-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">
+                          Completion
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {setupChecklist.completed}/{setupChecklist.total}{" "}
+                          setup milestones completed
+                        </p>
+                      </div>
+                      <p className="text-3xl font-black text-indigo-600">
+                        {setupChecklist.percent}%
+                      </p>
+                    </div>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                      <div
+                        className="h-full rounded-full bg-linear-to-r from-indigo-500 to-sky-400"
+                        style={{ width: `${setupChecklist.percent}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {setupChecklist.items.map((item) => (
+                      <div
+                        key={item.label}
+                        className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+                      >
+                        <div
+                          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
+                            item.done
+                              ? "bg-emerald-50 text-emerald-600"
+                              : "bg-slate-200 text-slate-400"
+                          }`}
+                        >
+                          <FaCircleCheck />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold text-slate-800">
+                              {item.label}
+                            </p>
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${
+                                item.done
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-amber-50 text-amber-700"
+                              }`}
+                            >
+                              {item.done ? "Done" : "Pending"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1">
+                            {item.note}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Panel>
+
+                <div className="space-y-4">
+                  <Panel title="What Needs Attention" subtitle="">
+                    <div className="space-y-2">
+                      {setupChecklist.items
+                        .filter((item) => !item.done)
+                        .map((item) => (
+                          <div
+                            key={item.label}
+                            className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3"
+                          >
+                            <p className="text-sm font-semibold text-amber-800">
+                              {item.label}
+                            </p>
+                            <p className="text-xs text-amber-700 mt-1">
+                              {item.note}
+                            </p>
+                          </div>
+                        ))}
+                      {setupChecklist.items.every((item) => item.done) && (
+                        <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-5 text-center">
+                          <FaCircleCheck className="mx-auto mb-2 text-2xl text-emerald-500" />
+                          <p className="text-sm font-semibold text-emerald-800">
+                            Setup looks complete
+                          </p>
+                          <p className="text-xs text-emerald-600 mt-1">
+                            This school has completed all tracked setup
+                            milestones.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </Panel>
+
+                  <Panel title="Module Snapshot" subtitle="">
+                    <div className="space-y-0">
+                      <MiniField label="Classes" value={metrics.totalClasses} />
+                      <MiniField label="Sections" value={ws.sections.length} />
+                      <MiniField
+                        label="Subjects"
+                        value={metrics.totalSubjects}
+                      />
+                      <MiniField
+                        label="Teachers"
+                        value={metrics.totalTeachers}
+                      />
+                      <MiniField
+                        label="Students"
+                        value={metrics.totalStudents}
+                      />
+                      <MiniField label="Payments" value={ws.payments.length} />
+                      <MiniField label="Books" value={ws.books.length} />
+                      <MiniField
+                        label="Syllabus Classes"
+                        value={ws.syllabusClasses.length}
+                      />
+                    </div>
+                  </Panel>
+                </div>
+              </div>
+            )}
+
+            {/*=== alerts ==== */}
+            {tab === "alerts" && alertSummary && (
+              <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+                <div className="space-y-4">
+                  <Panel
+                    title="Alert Summary"
+                    subtitle="Live operational signals"
+                  >
+                    <div className="grid grid-cols-3 gap-3">
+                      <SumCard
+                        label="High"
+                        value={alertSummary.grouped.high.length}
+                        color={
+                          alertSummary.grouped.high.length > 0
+                            ? "rose"
+                            : "slate"
+                        }
+                      />
+                      <SumCard
+                        label="Medium"
+                        value={alertSummary.grouped.medium.length}
+                        color={
+                          alertSummary.grouped.medium.length > 0
+                            ? "amber"
+                            : "slate"
+                        }
+                      />
+                      <SumCard
+                        label="Low"
+                        value={alertSummary.grouped.low.length}
+                        color={
+                          alertSummary.grouped.low.length > 0 ? "blue" : "slate"
+                        }
+                      />
+                    </div>
+                    <div className="mt-4 space-y-0">
+                      <MiniField
+                        label="Checklist Completion"
+                        value={`${setupChecklist?.percent || 0}%`}
+                        warn={(setupChecklist?.percent || 0) < 60}
+                      />
+                      <MiniField
+                        label="Subscription Status"
+                        value={ps?.label || "—"}
+                        warn={ps?.label === "Expired"}
+                      />
+                      <MiniField
+                        label="Defaulters"
+                        value={ws.defaulters.length}
+                        warn={ws.defaulters.length > 0}
+                      />
+                      <MiniField
+                        label="Overdue Books"
+                        value={ws.issueSummary?.overdue || 0}
+                        warn={(ws.issueSummary?.overdue || 0) > 0}
+                      />
+                    </div>
+                  </Panel>
+
+                  <Panel title="Priority Flags" subtitle="">
+                    <div className="space-y-2">
+                      {alertSummary.grouped.high.length ? (
+                        alertSummary.grouped.high.map((item) => (
+                          <AlertCard key={item.title} item={item} />
+                        ))
+                      ) : (
+                        <Empty label="No high-severity alerts." />
+                      )}
+                    </div>
+                  </Panel>
+                </div>
+
+                <Panel
+                  title="All Alerts"
+                  subtitle={`${alertSummary.total} active`}
+                >
+                  <div className="space-y-2 max-h-155 overflow-y-auto pr-1">
+                    {alertSummary.alerts.length ? (
+                      alertSummary.alerts.map((item) => (
+                        <AlertCard
+                          key={`${item.severity}-${item.title}`}
+                          item={item}
+                        />
+                      ))
+                    ) : (
+                      <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-8 text-center">
+                        <FaCircleCheck className="mx-auto mb-2 text-2xl text-emerald-500" />
+                        <p className="text-sm font-semibold text-emerald-800">
+                          No active alerts
+                        </p>
+                        <p className="text-xs text-emerald-600 mt-0.5">
+                          This workspace does not currently show any risk flags.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </Panel>
+              </div>
+            )}
+
+            {/*=== subscription ==== */}
+            {tab === "subscription" && (
+              <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
+                <Panel
+                  title="Current Plan"
+                  subtitle="Subscription and access context"
+                >
+                  <div className="rounded-2xl bg-linear-to-br from-indigo-600 to-violet-700 p-5 text-white">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-200">
+                      Active Plan
+                    </p>
+                    <div className="mt-2 flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-2xl font-bold">
+                          {ws.school.subscription_plan?.name ||
+                            "No plan assigned"}
+                        </p>
+                        <p className="text-sm text-indigo-100 mt-1">
+                          {ws.school.subscription_plan
+                            ? `${ws.school.subscription_plan.currency} ${ws.school.subscription_plan.price} / ${ws.school.subscription_plan.billing_cycle}`
+                            : "Assign a plan to unlock role-based access."}
+                        </p>
+                      </div>
+                      <span
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${ps?.cls || "bg-white/20 text-white"}`}
+                      >
+                        {ps?.label || "No Plan"}
+                      </span>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <GlanceBox
+                        label="Start"
+                        value={fmt(ws.school.start_date)}
+                      />
+                      <GlanceBox label="End" value={fmt(ws.school.end_date)} />
+                      <GlanceBox
+                        label="School Status"
+                        value={ws.school.status || "—"}
+                      />
+                      <GlanceBox
+                        label="Admin"
+                        value={ws.school.admin_name || "—"}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <Field
+                      label="Plan Name"
+                      value={ws.school.subscription_plan?.name}
+                    />
+                    <Field
+                      label="Slug"
+                      value={ws.school.subscription_plan?.slug}
+                    />
+                    <Field
+                      label="Currency"
+                      value={ws.school.subscription_plan?.currency}
+                    />
+                    <Field
+                      label="Billing Cycle"
+                      value={ws.school.subscription_plan?.billing_cycle}
+                    />
+                    <Field
+                      label="Price"
+                      value={
+                        ws.school.subscription_plan?.price != null
+                          ? fmtCur(ws.school.subscription_plan.price)
+                          : "—"
+                      }
+                    />
+                    <Field
+                      label="Plan Status"
+                      value={ws.school.subscription_plan?.status}
+                    />
+                  </div>
+                </Panel>
+
+                <div className="space-y-4">
+                  <Panel title="Included Roles" subtitle="Plan-level access">
+                    <div className="flex flex-wrap gap-2">
+                      {ws.school.subscription_plan?.roles?.length ? (
+                        ws.school.subscription_plan.roles.map((role) => (
+                          <Tag
+                            key={role._id || role.name}
+                            text={role.name}
+                            color="indigo"
+                          />
+                        ))
+                      ) : (
+                        <p className="text-xs text-slate-400">
+                          No roles mapped to this subscription.
+                        </p>
+                      )}
+                    </div>
+                  </Panel>
+
+                  <Panel title="Renewal Readiness" subtitle="">
+                    <div className="space-y-0">
+                      <MiniField
+                        label="Plan Window"
+                        value={`${fmt(ws.school.start_date)} → ${fmt(ws.school.end_date)}`}
+                        warn={ps?.label === "Expired"}
+                      />
+                      <MiniField
+                        label="School Status"
+                        value={ws.school.status}
+                        warn={ws.school.status !== "Active"}
+                      />
+                      <MiniField
+                        label="Outstanding Due"
+                        value={fmtCur(metrics.totalDue)}
+                        warn={metrics.totalDue > 0}
+                      />
+                      <MiniField
+                        label="Checklist Completion"
+                        value={`${setupChecklist?.percent || 0}%`}
+                        warn={(setupChecklist?.percent || 0) < 60}
+                      />
+                    </div>
+                  </Panel>
+
+                  <Panel title="Super Admin Notes" subtitle="">
+                    <div className="space-y-2">
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p className="text-sm font-semibold text-slate-800">
+                          Best next action
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {ps?.label === "Expired"
+                            ? "Renew or extend the subscription immediately to keep the school operational."
+                            : ws.school.status !== "Active"
+                              ? "Reactivate the school after validating the subscription and admin setup."
+                              : (setupChecklist?.percent || 0) < 80
+                                ? "Finish the remaining setup items before considering this school fully onboarded."
+                                : "This school looks stable. Monitor fees, transport, and library risk indicators."}
+                        </p>
+                      </div>
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                        <p className="text-sm font-semibold text-slate-800">
+                          Current operational signal
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {alertSummary?.total
+                            ? `${alertSummary.total} alert${alertSummary.total > 1 ? "s are" : " is"} active for this school.`
+                            : "No major risk signals are active right now."}
+                        </p>
+                      </div>
+                    </div>
+                  </Panel>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -1846,6 +2468,38 @@ const Tag = ({ text, color }) => {
     >
       {text}
     </span>
+  );
+};
+
+const AlertCard = ({ item }) => {
+  const tone =
+    item.severity === "high"
+      ? "border-rose-100 bg-rose-50 text-rose-800"
+      : item.severity === "medium"
+        ? "border-amber-100 bg-amber-50 text-amber-800"
+        : "border-sky-100 bg-sky-50 text-sky-800";
+
+  const badge =
+    item.severity === "high"
+      ? "bg-rose-100 text-rose-700"
+      : item.severity === "medium"
+        ? "bg-amber-100 text-amber-700"
+        : "bg-sky-100 text-sky-700";
+
+  return (
+    <div className={`rounded-xl border px-4 py-3 ${tone}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold">{item.title}</p>
+          <p className="text-xs mt-1 opacity-80">{item.detail}</p>
+        </div>
+        <span
+          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${badge}`}
+        >
+          {item.severity}
+        </span>
+      </div>
+    </div>
   );
 };
 

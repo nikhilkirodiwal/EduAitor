@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { FaUserShield, FaUsers } from "react-icons/fa";
+import { FaChartLine, FaUserShield, FaUsers } from "react-icons/fa";
 import {FaArrowLeft} from "react-icons/fa";
 
 
@@ -61,7 +61,7 @@ const Dashboard = () => {
         Dashboard
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
         {/* Roles Card */}
 
@@ -131,6 +131,33 @@ const Dashboard = () => {
 
           </div>
 
+        </div>
+
+        <div
+          onClick={() => navigate("/admin/platform-analytics")}
+          className="cursor-pointer bg-white rounded-xl shadow p-6 hover:shadow-lg transition"
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">
+              Platform Analytics
+            </h2>
+
+            <FaChartLine className="text-violet-500 text-3xl" />
+          </div>
+
+          <p className="text-3xl font-bold mb-3">
+            School Health
+          </p>
+
+          <div className="text-sm text-gray-600 flex gap-6">
+            <span className="text-violet-600">
+              KPIs
+            </span>
+
+            <span className="text-slate-500">
+              Actions
+            </span>
+          </div>
         </div>
 
       </div>
