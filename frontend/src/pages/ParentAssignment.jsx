@@ -32,15 +32,7 @@ export default function ParentAssignment() {
 
   const fetchAssignments = async () => {
     try {
-      // classId must come from the student record
-      const studentRes = await axios.get(`${API}/students/${user.student_id}`, {
-        withCredentials: true,
-      });
-      const classId =
-        studentRes.data.data?.classId?._id || studentRes.data.data?.classId;
-
       const res = await axios.get(`${API}/assignment/student/list`, {
-        params: { classId },
         withCredentials: true,
       });
       setAssignments(res.data.data || []);

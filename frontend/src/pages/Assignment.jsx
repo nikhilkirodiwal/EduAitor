@@ -22,7 +22,7 @@ import {
   FiRefreshCw,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import {FaArrowLeft} from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 
 import { HiOutlineClipboardList, HiSparkles } from "react-icons/hi";
 import { useAuth } from "../context/AuthContext";
@@ -47,9 +47,8 @@ export default function Assignment() {
   const { user, loading } = useAuth();
   const teacherId = user?.teacher_id;
   const schoolId = user?.school_id;
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const isMobile = window.innerWidth <= 768;
-
 
   const [editingAssignmentId, setEditingAssignmentId] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -938,7 +937,7 @@ export default function Assignment() {
       <style>{styles}</style>
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
-          <div className="pt-4">
+        <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl

@@ -1,20 +1,23 @@
 import AssignmentSubmission from "../models/assignmentSubmission.js";
 import Assignment from "../models/assignment.js";
+import Student from "../models/student.js";
 
 /* ── GET ASSIGNMENTS FOR STUDENT ── */
 export const getStudentAssignments = async (req, res) => {
   try {
     const { student_id, school_id } = req.user;
-    const { classId } = req.query;
 
-    if (!classId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "classId is required" });
+    const student = await Student.findById(student_id);
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
     }
 
     const assignments = await Assignment.find({
-      classId,
+      classId: student.classId,
       schoolId: school_id,
       isPublished: true,
     })

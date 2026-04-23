@@ -1,12 +1,11 @@
 import Exam from "../models/exam.js";
-import subject from "../models/subject.js";
+import Subject from "../models/subject.js";
 import Teacher from "../models/teacher.js";
 import Student from "../models/student.js";
 import Result from "../models/result.js";
-
+import { createNotificationHelper } from "./notificationController.js";
 // Create Exam
 export const createExam = async (req, res) => {
-  console.log("Create Exam Request Body:", req.body); // Debug log to check incoming data
   try {
     const schoolId = req.user?.school_id;
     const {
@@ -92,12 +91,33 @@ export const createExam = async (req, res) => {
 
     await newExam.save();
 
+    const subjectName = await Subject.findOne({ _id: subject });
+    const teacherName = await Teacher.findOne({ _id: teacherId });
+
+    console.log(
+      `Created exam for ${subjectName} on ${examDate} assigned to ${teacherName.fullName}`,
+    );
+
+
+  const studentnotification = await  createNotificationHelper({
+      title: `${subjectName.name} exam`,
+      message: `${subjectName.name} exam on ${examDate} by ${teacherName.fullName}`,
+      notificationType: "exam",
+      targets: [
+    { type: 'class',   classId: className },
+    { type: 'teacher', teacherId: teacherId },
+  ],
+      schoolId,
+      createdBy: req.user._id,
+    });
+   console.log("Notification created for new exam:", studentnotification);
+   
+
     // Return populated data so the frontend can show the Class Name immediately
     const populatedExam = await Exam.findById(newExam._id).populate(
       "className",
       "name",
     );
-
     res.status(201).json(populatedExam);
   } catch (err) {
     console.error("Create Exam Error:", err);
@@ -139,6 +159,7 @@ export const getExams = async (req, res) => {
 
 // update exams -
 export const updateExam = async (req, res) => {
+  console.log("Update Exam Request Body:");
   try {
     const schoolId = req.user?.school_id;
     const { id } = req.params;
@@ -207,6 +228,19 @@ export const updateExam = async (req, res) => {
       return res.status(404).json({ message: "Exam not found" });
     }
 
+      
+  const classTeachernotification = await  createNotificationHelper({
+      title: `${updatedExam.subject.name} exam updated`,
+      message: `${updatedExam.subject.name} exam on ${examDate} by ${updatedExam.teacherId.fullName}`,
+      notificationType: "exam",
+        targets: [
+    { type: 'class',   classId: className },
+    { type: 'teacher', teacherId: updatedExam.teacherId._id },
+  ],
+      schoolId,
+      createdBy: req.user._id,
+    });
+    
     res.status(200).json(updatedExam);
   } catch (err) {
     console.error("Update Exam Error:", err);

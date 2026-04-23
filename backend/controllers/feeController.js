@@ -5,41 +5,7 @@ import Student from "../models/student.js";
 import Payment from "../models/payment.js";
 import Counter from "../models/receiptCounter.js";
 import School from "../models/school.js";
-
-const isBusFeeComponent = (fee = {}) => {
-  const feeName = fee.name?.toLowerCase?.() || "";
-  return feeName.includes("bus fee") || feeName.includes("transport fee");
-};
-
-const isOptionalFeeSelected = (student, fee) => {
-  if (!fee?.isOptional) {
-    return true;
-  }
-
-  if (isBusFeeComponent(fee)) {
-    return Boolean(student.transport);
-  }
-
-  return (student.selectedOptionalFees || []).includes(String(fee._id));
-};
-
-const getAppliedFeeAmount = (student, fee) => {
-  const amount = Number(fee?.amount) || 0;
-
-  if (!isOptionalFeeSelected(student, fee)) {
-    return 0;
-  }
-
-  if (isBusFeeComponent(fee) && student.busFeeFrequency === "quarterly") {
-    if (!student.busFeeQuarter) {
-      return 0;
-    }
-
-    return amount / 3;
-  }
-
-  return amount;
-};
+import { createNotificationHelper } from "./notificationController.js";
 
 //  Get fee structure for a class
 export const getFeeStructures = async (req, res) => {
@@ -233,6 +199,15 @@ export const collectStudentFee = async (req, res) => {
       Math.round(((Number(student.finalFee) || 0) - student.totalPaid) * 100) /
       100;
     await student.save();
+
+    await createNotificationHelper({
+      title: `Fee Payment Received: ${amountPaid}`,
+      message: `fee collected from ${student.firstName} ${student.lastName} Amount: ${amountPaid}. Remaining Due: ${student.totalDue}`,
+      notificationType: "fee",
+      targets: [{ type: "student", studentId: student._id }],
+      schoolId,
+      createdBy: req.user._id,
+    });
 
     return res.status(200).json({
       success: true,
@@ -849,16 +824,9 @@ export const getStudentFeeDetails = async (req, res) => {
       .sort({ paidDate: -1 })
       .lean();
 
-    const applicableFees = (feeStructure?.fees || []).filter((fee) =>
-      isOptionalFeeSelected(student, fee),
-    );
-
-    const totalFees =
-      Number(student.finalFee) ||
-      applicableFees.reduce(
-        (sum, fee) => sum + getAppliedFeeAmount(student, fee),
-        0,
-      );
+    const totalFees = feeStructure
+      ? feeStructure.fees.reduce((sum, f) => sum + f.amount, 0)
+      : 0;
 
     const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
     const balanceDue = Math.max(0, totalFees - totalPaid);
@@ -870,19 +838,234 @@ export const getStudentFeeDetails = async (req, res) => {
         section: student.sectionId?.name,
         rollNo: student.rollNo,
       },
-      feeStructure: applicableFees,
+      feeStructure: feeStructure?.fees || [],
       totalFees,
       totalPaid,
       balanceDue,
       paidPercent:
         totalFees > 0 ? Math.round((totalPaid / totalFees) * 100) : 0,
-      feeFrequency: student.feeFrequency || "annually",
-      busFeeFrequency: student.busFeeFrequency || "annually",
-      busFeeQuarter: student.busFeeQuarter || "",
       payments,
     });
   } catch (err) {
     console.error("getStudentFeeDetails error:", err.message);
     res.status(500).json({ message: err.message });
+  }
+};
+
+const getAppliedFeeAmount = (student, fee) => {
+  if (!fee) return 0;
+
+  // 🟡 OPTIONAL FEES (like Bus)
+  if (fee.isOptional) {
+    // Apply only if student has transport assigned
+    if (fee.name.toLowerCase().includes("bus")) {
+      return student.transport ? fee.amount : 0;
+    }
+
+    // Future optional fees can go here
+    return 0;
+  }
+
+  // 🟢 MANDATORY FEES
+  return fee.amount || 0;
+};
+
+export const getMyFeeDetails = async (req, res) => {
+  try {
+    const studentId = req.user?.student_id;
+    const schoolId = req.user?.school_id;
+
+    if (!studentId || !schoolId) {
+      return res.status(400).json({
+        success: false,
+        message: "User student context missing",
+      });
+    }
+
+    // ✅ Fetch student
+    const student = await Student.findOne({
+      _id: studentId,
+      schoolId,
+    });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    // ✅ Fetch fee structure
+    const feeStructure = await FeeStructure.findOne({
+      class: student.classId,
+      schoolId,
+    });
+
+    if (!feeStructure) {
+      return res.json({
+        success: true,
+        totalFee: 0,
+        totalPaid: student.totalPaid || 0,
+        totalDue: 0,
+        breakdown: [],
+      });
+    }
+
+    // ✅ Calculate fees
+    let totalFee = 0;
+
+    const breakdown = feeStructure.fees.map((fee) => {
+      const amount = getAppliedFeeAmount(student, fee); // 👈 your existing helper
+      totalFee += amount;
+
+      return {
+        name: fee.name,
+        amount,
+        isOptional: fee.isOptional,
+      };
+    });
+
+    const totalPaid = student.totalPaid || 0;
+    const totalDue = Math.max(0, totalFee - totalPaid);
+
+    return res.json({
+      success: true,
+      finalFee: totalFee,
+      totalPaid,
+      totalDue,
+      breakdown,
+    });
+  } catch (err) {
+    console.error("getMyFeeDetails error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+export const notifyAllDefaulters = async (req, res) => {
+  try {
+    const schoolId = req.user.school_id;
+    if (!schoolId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "School ID required" });
+    }
+
+    const now = new Date();
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    // Reuse same defaulter logic from getAllDefaulter
+    const defaulters = await Student.aggregate([
+      { $match: { schoolId: new mongoose.Types.ObjectId(schoolId) } },
+      {
+        $lookup: {
+          from: "payments",
+          let: { studId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$studentId", "$$studId"] },
+                    {
+                      $eq: ["$schoolId", new mongoose.Types.ObjectId(schoolId)],
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+          as: "paymentHistory",
+        },
+      },
+      {
+        $addFields: {
+          hasPaidThisMonth: {
+            $gt: [
+              {
+                $size: {
+                  $filter: {
+                    input: "$paymentHistory",
+                    as: "p",
+                    cond: { $gte: ["$$p.paidDate", startOfCurrentMonth] },
+                  },
+                },
+              },
+              0,
+            ],
+          },
+          calculatedDue: {
+            $subtract: ["$finalFee", { $ifNull: ["$totalPaid", 0] }],
+          },
+        },
+      },
+      // Only students who haven't paid this month and still owe money
+      { $match: { hasPaidThisMonth: false, calculatedDue: { $gt: 0 } } },
+      { $project: { _id: 1, firstName: 1, lastName: 1, calculatedDue: 1 } },
+    ]);
+
+    if (defaulters.length === 0) {
+      return res
+        .status(200)
+        .json({ success: true, message: "No defaulters found" });
+    }
+
+    // Send one notification per defaulter
+    const notifications = defaulters.map((student) =>
+      createNotificationHelper({
+        title: `Fee Due Reminder`,
+        message: `Dear ${student.firstName} ${student.lastName}, you have a pending fee due of ₹${student.calculatedDue}. Please clear it as soon as possible.`,
+        notificationType: "fee",
+        targets: [{ type: "student", studentId: student._id }],
+        schoolId,
+        createdBy: req.user._id,
+      }),
+    );
+
+    // Fire all in parallel
+    await Promise.all(notifications);
+
+    return res.status(200).json({
+      success: true,
+      message: `Notifications sent to ${defaulters.length} defaulters`,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export const notifyDefaulter = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const schoolId = req.user.school_id;
+
+    const student = await Student.findById(studentId)
+      .select("firstName lastName totalPaid finalFee")
+      .lean();
+
+    if (!student) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
+    }
+
+    const due = (student.finalFee || 0) - (student.totalPaid || 0);
+
+    await createNotificationHelper({
+      title: `Fee Due Reminder`,
+      message: `Dear ${student.firstName} ${student.lastName}, you have a pending fee due of ₹${due}. Please clear it as soon as possible.`,
+      notificationType: "fee",
+      targets: [{ type: "student", studentId: student._id }],
+      schoolId,
+      createdBy: req.user._id,
+    });
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Notification sent to student" });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
   }
 };

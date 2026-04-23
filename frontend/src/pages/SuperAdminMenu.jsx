@@ -18,16 +18,17 @@ import {
   FaChartLine,
 } from "react-icons/fa";
 
-import {FaBookJournalWhills,
+import {
+  FaBookJournalWhills,
   FaSchoolFlag,
-  FaUserGroup,} from "react-icons/fa6";
+  FaUserGroup,
+} from "react-icons/fa6";
 import { FiUsers } from "react-icons/fi";
-import { GiOpenBook, GiTeacher,GiSchoolBag } from "react-icons/gi";
+import { GiOpenBook, GiTeacher, GiSchoolBag } from "react-icons/gi";
 import { HiAcademicCap } from "react-icons/hi2";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
-
 
 /* ─── Color map ─────────────────────────────────────────────── */
 const COLOR_MAP = {
@@ -259,7 +260,7 @@ export default function TeacherMenu() {
     navigate("/admin/login", { replace: true });
   };
 
-  const menu =  [
+  const menu = [
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/admin/dashboard" },
     {
       name: "Platform Analytics",

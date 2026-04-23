@@ -145,9 +145,7 @@ export const addBook = async (req, res) => {
     const { title, author, isbn, totalCopies, category } = req.body;
 
     if (!schoolId || !title || !author || !isbn || !category) {
-      return res.status(400).json({
-        error: "schoolId, title, author, isbn and category are required",
-      });
+      return res.status(400).json({ error: "schoolId, title, author, isbn and category are required" });
     }
 
     const normalizedIsbn = String(isbn).trim();
@@ -155,11 +153,10 @@ export const addBook = async (req, res) => {
 
     const existingBook = await Book.findOne({ schoolId, isbn: normalizedIsbn });
     if (existingBook) {
-      return res
-        .status(400)
-        .json({ error: "Book with this ISBN already exists in this school" });
+      return res.status(400).json({ error: "Book with this ISBN already exists in this school" });
     }
 
+  
     const book = await Book.create({
       schoolId,
       title: String(title).trim(),
@@ -169,6 +166,17 @@ export const addBook = async (req, res) => {
       totalCopies: copies,
       availableCopies: copies,
     });
+
+       const notification =  await createNotificationHelper({
+  title: `📚 Book added: ${title}`,
+  message: `"${title}" has been added to the library.`,
+  notificationType: "general",
+  targetType: "all",
+  schoolId,
+  createdBy: req.user._id,
+});
+
+
 
     res.status(201).json({
       success: true,
@@ -226,10 +234,7 @@ export const updateBook = async (req, res) => {
     }
 
     const issuedCopies = Math.max(book.totalCopies - book.availableCopies, 0);
-    const nextTotalCopies = Math.max(
-      Number(totalCopies) || book.totalCopies,
-      1,
-    );
+    const nextTotalCopies = Math.max(Number(totalCopies) || book.totalCopies, 1);
 
     if (nextTotalCopies < issuedCopies) {
       return res.status(400).json({
@@ -245,9 +250,7 @@ export const updateBook = async (req, res) => {
     });
 
     if (duplicateBook) {
-      return res.status(400).json({
-        error: "Another book with this ISBN already exists in this school",
-      });
+      return res.status(400).json({ error: "Another book with this ISBN already exists in this school" });
     }
 
     book.title = String(title || book.title).trim();
@@ -290,8 +293,7 @@ export const deleteBook = async (req, res) => {
 
     if (activeIssue) {
       return res.status(400).json({
-        error:
-          "This book has active issue records. Return all copies before deleting it.",
+        error: "This book has active issue records. Return all copies before deleting it.",
       });
     }
 
@@ -313,9 +315,7 @@ export const issueBook = async (req, res) => {
     const { bookId, studentId, dueDate } = req.body;
 
     if (!schoolId || !bookId || !studentId || !dueDate) {
-      return res.status(400).json({
-        error: "schoolId, bookId, studentId and dueDate are required",
-      });
+      return res.status(400).json({ error: "schoolId, bookId, studentId and dueDate are required" });
     }
 
     const [book, student, activeIssue] = await Promise.all([
@@ -333,15 +333,11 @@ export const issueBook = async (req, res) => {
     }
 
     if (book.availableCopies < 1) {
-      return res
-        .status(400)
-        .json({ error: "No copies are available for issue" });
+      return res.status(400).json({ error: "No copies are available for issue" });
     }
 
     if (activeIssue) {
-      return res.status(400).json({
-        error: "This student already has an active issue for the selected book",
-      });
+      return res.status(400).json({ error: "This student already has an active issue for the selected book" });
     }
 
     const parsedDueDate = new Date(dueDate);
@@ -350,9 +346,7 @@ export const issueBook = async (req, res) => {
     parsedDueDate.setHours(0, 0, 0, 0);
 
     if (Number.isNaN(parsedDueDate.getTime()) || parsedDueDate < today) {
-      return res
-        .status(400)
-        .json({ error: "Due date must be today or a future date" });
+      return res.status(400).json({ error: "Due date must be today or a future date" });
     }
 
     const issue = await Issue.create({
@@ -366,6 +360,7 @@ export const issueBook = async (req, res) => {
     book.availableCopies -= 1;
     await book.save();
 
+
     const populatedIssue = await Issue.findById(issue._id)
       .populate({
         path: "studentId",
@@ -377,15 +372,17 @@ export const issueBook = async (req, res) => {
       })
       .populate("bookId", "title author isbn category");
 
-    const notification = await createNotificationHelper({
-      title: `📚 Book Issued: ${book.title}`,
-      message: `"${book.title}" has been issued to ${populatedIssue.studentId.firstName}. Please return it by ${parsedDueDate.toLocaleDateString("en-IN")}.`,
-      notificationType: "general",
-      targetType: "student",
-      studentId: populatedIssue.studentId._id,
-      schoolId,
-      createdBy: req.user._id,
-    });
+  const notification =  await createNotificationHelper({
+  title: `📚 Book Issued: ${book.title}`,
+  message: `"${book.title}" has been issued to ${populatedIssue.studentId.firstName}. Please return it by ${parsedDueDate.toLocaleDateString("en-IN")}.`,
+  notificationType: "general",
+    targets: [
+    { type: 'student',   studentId: populatedIssue.studentId._id },
+  ],
+  schoolId,
+  createdBy: req.user._id,
+});
+
 
     res.status(201).json({
       success: true,
@@ -404,15 +401,11 @@ export const returnBook = async (req, res) => {
     const { finePaid } = req.body;
 
     if (!schoolId || !issueId) {
-      return res
-        .status(400)
-        .json({ error: "schoolId and issueId are required" });
+      return res.status(400).json({ error: "schoolId and issueId are required" });
     }
 
-    const issue = await Issue.findOne({ _id: issueId, schoolId }).populate(
-      "bookId",
-    );
-
+    const issue = await Issue.findOne({ _id: issueId, schoolId }).populate("bookId");
+  
     if (!issue) {
       return res.status(404).json({ error: "Issue record not found" });
     }
@@ -435,7 +428,6 @@ export const returnBook = async (req, res) => {
       { _id: issue.bookId._id, schoolId },
       { $inc: { availableCopies: 1 } },
     );
-
     const populatedIssue = await Issue.findById(issue._id)
       .populate({
         path: "studentId",
@@ -446,16 +438,17 @@ export const returnBook = async (req, res) => {
         ],
       })
       .populate("bookId", "title author isbn category");
-
-    const notification = await createNotificationHelper({
-      title: `📚 Book returned: ${book.title}`,
-      message: `"${book.title}" has been returned by ${populatedIssue.studentId.firstName} ${populatedIssue.studentId.lastName}.`,
-      notificationType: "general",
-      targetType: "student",
-      studentId: populatedIssue.studentId._id,
-      schoolId,
-      createdBy: req.user._id,
-    });
+      
+       const notification =  await createNotificationHelper({
+  title: `📚 Book returned: ${issue.bookId.title}`,
+  message: `"${issue.bookId.title}" has been returned by ${populatedIssue.studentId.firstName} ${populatedIssue.studentId.lastName}.`,
+  notificationType: "general",
+  targets: [
+    { type: 'student', studentId: populatedIssue.studentId._id }
+  ],
+  schoolId,
+  createdBy: req.user._id,
+});
 
     res.json({
       success: true,
@@ -476,24 +469,15 @@ export const getIssueBooks = async (req, res) => {
       return res.status(400).json({ error: "schoolId is required" });
     }
 
-    const issueDocs = await Issue.aggregate(
-      buildIssueFilters({ schoolId, status, search }),
-    );
+    const issueDocs = await Issue.aggregate(buildIssueFilters({ schoolId, status, search }));
     const allIssueBooks = issueDocs.map(serializeIssue);
 
     const summary = {
-      totalIssued: allIssueBooks.filter((issue) => issue.status !== "Returned")
-        .length,
-      overdue: allIssueBooks.filter((issue) => issue.status === "Overdue")
-        .length,
-      returned: allIssueBooks.filter((issue) => issue.status === "Returned")
-        .length,
+      totalIssued: allIssueBooks.filter((issue) => issue.status !== "Returned").length,
+      overdue: allIssueBooks.filter((issue) => issue.status === "Overdue").length,
+      returned: allIssueBooks.filter((issue) => issue.status === "Returned").length,
       pendingFine: allIssueBooks.reduce(
-        (sum, issue) =>
-          sum +
-          (issue.status === "Returned"
-            ? issue.outstandingFine
-            : issue.fineAmount),
+        (sum, issue) => sum + (issue.status === "Returned" ? issue.outstandingFine : issue.fineAmount),
         0,
       ),
     };
@@ -504,6 +488,7 @@ export const getIssueBooks = async (req, res) => {
       allissuebook: allIssueBooks,
       summary,
     });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -558,31 +543,22 @@ export const getAdminBookIssues = async (req, res) => {
     }
 
     const schoolId = req.query.schoolId;
-
+    
     const { search = "", status = "all" } = req.query;
 
     if (!schoolId) {
       return res.status(400).json({ error: "schoolId is required" });
     }
 
-    const issueDocs = await Issue.aggregate(
-      buildIssueFilters({ schoolId, status, search }),
-    );
+    const issueDocs = await Issue.aggregate(buildIssueFilters({ schoolId, status, search }));
     const allIssueBooks = issueDocs.map(serializeIssue);
 
     const summary = {
-      totalIssued: allIssueBooks.filter((issue) => issue.status !== "Returned")
-        .length,
-      overdue: allIssueBooks.filter((issue) => issue.status === "Overdue")
-        .length,
-      returned: allIssueBooks.filter((issue) => issue.status === "Returned")
-        .length,
+      totalIssued: allIssueBooks.filter((issue) => issue.status !== "Returned").length,
+      overdue: allIssueBooks.filter((issue) => issue.status === "Overdue").length,
+      returned: allIssueBooks.filter((issue) => issue.status === "Returned").length,
       pendingFine: allIssueBooks.reduce(
-        (sum, issue) =>
-          sum +
-          (issue.status === "Returned"
-            ? issue.outstandingFine
-            : issue.fineAmount),
+        (sum, issue) => sum + (issue.status === "Returned" ? issue.outstandingFine : issue.fineAmount),
         0,
       ),
     };
@@ -605,17 +581,15 @@ export const getStudentIssuesBooks = async (req, res) => {
     const { status = "active" } = req.query;
 
     if (!schoolId || !studentId) {
-      return res
-        .status(400)
-        .json({ error: "schoolId and studentId are required" });
+      return res.status(400).json({ error: "schoolId and studentId are required" });
     }
 
     const issueDocs = await Issue.find({
       schoolId,
       studentId,
       ...(status === "active"
-        ? { returnDate: null }
-        : status === "returned"
+        ? { returnDate: null 
+        }        : status === "returned"
           ? { status: "Returned" }
           : {}),
     })
@@ -624,7 +598,7 @@ export const getStudentIssuesBooks = async (req, res) => {
         path: "studentId",
         select: "name admissionNumber",
       });
-
+   
     const myIssues = issueDocs.map(serializeIssue);
     res.json({
       success: true,
@@ -634,4 +608,4 @@ export const getStudentIssuesBooks = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-};
+}

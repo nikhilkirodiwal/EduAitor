@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
-import {FaArrowLeft} from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -42,7 +41,6 @@ const modules = [
 const actions = ["view", "create", "edit", "delete"];
 
 const AccessControl = () => {
-
   const emptyForm = { role: "" };
 
   const [users, setUsers] = useState([]);
@@ -67,10 +65,8 @@ const AccessControl = () => {
 
   const fetchAccess = async () => {
     try {
-
       const res = await axios.get(`${API}/access`);
       setUsers(res.data.data);
-
     } catch {
       toast.error("Failed to fetch access");
     }
@@ -80,9 +76,10 @@ const AccessControl = () => {
 
   const fetchRoles = async () => {
     try {
-
       const res = await axios.get(`${API}/roles`);
-      const activeRoles = res.data.data.filter(role => role.status === "Active");
+      const activeRoles = res.data.data.filter(
+        (role) => role.status === "Active",
+      );
       setRoles(activeRoles);
     } catch {
       toast.error("Failed to fetch roles");
@@ -105,9 +102,8 @@ const AccessControl = () => {
   };
 
   const openEditModal = (access) => {
-
     setForm({
-      role: access.role?._id || access.role
+      role: access.role?._id || access.role,
     });
 
     setPermissions(access.permissions || {});
@@ -120,7 +116,6 @@ const AccessControl = () => {
   /* ---------------- ROLE CHANGE ---------------- */
 
   const handleRoleChange = (e) => {
-
     const roleId = e.target.value;
 
     setForm({ role: roleId });
@@ -128,14 +123,12 @@ const AccessControl = () => {
     const defaultPermissions = {};
 
     modules.forEach((module) => {
-
       defaultPermissions[module] = {
         view: true,
         create: false,
         edit: false,
         delete: false,
       };
-
     });
 
     setPermissions(defaultPermissions);
@@ -144,7 +137,6 @@ const AccessControl = () => {
   /* ---------------- TOGGLE PERMISSION ---------------- */
 
   const togglePermission = (module, action) => {
-
     setPermissions((prev) => ({
       ...prev,
       [module]: {
@@ -152,13 +144,11 @@ const AccessControl = () => {
         [action]: !prev[module][action],
       },
     }));
-
   };
 
   /* ---------------- SAVE ---------------- */
 
   const handleSave = async () => {
-
     if (!form.role) {
       toast.error("Please select role");
       return;
@@ -175,14 +165,12 @@ const AccessControl = () => {
     }
 
     try {
-
       await axios.post(`${API}/access`, payload);
 
       toast.success("Access created successfully");
 
       setShowModal(false);
       fetchAccess();
-
     } catch {
       toast.error("Error creating access");
     }
@@ -191,9 +179,7 @@ const AccessControl = () => {
   /* ---------------- UPDATE ---------------- */
 
   const confirmUpdateUser = async () => {
-
     try {
-
       await axios.put(`${API}/access/${editingId}`, {
         role: form.role,
         permissions,
@@ -205,24 +191,20 @@ const AccessControl = () => {
       setShowModal(false);
 
       fetchAccess();
-
     } catch {
       toast.error("Update failed");
     }
-
   };
 
   /* ---------------- CANCEL ---------------- */
 
   const cancelModal = () => {
-
     if (JSON.stringify(form) !== JSON.stringify(originalForm)) {
       setConfirmDiscard(true);
       return;
     }
 
     setShowModal(false);
-
   };
 
   const discardChanges = () => {
@@ -233,27 +215,23 @@ const AccessControl = () => {
   /* ---------------- DELETE ---------------- */
 
   const deleteUser = async () => {
-
     try {
-
       await axios.delete(`${API}/access/${deleteId}`);
 
       toast.success("Access deleted");
 
       setConfirmDelete(false);
       fetchAccess();
-
     } catch {
       toast.error("Delete failed");
     }
-
   };
 
   return (
     <div className="p-6">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
-          <div className="pt-4">
+        <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
@@ -269,10 +247,7 @@ const AccessControl = () => {
       {/* HEADER */}
 
       <div className="flex justify-between items-center mb-6">
-
-        <h1 className="text-2xl font-semibold text-gray-800">
-          Access Control
-        </h1>
+        <h1 className="text-2xl font-semibold text-gray-800">Access Control</h1>
 
         <button
           onClick={openAddModal}
@@ -281,41 +256,30 @@ const AccessControl = () => {
           <FaPlus />
           Add Access
         </button>
-
       </div>
 
       {/* TABLE */}
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
-
         <table className="w-full">
-
           <thead className="bg-gray-100">
-
             <tr>
               <th className="px-6 py-3 text-left text-sm">Role</th>
               <th className="px-6 py-3 text-left text-sm">Permissions</th>
               <th className="px-6 py-3 text-right text-sm">Actions</th>
             </tr>
-
           </thead>
 
           <tbody>
-
             {users.map((access) => (
-
               <tr key={access._id} className="border-t hover:bg-gray-50">
-
-                <td className="px-6 py-3 font-medium">
-                  {access.role?.name}
-                </td>
+                <td className="px-6 py-3 font-medium">{access.role?.name}</td>
 
                 <td className="px-6 py-3 text-sm text-gray-600">
                   {Object.keys(access.permissions || {}).length} Modules
                 </td>
 
                 <td className="px-6 py-3 flex justify-end gap-4">
-
                   <button
                     onClick={() => openEditModal(access)}
                     className="text-blue-500 hover:text-blue-700"
@@ -332,130 +296,82 @@ const AccessControl = () => {
                   >
                     <FaTrash />
                   </button>
-
                 </td>
-
               </tr>
-
             ))}
-
           </tbody>
-
         </table>
-
       </div>
 
       {/* MODAL */}
 
       {showModal && (
-
         <Modal title={editingId ? "Edit Access" : "Add Access"}>
-
           {/* ROLE */}
 
           <div className="mb-4">
-
-            <label className="block text-sm mb-1">
-              Select Role
-            </label>
+            <label className="block text-sm mb-1">Select Role</label>
 
             <select
               value={form.role}
               onChange={handleRoleChange}
               className="input w-full"
             >
-
-              <option value="">
-                Select Role
-              </option>
+              <option value="">Select Role</option>
 
               {roles.map((role) => (
-
                 <option key={role._id} value={role._id}>
                   {role.name}
                 </option>
-
               ))}
-
             </select>
-
           </div>
 
           {/* PERMISSION MATRIX */}
 
           {form.role && (
-
             <div>
-
-              <h3 className="font-semibold mb-3">
-                Permission Matrix
-              </h3>
+              <h3 className="font-semibold mb-3">Permission Matrix</h3>
 
               <div className="border rounded-lg overflow-auto max-h-100">
-
                 <table className="w-full text-sm">
-
                   <thead className="bg-gray-100 sticky top-0">
-
                     <tr>
-                      <th className="p-3 text-left">
-                        Module
-                      </th>
+                      <th className="p-3 text-left">Module</th>
 
                       {actions.map((action) => (
                         <th key={action} className="p-3 capitalize">
                           {action}
                         </th>
                       ))}
-
                     </tr>
-
                   </thead>
 
                   <tbody>
-
                     {modules.map((module) => (
-
                       <tr key={module} className="border-t">
-
-                        <td className="p-3 capitalize font-medium">
-                          {module}
-                        </td>
+                        <td className="p-3 capitalize font-medium">{module}</td>
 
                         {actions.map((action) => (
-
                           <td key={action} className="text-center">
-
                             <input
                               type="checkbox"
                               checked={permissions[module]?.[action] || false}
-                              onChange={() =>
-                                togglePermission(module, action)
-                              }
+                              onChange={() => togglePermission(module, action)}
                             />
-
                           </td>
-
                         ))}
-
                       </tr>
-
                     ))}
-
                   </tbody>
-
                 </table>
-
               </div>
-
             </div>
-
           )}
 
           {/* FOOTER */}
 
           <div className="flex justify-end gap-3 mt-6">
-
             <button
               onClick={cancelModal}
               className="px-4 py-2 border rounded-lg"
@@ -469,11 +385,8 @@ const AccessControl = () => {
             >
               Save
             </button>
-
           </div>
-
         </Modal>
-
       )}
 
       {/* CONFIRM MODALS */}
@@ -504,7 +417,6 @@ const AccessControl = () => {
           cancel={() => setConfirmDelete(false)}
         />
       )}
-
     </div>
   );
 };
@@ -515,39 +427,23 @@ export default AccessControl;
 
 const Modal = ({ title, children }) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-
     <div className="bg-white rounded-xl p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
-
-      <h2 className="text-lg font-semibold mb-4">
-        {title}
-      </h2>
+      <h2 className="text-lg font-semibold mb-4">{title}</h2>
 
       {children}
-
     </div>
-
   </div>
 );
 
 const ConfirmModal = ({ title, text, confirm, cancel }) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-
     <div className="bg-white rounded-xl p-6 w-full max-w-sm">
+      <h2 className="text-lg font-semibold mb-2">{title}</h2>
 
-      <h2 className="text-lg font-semibold mb-2">
-        {title}
-      </h2>
-
-      <p className="text-gray-600 mb-5 text-sm">
-        {text}
-      </p>
+      <p className="text-gray-600 mb-5 text-sm">{text}</p>
 
       <div className="flex justify-end gap-3">
-
-        <button
-          onClick={cancel}
-          className="px-4 py-2 border rounded-lg"
-        >
+        <button onClick={cancel} className="px-4 py-2 border rounded-lg">
           Cancel
         </button>
 
@@ -557,10 +453,7 @@ const ConfirmModal = ({ title, text, confirm, cancel }) => (
         >
           Confirm
         </button>
-
       </div>
-
     </div>
-
   </div>
 );

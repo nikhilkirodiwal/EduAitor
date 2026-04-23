@@ -1,5 +1,23 @@
 import Event from "../models/event.js";
 import Student from "../models/student.js";
+import Class from "../models/class.js";
+
+const buildEventTargets = async (assignClass, schoolId) => {
+  if (!assignClass || assignClass === 'All Classes') {
+    return [{ type: 'all' }];
+  }
+
+  // Look up the class ObjectId by name
+  const classDoc = await Class.findOne({ 
+    name: assignClass, 
+    schoolId 
+  }).select('_id').lean();
+
+  if (!classDoc) return [{ type: 'all' }]; // fallback to all if class not found
+
+  return [{ type: 'class', classId: classDoc._id }];
+};
+
 
 // GET all events for a school
 export const getAllEvents = async (req, res) => {
@@ -92,6 +110,15 @@ export const createEvent = async (req, res) => {
   try {
     const schoolId = req.user?.school_id;
     const event = await Event.create({ ...req.body, schoolId });
+    const targets = await buildEventTargets(event.assignClass, schoolId);
+     await createNotificationHelper({
+      title: `New Event: ${event.title}`,
+      message: `${event.title} on ${event.startDate} at ${event.location}. Organized by ${event.organizer}.`,
+      notificationType: "general",
+      targets,
+      schoolId,
+      createdBy: req.user._id,
+    });
     res
       .status(201)
       .json({ success: true, message: "Event created successfully", event });
@@ -111,6 +138,17 @@ export const updateEvent = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Event not found" });
+
+         const targets = await buildEventTargets(event.assignClass, schoolId);
+
+    await createNotificationHelper({
+      title: `Event Updated: ${event.title}`,
+      message: `${event.title} has been updated. Date: ${event.startDate} at ${event.location}.`,
+      notificationType: "general",
+      targets,
+      schoolId,
+      createdBy: req.user._id,
+    });
     res
       .status(200)
       .json({ success: true, message: "Event updated successfully", event });

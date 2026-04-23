@@ -7,12 +7,14 @@ import Student from "../models/student.js"; // adjust import paths to your proje
 export const createNotificationHelper = async ({
   title, message, notificationType = 'general',
   targetType = 'all', roles = [], classId = null, schoolId = null, createdBy = null,
-  studentId = null,
-}) => {
+  studentId = null, teacherId= null , sectionId =null
+  ,targets=[]
+}) => { 
+  const resolvedTargets = targets.map(t => ({ ...t, schoolId }));
   const notification = new Notification({
     title, message, notificationType,
     createdBy,
-    target: { type: targetType, roles, classId, schoolId ,studentId},
+   targets: resolvedTargets,
   });
   await notification.save();
   return notification;
@@ -32,7 +34,8 @@ export const createNotification = async (req, res) => {
       message,
       notificationType: notificationType || 'general',
       createdBy: req.user._id,
-      target: target || { type: 'all' },
+      targets: target || { type: 'all' },
+      schoolId:req.user.school_id, 
     });
 
     await notification.save();
@@ -57,9 +60,9 @@ export const getAllNotifications = async (req, res) => {
     else if (user.role === 'school_admin') {
       targetQuery = {
         $or: [
-          { 'target.type': 'all' },
-          { 'target.roles': 'school_admin' },
-          { 'target.schoolId': user.school_id }, // everything scoped to this school
+          { 'targets.type': 'all' },
+          { 'targets.roles': 'school_admin' },
+          { 'targets.schoolId': user.school_id }, // everything scoped to this school
         ]
       };
     }
@@ -70,14 +73,15 @@ export const getAllNotifications = async (req, res) => {
         $and: [
           {
             $or: [
-              { 'target.type': 'all' },
-              { 'target.roles': 'teacher_admin' },
+              { 'targets.type': 'all' },
+              { 'targets.roles': 'teacher_admin' },
+              { 'targets.teacherId': user._id },
             ]
           },
           {
             $or: [
-              { 'target.schoolId': user.school_id },
-              { 'target.type': 'all' },
+              { 'targets.schoolId': user.school_id },
+              { 'targets.type': 'all' },
             ]
           }
         ]
@@ -87,15 +91,15 @@ export const getAllNotifications = async (req, res) => {
     // ── STUDENT / PARENT: only their own + class + 'all' ─────────────────────
     else if (user.role === 'student_admin') {
       const orConditions = [
-        { 'target.type': 'all' },
-        { 'target.roles': 'student_admin' },
-        { 'target.studentId': user.student_id }, // personal (book issue, fee, etc.)
+        { 'targets.type': 'all' },
+        { 'targets.roles': 'student_admin' },
+        { 'targets.studentId': user.student_id }, // personal (book issue, fee, etc.)
       ];
 
       if (user.student_id) {
-        const student = await Student.findById(user.student_id).select('class_id');
-        if (student?.class_id) {
-          orConditions.push({ 'target.classId': student.class_id }); // class exam etc.
+        const student = await Student.findById(user.student_id).select('classId');
+        if (student?.classId) {
+          orConditions.push({ 'targets.classId': student.classId }); // class exam etc.
         }
       }
 
@@ -104,9 +108,9 @@ export const getAllNotifications = async (req, res) => {
           { $or: orConditions },
           {
             $or: [
-              { 'target.schoolId': user.school_id },
-              { 'target.type': 'all' },
-              { 'target.studentId': user.student_id }, // personal always passes scope check
+              { 'targets.schoolId': user.school_id },
+              { 'targets.type': 'all' },
+              { 'targets.studentId': user.student_id }, // personal always passes scope check
             ]
           }
         ]
