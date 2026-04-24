@@ -799,53 +799,14 @@ export const getAllStudentAdminHistory = async (req, res) => {
 export const getStudentFeeDetails = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const schoolId = req.user.school_id; // from auth token
+    const schoolId = req.user.school_id;
+    const feeDetails = await buildStudentFeeResponse({ studentId, schoolId });
 
-    // Fetch student with class info
-    const student = await Student.findById(studentId)
-      .populate({ path: "classId", select: "name" })
-      .populate({ path: "sectionId", select: "name" })
-      .lean();
+    if (!feeDetails) {
+      return res.status(404).json({ message: "Student not found" });
+    }
 
-    if (!student) return res.status(404).json({ message: "Student not found" });
-
-    // Fetch fee structure for student's class
-    const feeStructure = await FeeStructure.findOne({
-      class: student.classId._id,
-      schoolId,
-    }).lean();
-
-    console.log("student.classId._id:", student.classId._id);
-    console.log("schoolId:", schoolId);
-    console.log("feeStructure:", feeStructure);
-
-    // Fetch all payments for this student
-    const payments = await Payment.find({ studentId, schoolId })
-      .sort({ paidDate: -1 })
-      .lean();
-
-    const totalFees = feeStructure
-      ? feeStructure.fees.reduce((sum, f) => sum + f.amount, 0)
-      : 0;
-
-    const totalPaid = payments.reduce((sum, p) => sum + p.amountPaid, 0);
-    const balanceDue = Math.max(0, totalFees - totalPaid);
-
-    res.json({
-      student: {
-        name: student.firstName + " " + student.lastName,
-        className: student.classId?.name,
-        section: student.sectionId?.name,
-        rollNo: student.rollNo,
-      },
-      feeStructure: feeStructure?.fees || [],
-      totalFees,
-      totalPaid,
-      balanceDue,
-      paidPercent:
-        totalFees > 0 ? Math.round((totalPaid / totalFees) * 100) : 0,
-      payments,
-    });
+    res.json(feeDetails);
   } catch (err) {
     console.error("getStudentFeeDetails error:", err.message);
     res.status(500).json({ message: err.message });
@@ -857,17 +818,89 @@ const getAppliedFeeAmount = (student, fee) => {
 
   // 🟡 OPTIONAL FEES (like Bus)
   if (fee.isOptional) {
-    // Apply only if student has transport assigned
-    if (fee.name.toLowerCase().includes("bus")) {
+    const feeName = fee.name?.toLowerCase() || "";
+    const selectedOptionalFees = (student.selectedOptionalFees || []).map(
+      String,
+    );
+
+    if (feeName.includes("bus") || feeName.includes("transport")) {
       return student.transport ? fee.amount : 0;
     }
 
-    // Future optional fees can go here
+    if (selectedOptionalFees.includes(String(fee._id))) {
+      return fee.amount || 0;
+    }
+
     return 0;
   }
 
   // 🟢 MANDATORY FEES
   return fee.amount || 0;
+};
+
+const buildStudentFeeResponse = async ({ studentId, schoolId }) => {
+  const student = await Student.findOne({
+    _id: studentId,
+    schoolId,
+  })
+    .populate({ path: "classId", select: "name" })
+    .populate({ path: "sectionId", select: "name" })
+    .lean();
+
+  if (!student) {
+    return null;
+  }
+
+  const feeStructure = await FeeStructure.findOne({
+    class: student.classId?._id || student.classId,
+    schoolId,
+  }).lean();
+
+  const payments = await Payment.find({ studentId: student._id, schoolId })
+    .sort({ paidDate: -1 })
+    .lean();
+
+  const breakdown = (feeStructure?.fees || [])
+    .map((fee) => ({
+      _id: fee._id,
+      name: fee.name,
+      amount: getAppliedFeeAmount(student, fee),
+      isOptional: fee.isOptional,
+    }))
+    .filter((fee) => fee.amount > 0);
+
+  const totalFee = Number(student.totalFee) || Number(student.finalFee) || 0;
+  const finalFee = Number(student.finalFee) || 0;
+  const totalPaid = Number(student.totalPaid) || 0;
+  const storedDue = Number(student.totalDue);
+  const discountValue = Number(student.discountValue) || 0;
+  const discountAmount = Math.max(0, totalFee - finalFee);
+  const totalDue = Math.max(
+    0,
+    Number.isFinite(storedDue) ? storedDue : finalFee - totalPaid,
+  );
+
+  return {
+    success: true,
+    student: {
+      name: `${student.firstName} ${student.lastName}`.trim(),
+      className: student.classId?.name || "",
+      section: student.sectionId?.name || "",
+      rollNo: student.rollNo || "",
+    },
+    feeStructure: breakdown,
+    finalFee,
+    totalFee,
+    totalFees: finalFee,
+    discountType: student.discountType || "",
+    discountValue,
+    discountAmount,
+    totalPaid,
+    totalDue,
+    balanceDue: totalDue,
+    paidPercent: finalFee > 0 ? Math.round((totalPaid / finalFee) * 100) : 0,
+    payments,
+  };
 };
 
 export const getMyFeeDetails = async (req, res) => {
@@ -883,57 +916,18 @@ export const getMyFeeDetails = async (req, res) => {
     }
 
     // ✅ Fetch student
-    const student = await Student.findOne({
-      _id: studentId,
-      schoolId,
-    });
+    const feeDetails = await buildStudentFeeResponse({ studentId, schoolId });
 
-    if (!student) {
+    if (!feeDetails) {
       return res.status(404).json({
         success: false,
         message: "Student not found",
       });
     }
 
-    // ✅ Fetch fee structure
-    const feeStructure = await FeeStructure.findOne({
-      class: student.classId,
-      schoolId,
-    });
-
-    if (!feeStructure) {
-      return res.json({
-        success: true,
-        totalFee: 0,
-        totalPaid: student.totalPaid || 0,
-        totalDue: 0,
-        breakdown: [],
-      });
-    }
-
-    // ✅ Calculate fees
-    let totalFee = 0;
-
-    const breakdown = feeStructure.fees.map((fee) => {
-      const amount = getAppliedFeeAmount(student, fee); // 👈 your existing helper
-      totalFee += amount;
-
-      return {
-        name: fee.name,
-        amount,
-        isOptional: fee.isOptional,
-      };
-    });
-
-    const totalPaid = student.totalPaid || 0;
-    const totalDue = Math.max(0, totalFee - totalPaid);
-
     return res.json({
-      success: true,
-      finalFee: totalFee,
-      totalPaid,
-      totalDue,
-      breakdown,
+      ...feeDetails,
+      breakdown: feeDetails.feeStructure,
     });
   } catch (err) {
     console.error("getMyFeeDetails error:", err);

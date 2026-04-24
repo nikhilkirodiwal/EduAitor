@@ -1,6 +1,5 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 
@@ -250,7 +249,7 @@ const FeeStructureTab = ({ feeStructure, totalFees }) => {
 
       {/* Total row */}
       <div className="flex items-center justify-between bg-indigo-600 text-white rounded-2xl px-4 py-3.5 mt-2 shadow-sm shadow-indigo-200">
-        <span className="text-sm font-semibold">Total annual fees</span>
+        <span className="text-sm font-semibold">Final annual fees</span>
         <span className="text-base font-bold">{fmtINR(totalFees)}</span>
       </div>
     </div>
@@ -355,7 +354,7 @@ const PaymentHistoryTab = ({ payments }) => {
 
 // ─── Summary Tab (overview with mini chart) ───────────────────────────────────
 const SummaryTab = ({ data }) => {
-  const { totalFees, totalPaid, balanceDue, paidPercent, payments } = data;
+  const { finalFee, totalPaid, balanceDue, paidPercent, payments } = data;
 
   // build monthly bars from payments
   const monthly = {};
@@ -434,7 +433,7 @@ const SummaryTab = ({ data }) => {
             <div className="border-t border-gray-50 pt-2 flex justify-between items-center">
               <span className="text-xs text-gray-400">Total</span>
               <span className="text-sm font-bold text-gray-700">
-                {fmtINR(totalFees)}
+                {fmtINR(finalFee)}
               </span>
             </div>
           </div>
@@ -517,7 +516,6 @@ export default function ParentFee({ studentId, token }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("summary");
-  const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = window.innerWidth <= 768;
 
@@ -529,7 +527,7 @@ export default function ParentFee({ studentId, token }) {
       setError(null);
       try {
         const res = await axios.get(
-          `${API}/fees/parent/student/${user.student_id}`,
+          `${API}/fees/parent/student/me`,
           { withCredentials: true },
         );
         setFeeData(res.data);
@@ -588,12 +586,25 @@ export default function ParentFee({ studentId, token }) {
   const {
     student,
     feeStructure,
-    totalFees,
+    totalFee,
+    finalFee,
+    discountType,
+    discountValue,
+    discountAmount,
     totalPaid,
     balanceDue,
     paidPercent,
     payments,
   } = feeData;
+
+  const discountSub =
+    discountAmount > 0
+      ? discountType === "Percentage"
+        ? `${discountValue}% off`
+        : discountType === "Rupees"
+          ? `${fmtINR(discountValue)} off`
+          : "Applied"
+      : "No discount";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -629,20 +640,26 @@ export default function ParentFee({ studentId, token }) {
         </div>
 
         {/* ── Metric cards ────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-3 gap-2.5 mt-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mt-4">
           <MetricCard
-            label="Total fees"
-            value={fmtINR(totalFees)}
+            label="Total fee"
+            value={fmtINR(totalFee)}
             valueClass="text-gray-800"
           />
           <MetricCard
-            label="Paid"
-            value={fmtINR(totalPaid)}
-            valueClass="text-emerald-600"
-            sub={`${paidPercent}% done`}
+            label="Discount"
+            value={discountAmount > 0 ? fmtINR(discountAmount) : fmtINR(0)}
+            valueClass={discountAmount > 0 ? "text-amber-600" : "text-gray-500"}
+            sub={discountSub}
           />
           <MetricCard
-            label="Balance"
+            label="Final fee"
+            value={fmtINR(finalFee)}
+            valueClass="text-indigo-600"
+            sub={`${paidPercent}% paid`}
+          />
+          <MetricCard
+            label="Remaining fee"
             value={fmtINR(balanceDue)}
             valueClass={balanceDue > 0 ? "text-red-500" : "text-emerald-600"}
             sub={balanceDue === 0 ? "Cleared" : "Pending"}
@@ -654,7 +671,7 @@ export default function ParentFee({ studentId, token }) {
           <div className="flex justify-between text-xs text-gray-400 mb-2">
             <span>Payment progress</span>
             <span className="font-medium text-gray-600">
-              {paidPercent}% of {fmtINR(totalFees)}
+              {paidPercent}% of {fmtINR(finalFee)}
             </span>
           </div>
           <ProgressBar pct={paidPercent} />
@@ -689,13 +706,13 @@ export default function ParentFee({ studentId, token }) {
         <div className="mt-4">
           {activeTab === "summary" && (
             <SummaryTab
-              data={{ totalFees, totalPaid, balanceDue, paidPercent, payments }}
+              data={{ finalFee, totalPaid, balanceDue, paidPercent, payments }}
             />
           )}
           {activeTab === "structure" && (
             <FeeStructureTab
               feeStructure={feeStructure}
-              totalFees={totalFees}
+              totalFees={finalFee}
             />
           )}
           {activeTab === "history" && <PaymentHistoryTab payments={payments} />}
