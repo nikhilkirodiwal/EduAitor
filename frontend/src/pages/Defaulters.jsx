@@ -62,15 +62,15 @@ const Defaulters = () => {
   }, [fetchDefaulters]);
 
   return (
-    <div className="p-4 md:p-8 bg-slate-50 min-h-screen font-sans">
+    <div className="p-4 md:p-8 text-[rgb(var(--text))]  min-h-screen font-sans">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
           <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+                 bg-[rgb(var(--primary))] shadow-sm border border-slate-100
+                 text-sm font-bold  active:scale-95 transition-transform mb-2.5"
           >
             <FaArrowLeft size={16} />
             Back
@@ -80,10 +80,10 @@ const Defaulters = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-3xl font-black  tracking-tight">
             Fee Defaulters
           </h1>
-          <p className="text-slate-500 font-medium mt-1">
+          <p className="text-[rgb(var(--primary))] font-medium mt-1">
             list of students with 2+ months unpaid fees
           </p>
         </div>
@@ -97,7 +97,7 @@ const Defaulters = () => {
               setSearchTerm(e.target.value);
               setPage(1);
             }}
-            className="p-3 bg-white border-2 border-slate-200 rounded-2xl text-sm font-bold shadow-sm outline-none focus:border-blue-500 transition-all"
+            className="p-3  border-2 bg-[rgb(var(--surface))] border-slate-200 rounded-2xl text-sm font-bold shadow-sm outline-none transition-all"
           />
           <select
             value={selectedClass}
@@ -107,16 +107,16 @@ const Defaulters = () => {
               setPage(1);
             }}
           >
-            <option value="">All Classes</option>
+            <option value="" className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">All Classes</option>
             {classes.map((c) => (
               /* Use c._id as the value, c.name as the label */
-              <option key={c._id} value={c._id}>
+              <option key={c._id} value={c._id} className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
                 Class {c.name}
               </option>
             ))}
           </select>
 
-          <button className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-2xl text-sm font-bold shadow-lg shadow-red-200 active:scale-95 transition-all flex items-center gap-2">
+          <button className="text-[rgb(var(--text))] bg-[rgb(var(--primary))] px-6 py-3 rounded-2xl text-sm font-bold  active:scale-95 transition-all flex items-center gap-2">
             <span>🔔 Notify All</span>
           </button>
         </div>
@@ -125,18 +125,18 @@ const Defaulters = () => {
       {/* Loading State */}
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
-          <p className="mt-4 text-slate-500 font-bold italic">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-4 "></div>
+          <p className="mt-4  font-bold italic">
             Scanning database...
           </p>
         </div>
       ) : defaulters.length > 0 ? (
         <>
           {/* Table Container */}
-          <div className="bg-white rounded-4xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden">
+          <div className="bg-[rgb(var(--surface))]  rounded-4xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-slate-50/80 text-slate-400 text-[11px] uppercase tracking-[0.2em] font-black">
+                <thead className=" text-[11px] uppercase tracking-[0.2em] font-black">
                   <tr>
                     <th className="p-6">Student Info</th>
                     <th className="p-6">Financial Standing</th>
@@ -148,18 +148,18 @@ const Defaulters = () => {
                   {defaulters.map((s, i) => (
                     <tr
                       key={s._id}
-                      className="hover:bg-blue-50/30 transition-colors group"
+                      className="group"
                     >
                       <td className="p-6">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-400">
+                          <div className="h-10 w-10  bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-full flex items-center justify-center font-bold ">
                             {i + 1}
                           </div>
                           <div>
-                            <p className="font-bold text-slate-800 text-base">
+                            <p className="font-bold  text-base text-[rgb(var(--primary))]">
                               {s.firstName} {s.lastName}
                             </p>
-                            <p className="text-xs text-slate-400 font-semibold uppercase">
+                            <p className="text-xs  font-semibold uppercase">
                               Class {s.className}-{s.section}
                             </p>
                           </div>
@@ -170,13 +170,13 @@ const Defaulters = () => {
                           <span className="text-red-600 font-black text-m leading-none">
                             Total Due ₹{(s.calculatedDue || 0).toLocaleString()}
                           </span>
-                          <span className="text-[10px] font-bold text-slate-400 mt-1 italic">
+                          <span className="text-[10px] font-bold  mt-1 italic">
                             Total Payable: ₹
                             {(s.finalFee || 0).toLocaleString()}{" "}
                           </span>
                         </div>
                       </td>
-                      <td className="p-6 text-slate-600 font-medium">
+                      <td className="p-6  font-medium">
                         {s.lastPayment ? (
                           <div className="text-sm">
                             {new Date(
@@ -185,7 +185,7 @@ const Defaulters = () => {
                               day: "numeric",
                               month: "short",
                             })}
-                            <p className="text-[10px] text-slate-400">
+                            <p className="text-[10px] ">
                               via {s.lastPayment.paymentMode}
                             </p>
                           </div>
@@ -199,11 +199,11 @@ const Defaulters = () => {
                         <div className="flex justify-end gap-3">
                           <button
                             onClick={() => setViewData(s)}
-                            className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition-all"
+                            className="px-4 py-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-xl text-xs font-bold  transition-all"
                           >
                             Details
                           </button>
-                          <button className="px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 shadow-md shadow-blue-100 transition-all">
+                          <button className="px-4 py-2 bg-[rgb(var(--primary))] rounded-xl text-xs font-bold transition-all">
                             Notify
                           </button>
                         </div>
@@ -217,21 +217,21 @@ const Defaulters = () => {
 
           {/* Pagination - Only shown if defaulters exist */}
           <div className="mt-8 flex items-center justify-between px-4">
-            <p className="text-xs font-bold text-slate-400 italic">
+            <p className="text-xs font-bold italic">
               Showing page {page} of {totalPages}
             </p>
             <div className="flex gap-2">
               <button
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="px-6 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 disabled:opacity-30 hover:bg-slate-50 transition-all"
+                className="px-6 py-2 bg-[rgb(var(--surface))] border border-slate-200 rounded-xl font-bold  disabled:opacity-30 hover:bg-slate-50 transition-all"
               >
                 Previous
               </button>
               <button
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                className="px-6 py-2 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 disabled:opacity-30 hover:bg-slate-50 transition-all"
+                className="px-6 py-2 bg-[rgb(var(--surface))] border border-slate-200 rounded-xl font-bold  disabled:opacity-30 hover:bg-slate-50 transition-all"
               >
                 Next
               </button>
@@ -240,23 +240,23 @@ const Defaulters = () => {
         </>
       ) : (
         /* Empty State */
-        <div className="bg-white rounded-4xl p-20 flex flex-col items-center justify-center border-2 border-dashed border-slate-200">
+        <div className="bg-[rgb(var(--surface))] rounded-4xl p-20 flex flex-col items-center justify-center border-2 border-dashed border-slate-200">
           {searchTerm ? (
             /* Scenario A: Search result is empty */
             <>
-              <div className="bg-slate-50 h-20 w-20 rounded-full flex items-center justify-center text-3xl mb-4">
+              <div className="bg-[rgb(var(--bg))] h-20 w-20 rounded-full flex items-center justify-center text-3xl mb-4">
                 🔍
               </div>
-              <h2 className="text-xl font-black text-slate-800">
+              <h2 className="text-xl font-black ">
                 No Match Found
               </h2>
-              <p className="text-slate-500 font-medium text-center">
+              <p className=" font-medium text-center">
                 We couldn't find any defaulter matching{" "}
-                <span className="text-blue-600">"{searchTerm}"</span>
+                <span className="text-[rgb(var(--primary))]">"{searchTerm}"</span>
               </p>
               <button
                 onClick={() => setSearchTerm("")}
-                className="mt-4 bg-slate-900 text-white px-6 py-2 rounded-xl font-bold text-sm hover:bg-slate-800 transition-all"
+                className="mt-4 bg-[rgb(var(--primary))]  px-6 py-2 rounded-xl font-bold text-sm hover:bg-[rgb(var(--primary-hover))] transition-all"
               >
                 Clear Search
               </button>
@@ -264,20 +264,20 @@ const Defaulters = () => {
           ) : (
             /* Scenario B: Truly no defaulters in the database/class */
             <>
-              <div className="bg-green-50 h-20 w-20 rounded-full flex items-center justify-center text-3xl mb-4">
+              <div className="bg-[rgb(var(--bg))] h-20 w-20 rounded-full flex items-center justify-center text-3xl mb-4">
                 ✅
               </div>
-              <h2 className="text-xl font-black text-slate-800">
+              <h2 className="text-xl font-black ">
                 Excellent! No Defaulters Found
               </h2>
-              <p className="text-slate-500 font-medium">
+              <p className=" font-medium">
                 Everyone in {selectedClass ? `this class` : "all classes"} is up
                 to date.
               </p>
               {selectedClass && (
                 <button
                   onClick={() => setSelectedClass("")}
-                  className="mt-4 text-blue-600 font-bold underline text-sm"
+                  className="mt-4 text-[rgb(var(--primary))] font-bold underline text-sm"
                 >
                   Check Other Classes
                 </button>
@@ -290,27 +290,27 @@ const Defaulters = () => {
       {/* View Modal */}
       {viewData && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-8 rounded-[2.5rem] max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] p-8 rounded-[2.5rem] max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="text-center mb-6">
-              <div className="h-16 w-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 font-black italic">
+              <div className="h-16 w-16 bg-[rgb(var(--primary))]  rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 font-black italic">
                 i
               </div>
-              <h3 className="text-2xl font-black text-slate-900 leading-tight">
+              <h3 className="text-2xl font-black  leading-tight">
                 Dues for {viewData.firstName}
               </h3>
             </div>
 
             <div className="space-y-4">
               <div className="flex justify-between items-center py-2">
-                <span className="text-slate-400 font-bold uppercase text-[10px]">
+                <span className=" font-bold uppercase text-[10px]">
                   Monthly Commitment
                 </span>
-                <span className="font-bold text-slate-700">
+                <span className="font-bold ">
                   ₹{Math.round(viewData.totalFees / 12).toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between items-center py-2 border-y border-slate-50">
-                <span className="text-slate-400 font-bold uppercase text-[10px]">
+                <span className=" font-bold uppercase text-[10px]">
                   Defaulter Duration
                 </span>
                 <span className="font-bold text-red-600">2+ Months</span>
@@ -327,7 +327,7 @@ const Defaulters = () => {
 
             <button
               onClick={() => setViewData(null)}
-              className="w-full mt-8 py-4 bg-slate-900 text-white rounded-2xl font-black hover:bg-slate-800 transition-all"
+              className="w-full mt-8 py-4 text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-2xl font-black transition-all"
             >
               Got it, close
             </button>

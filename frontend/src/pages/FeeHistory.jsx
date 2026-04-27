@@ -258,7 +258,7 @@ function FeeHistory() {
 
   return (
     <div
-      className="min-h-screen bg-stone-50"
+      className="min-h-screen bg-[rgb(var(--bg))] py-8"
       style={{ fontFamily: "Georgia, serif" }}
     >
       {/* 🔙 BACK BUTTON */}
@@ -266,9 +266,9 @@ function FeeHistory() {
           <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+            className="flex items-center gap-2  rounded-xl
+                bg-[rgb(var(--primary))] shadow-sm border border-slate-100
+                 text-sm font-bold text-[rgb(var(--text))] active:scale-95 transition-transform mb-2.5"
           >
             <FaArrowLeft size={16} />
             Back
@@ -276,30 +276,30 @@ function FeeHistory() {
         </div>
       )}
       {/* ── Header ── */}
-      <div className="bg-white border-b border-stone-200 px-4 sm:px-8 py-5">
+      <div className="border-b border-stone-200 px-4 sm:px-8 py-5">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
           <div>
-            <p className="text-xs tracking-widest text-stone-400 uppercase mb-1 font-sans">
+            <p className="text-xs tracking-widest  uppercase mb-1 font-sans">
               School Management
             </p>
-            <h1 className="text-2xl sm:text-3xl text-stone-800 font-normal tracking-tight">
+            <h1 className="text-2xl sm:text-3xl text-[rgb(var(--primary))] font-normal tracking-tight">
               Fee Collection History
             </h1>
           </div>
 
           {/* Total amount summary */}
           <div className="sm:text-right">
-            <p className="text-xs text-stone-400 font-sans mb-0.5">
+            <p className="text-xs  font-sans mb-0.5">
               Total collected · {summaryLabel}
             </p>
-            <p className="text-2xl font-semibold text-stone-800 font-sans">
+            <p className="text-2xl font-semibold  font-sans">
               {loading ? (
-                <span className="inline-block h-7 w-28 rounded bg-stone-100 animate-pulse align-middle" />
+                <span className="inline-block h-7 w-28 rounded bg-[rgb(var(--primary))] animate-pulse align-middle" />
               ) : (
                 formatAmount(totalAmount)
               )}
             </p>
-            <p className="text-xs text-stone-400 font-sans mt-0.5">
+            <p className="text-xs font-sans mt-0.5">
               {pagination.total} record{pagination.total !== 1 ? "s" : ""}
             </p>
           </div>
@@ -312,7 +312,7 @@ function FeeHistory() {
           {/* Search */}
           <div className="relative flex-1">
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4  pointer-events-none"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -329,12 +329,12 @@ function FeeHistory() {
               placeholder="Search name, student ID, receipt…"
               value={search}
               onChange={(e) => handleFilterChange(setSearch)(e.target.value)}
-              className="w-full pl-9 pr-9 py-2.5 text-sm bg-white border border-stone-200 rounded-lg text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-stone-300 font-sans transition"
+              className="w-full pl-9 pr-9 py-2.5 text-sm  border-stone-200 rounded-lg border-1 bg-[rgb(var(--surface))] focus:outline-none focus:ring-2 focus:ring-stone-300 font-sans transition"
             />
             {search && (
               <button
                 onClick={() => handleFilterChange(setSearch)("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 "
               >
                 <svg
                   className="w-4 h-4"
@@ -358,16 +358,18 @@ function FeeHistory() {
             <select
               value={month}
               onChange={(e) => handleFilterChange(setMonth)(e.target.value)}
-              className="w-full appearance-none pl-3 pr-8 py-2.5 text-sm bg-white border border-stone-200 rounded-lg text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-300 font-sans cursor-pointer"
+              className="w-full appearance-none pl-3 pr-8 py-2.5 text-sm  border-stone-200 rounded-lg
+              text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+              focus:outline-none focus:ring-2  font-sans cursor-pointer"
             >
               {MONTHS.map((m) => (
-                <option key={m.value} value={m.value}>
+                <option key={m.value} value={m.value} className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
                   {m.label}
                 </option>
               ))}
             </select>
             <svg
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400"
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--primary))]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -386,16 +388,18 @@ function FeeHistory() {
             <select
               value={year}
               onChange={(e) => handleFilterChange(setYear)(e.target.value)}
-              className="w-full appearance-none pl-3 pr-8 py-2.5 text-sm bg-white border border-stone-200 rounded-lg text-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-300 font-sans cursor-pointer"
+              className="w-full appearance-none pl-3 pr-8 py-2.5 text-sm  border-stone-200 rounded-lg
+              text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+              focus:outline-none focus:ring-2  font-sans cursor-pointer"
             >
               {YEARS.map((y) => (
-                <option key={y.value} value={y.value}>
+                <option key={y.value} value={y.value} className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
                   {y.label}
                 </option>
               ))}
             </select>
             <svg
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400"
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--primary))]"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -439,10 +443,10 @@ function FeeHistory() {
         )}
 
         {/* ── Table — desktop ── */}
-        <div className="hidden md:block bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="hidden md:block bg-[rgb(var(--surface))] border border-stone-200 rounded-xl overflow-hidden shadow-sm">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-stone-50 border-b border-stone-200">
+              <tr className=" border-b border-stone-200">
                 {[
                   "Receipt",
                   "Student",
@@ -453,7 +457,7 @@ function FeeHistory() {
                 ].map((h) => (
                   <th
                     key={h}
-                    className="px-4 py-3 text-left text-xs font-semibold text-stone-500 uppercase tracking-wider font-sans"
+                    className="px-4 py-3 text-left text-xs font-semibold tuppercase tracking-wider font-sans"
                   >
                     {h}
                   </th>
@@ -467,7 +471,7 @@ function FeeHistory() {
                 <tr>
                   <td
                     colSpan={6}
-                    className="text-center py-16 text-stone-400 font-sans text-sm"
+                    className="text-center py-16  font-sans text-sm"
                   >
                     No records found
                   </td>
@@ -478,33 +482,33 @@ function FeeHistory() {
                   return (
                     <tr
                       key={item._id}
-                      className="border-b border-stone-100 hover:bg-stone-50/60 transition-colors"
+                      className="border-b border-stone-100  text-[rgb(var(--text))] transition-colors"
                     >
-                      <td className="px-4 py-3 text-stone-500 text-xs font-sans font-medium">
+                      <td className="px-4 py-3  text-xs font-sans font-medium">
                         {item.receiptNo}
                       </td>
                       <td className="px-4 py-3">
-                        <p className="text-stone-800 font-medium">
+                        <p className="text-[rgb(var(--primary))] font-medium">
                           {s?.firstName} {s?.lastName}
                         </p>
-                        <p className="text-xs text-stone-400 font-sans">
+                        <p className="text-xs  font-sans">
                           {s?.studentId}
                         </p>
                       </td>
-                      <td className="px-4 py-3 font-sans text-stone-600">
+                      <td className="px-4 py-3 font-sans ">
                         {s?.className}-{s?.section}
                       </td>
-                      <td className="px-4 py-3 font-sans font-semibold text-stone-800">
+                      <td className="px-4 py-3 font-sans font-semibold ">
                         {formatAmount(item.amountPaid)}
                       </td>
                       <td className="px-4 py-3">
                         <Badge mode={item.paymentMode} />
                       </td>
-                      <td className="px-4 py-3 font-sans text-stone-500 text-xs">
+                      <td className="px-4 py-3 font-sans  text-xs">
                         {formatDate(item.paidDate)}
                         {item.remarks && (
                           <p
-                            className="text-stone-400 mt-0.5 max-w-45 truncate"
+                            className="mt-0.5 max-w-45 truncate"
                             title={item.remarks}
                           >
                             {item.remarks}
@@ -525,7 +529,7 @@ function FeeHistory() {
             [...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl border border-stone-200 p-4 space-y-2"
+                className=" rounded-xl border border-stone-200 p-4 space-y-2"
               >
                 {[...Array(3)].map((_, j) => (
                   <div
@@ -536,7 +540,7 @@ function FeeHistory() {
               </div>
             ))
           ) : records.length === 0 ? (
-            <div className="text-center py-16 text-stone-400 font-sans text-sm">
+            <div className="text-center py-16  font-sans text-sm">
               No records found
             </div>
           ) : (
@@ -545,7 +549,7 @@ function FeeHistory() {
               return (
                 <div
                   key={item._id}
-                  className="bg-white rounded-xl border border-stone-200 p-4 shadow-sm"
+                  className="bg-[rgb(var(--surface))] rounded-xl border border-stone-200 p-4 shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div>
@@ -581,7 +585,7 @@ function FeeHistory() {
         {/* ── Footer: record range + pagination ── */}
         {!loading && pagination.total > 0 && (
           <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-stone-400 font-sans">
+            <p className="text-xs text-[rgb(var(--text))] font-sans">
               Showing {from}–{to} of {pagination.total} records
             </p>
             <Pagination

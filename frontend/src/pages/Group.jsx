@@ -627,32 +627,32 @@ function MembersPanel({ group, isAdmin, onRemove, onAdd, userLookup }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 py-3 border-b border-gray-100 shrink-0">
+      <div className="px-4 py-3 border-b border-gray-100 shrink-0 bg-[rgb(var(--surface))] text-[rgb(var(--text))]">
         <div className="flex items-center justify-between mb-2.5">
-          <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+          <span className="text-xs font-bold uppercase tracking-wide">
             {group.members?.length || 0} Members
           </span>
           {isAdmin && (
             <button
               onClick={onAdd}
-              className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 text-xs font-semibold text-[rgb(var(--text))] bg-[rgb(var(--primary))] px-3 py-1.5 rounded-lg transition-colors"
             >
               <MdGroupAdd size={13} /> Add
             </button>
           )}
         </div>
-        <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2">
-          <FiSearch size={11} className="text-gray-400 shrink-0" />
+        <div className="flex items-center gap-2  rounded-xl px-3 py-2">
+          <FiSearch size={11} className="shrink-0" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search members…"
-            className="bg-transparent text-xs text-gray-700 placeholder-gray-400 flex-1 outline-none"
+            className="bg-transparent text-xs border py-2 text-center rounded-2xl flex-1 outline-none"
           />
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2">
+      <div className="flex-1 overflow-y-auto p-2 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
         {members.map((m, i) => {
           const name = getMemberName(m, userLookup);
           const photo =
@@ -661,12 +661,12 @@ function MembersPanel({ group, isAdmin, onRemove, onAdd, userLookup }) {
           return (
             <div
               key={i}
-              className="flex items-center gap-2.5 px-2.5 py-2.5 rounded-xl hover:bg-gray-50 transition-colors group"
+              className="flex items-center gap-2.5 px-2.5 py-2.5 rounded-xl border transition-colors group"
             >
               <Avatar name={name} size="w-9 h-9" fs="text-xs" url={photo} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-xs font-semibold text-gray-800 truncate">
+              <div className="flex-1 min-w-0 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
+                <div className="flex items-center gap-1.5 ">
+                  <p className="text-xs font-semibold  truncate">
                     {name}
                   </p>
                   {m.role === "admin" && (
@@ -1254,28 +1254,28 @@ function ChatWindow({
 
   return (
     <div className="flex h-full overflow-hidden">
-      <div className="flex flex-col flex-1 min-w-0 h-full">
+      <div className="flex flex-col flex-1 min-w-0 h-full text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
         {/* ── Header ── */}
-        <div className="flex items-center gap-3 px-3 sm:px-4 py-3 bg-white border-b border-gray-100 shadow-sm shrink-0">
+        <div className="flex items-center gap-3 px-3 sm:px-4 py-3 bg-[rgb(var(--bg))] border-b border-gray-100 shadow-sm shrink-0">
           <button
             onClick={onBack}
-            className="md:hidden p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            className="md:hidden p-1.5  rounded-lg transition-colors"
           >
             <FiArrowLeft size={18} />
           </button>
           <div
             className={`w-10 h-10 rounded-full ${meta.bg} flex items-center justify-center shrink-0 shadow-sm`}
           >
-            <Icon size={18} className="text-white" />
+            <Icon size={18} className="" />
           </div>
           <div
             className="flex-1 min-w-0 cursor-pointer"
             onClick={() => setShowMembers((v) => !v)}
           >
-            <p className="text-sm font-bold text-gray-900 truncate">
+            <p className="text-sm font-bold  truncate">
               {group.name}
             </p>
-            <p className="text-xs text-gray-400 truncate flex items-center gap-1.5">
+            <p className="text-xstruncate flex items-center gap-1.5">
               <span>{group.members?.length || 0} members</span>
               {group.type === "announcement" && (
                 <span className="inline-flex items-center gap-0.5 text-amber-500 font-semibold">
@@ -1287,18 +1287,18 @@ function ChatWindow({
           <div ref={menuRef} className="relative">
             <button
               onClick={() => setShowMenu((v) => !v)}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
+              className="p-2  rounded-xl transition-colors"
             >
               <BsThreeDotsVertical size={16} />
             </button>
             {showMenu && (
-              <div className="absolute right-0 top-10 z-30 bg-white rounded-xl shadow-xl border border-gray-100 py-1 min-w-42.5">
+              <div className="absolute right-0 top-10 z-30 bg-[rgb(var(--surface))] rounded-xl shadow-xl border border-gray-100 py-1 min-w-42.5">
                 <button
                   onClick={() => {
                     setShowMembers((v) => !v);
                     setShowMenu(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium "
                 >
                   <FiUsers size={13} />{" "}
                   {showMembers ? "Hide Members" : "View Members"}
@@ -1309,7 +1309,7 @@ function ChatWindow({
                       setShowAddMember(true);
                       setShowMenu(false);
                     }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium "
                   >
                     <FiUserPlus size={13} /> Add Member
                   </button>
@@ -1324,17 +1324,15 @@ function ChatWindow({
 
         {/* ── Messages ── */}
         <div
-          className="flex-1 overflow-y-auto px-3 sm:px-4 py-2"
-          style={{
-            background: "linear-gradient(160deg,#f0f2f8 0%,#eaecf2 100%)",
-          }}
+          className="flex-1 overflow-y-auto px-3 sm:px-4 py-2 bg-[rgb(var(--surface))]"
+          
         >
           {page < totalPages && (
             <div className="text-center py-2 mb-1">
               <button
                 onClick={() => fetchMessages(page + 1)}
                 disabled={loading}
-                className="text-xs font-semibold text-indigo-600 bg-white px-4 py-1.5 rounded-full shadow-sm border border-indigo-100 hover:bg-indigo-50 transition-colors"
+                className="text-xs font-semibold bg-[rgb(var(--surface))] px-4 py-1.5 rounded-full shadow-sm border border-indigo-100 hover:bg-indigo-50 transition-colors"
               >
                 {loading ? (
                   <>
@@ -1373,12 +1371,12 @@ function ChatWindow({
               <div
                 className={`w-16 h-16 rounded-full ${meta.bg} flex items-center justify-center mb-4 opacity-20`}
               >
-                <Icon size={30} className="text-white" />
+                <Icon size={30} className="text-[rgb(var(--primary))]" />
               </div>
-              <p className="text-sm font-semibold text-gray-500">
+              <p className="text-sm font-semibold ">
                 No messages yet
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs  mt-1">
                 {canSend
                   ? "Send the first message!"
                   : "Waiting for an admin to post…"}
@@ -1413,7 +1411,7 @@ function ChatWindow({
 
         {/* ── Input bar ── */}
         {canSend ? (
-          <div className="shrink-0 bg-white border-t border-gray-100 px-3 py-2.5">
+          <div className="shrink-0  border-t border-gray-100 px-3 py-2.5">
             {file && (
               <div className="flex items-center gap-1.5 mb-2 bg-indigo-50 text-indigo-700 text-xs font-medium px-3 py-1.5 rounded-full w-fit max-w-65">
                 {fileIcon}
@@ -1462,14 +1460,14 @@ function ChatWindow({
                 }}
                 placeholder="Type a message… (Enter to send)"
                 rows={1}
-                className="flex-1 resize-none py-2.5 px-3.5 rounded-2xl border border-gray-200 bg-gray-50 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:bg-white transition-all overflow-hidden"
+                className="flex-1 resize-none py-2.5 px-3.5 rounded-2xl border border-gray-200 text-[rgb(var(--text))] bg-[rgb(var(--surface))] focus:outline-none focus:ring-2  transition-all overflow-hidden"
                 style={{ minHeight: 42, maxHeight: 120, fontFamily: "inherit" }}
               />
 
               <button
                 onClick={send}
                 disabled={sending || (!text.trim() && !file)}
-                className="p-2.5 text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed rounded-xl transition-colors shrink-0 mb-0.5 shadow-sm"
+                className="p-2.5  bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary-light))] disabled:bg-[rgb(var(--surface))] disabled:cursor-not-allowed rounded-xl transition-colors shrink-0 mb-0.5 shadow-sm"
               >
                 {sending ? (
                   <FiLoader size={16} className="animate-spin" />
@@ -1527,7 +1525,7 @@ function GroupItem({ group, isActive, onClick }) {
   return (
     <div
       onClick={onClick}
-      className={`flex items-center gap-3 px-3 py-3 cursor-pointer transition-all rounded-xl mx-1.5 ${isActive ? "bg-indigo-50 shadow-sm" : "hover:bg-gray-50"}`}
+      className={`flex items-center gap-3 px-3 py-3 cursor-pointer transition-all rounded-xl mx-1.5 ${isActive ? "bg-[rgb(var(--primary))] shadow-sm" : "hover:bg-[rgb(var(--surface))]"}`}
     >
       <div
         className={`w-12 h-12 rounded-full ${meta.bg} flex items-center justify-center shrink-0 shadow-sm`}
@@ -1537,11 +1535,11 @@ function GroupItem({ group, isActive, onClick }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-1 mb-0.5">
           <span
-            className={`text-sm font-semibold truncate ${isActive ? "text-indigo-700" : "text-gray-900"}`}
+            className={`text-sm font-semibold truncate ${isActive ? "text-[rgb(var(--text))]" : "text-[rgb(var(--primary))]"}`}
           >
             {group.name}
           </span>
-          <span className="text-[10px] text-gray-400 shrink-0">
+          <span className="text-[10px]  shrink-0">
             {timeAgo(group.updatedAt || group.createdAt)}
           </span>
         </div>
@@ -1551,11 +1549,11 @@ function GroupItem({ group, isActive, onClick }) {
           >
             {meta.label}
           </span>
-          <span className="text-[10px] text-gray-400">
+          <span className="text-[10px]">
             {group.members?.length || 0} members
           </span>
           {group.lastMessage && (
-            <span className="text-[10px] text-gray-400 truncate max-w-20">
+            <span className="text-[10px]  truncate max-w-20">
               · {group.lastMessage}
             </span>
           )}
@@ -1570,14 +1568,14 @@ function TypeChip({
   label,
   active,
   onClick,
-  text = "text-indigo-600",
-  soft = "bg-indigo-50",
+  text = "text-[rgb(var(--text))]",
+  soft = "bg-[rgb(var(--primary))]",
 }) {
   return (
     <button
       onClick={onClick}
-      className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all
-        ${active ? `${soft} ${text}` : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"}`}
+      className={`shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-semibold  transition-all border
+        ${active ? `${soft} ${text}` : "text-[rgb(var(--text))] bg-[rgb(var(--surface))] "}`}
     >
       {label}
     </button>
@@ -1709,23 +1707,23 @@ export default function Groups() {
       `}</style>
 
       <div
-        className="flex h-[85vh] overflow-hidden bg-gray-100"
+        className="flex h-[85vh] overflow-hidden bg-[rgb(var(--bg))] text-[rgb(var(--text))]"
         style={{ fontFamily: "'Outfit', sans-serif" }}
       >
         {/* ── SIDEBAR ── */}
         <div
-          className={`flex flex-col bg-white border-r border-gray-100 shrink-0 w-full md:w-72 lg:w-80 ${mobileView === "chat" ? "hidden md:flex" : "flex"}`}
+          className={`flex flex-col  border-r border-[rgb(var--border)] shrink-0 w-full md:w-72 lg:w-80 ${mobileView === "chat" ? "hidden md:flex" : "flex"}`}
         >
           <div className="px-4 pt-4 pb-3 border-b border-gray-100 shrink-0">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
-                  <MdOutlineGroups size={17} className="text-white" />
+                <div className="w-8 h-8 bg-[rgb(var(--primary))] rounded-xl flex items-center justify-center shadow-sm">
+                  <MdOutlineGroups size={17} className="" />
                 </div>
-                <span className="text-base font-bold text-gray-900">
+                <span className="text-base font-bold ">
                   Groups
                 </span>
-                <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-bold text-[rgb(var(--text))] bg-[rgb(var(--primary))] px-2 py-0.5 rounded-full">
                   {groups.length}
                 </span>
               </div>
@@ -1734,25 +1732,25 @@ export default function Groups() {
               {isAdmin && (
                 <button
                   onClick={() => setShowCreate(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[rgb(var(--text))] bg-[rgb(var(--primary))] text-xs font-semibold rounded-xl hover:[rgb(var(--primary-light))] transition-colors shadow-sm"
                 >
                   <FiPlus size={13} /> New
                 </button>
               )}
             </div>
 
-            <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-3 py-2.5 mb-3">
-              <FiSearch size={13} className="text-gray-400 shrink-0" />
+            <div className="flex items-center gap-2 border rounded-xl px-3 py-2.5 mb-3">
+              <FiSearch size={13} className="shrink-0" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search groups…"
-                className="bg-transparent text-sm text-gray-700 placeholder-gray-400 flex-1 outline-none"
+                className="bg-transparent text-sm ttext-[rgb(var(--text))] flex-1 outline-none"
               />
               {search && (
                 <button
                   onClick={() => setSearch("")}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-[rgb(var(--primary))]"
                 >
                   <FiX size={12} />
                 </button>
@@ -1795,7 +1793,7 @@ export default function Groups() {
                 ))}
               </div>
             ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+              <div className="flex flex-col items-center justify-center py-16 ">
                 <MdOutlineGroups size={32} className="mb-2 opacity-20" />
                 <p className="text-sm">
                   {search ? "No groups found" : "No groups yet"}
@@ -1819,7 +1817,7 @@ export default function Groups() {
 
         {/* ── CHAT PANEL ── */}
         <div
-          className={`flex-1 min-w-0 h-full overflow-hidden flex flex-col ${mobileView === "list" ? "hidden md:flex" : "flex"}`}
+          className={`flex-1 min-w-0 h-full overflow-hidden  flex flex-col ${mobileView === "list" ? "hidden md:flex" : "flex"}`}
         >
           {selected ? (
             <ChatWindow

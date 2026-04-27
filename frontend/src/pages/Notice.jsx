@@ -86,6 +86,7 @@ export default function Notice() {
     highPriority: 0,
     audiences: 0,
   });
+
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [viewNotice, setViewNotice] = useState(null);
@@ -305,7 +306,7 @@ export default function Notice() {
 
   /* ════════════════════════════════════════════════════ */
   return (
-    <div>
+    <div className="p-8 text-[rgb(var(--text))] bg-[rgb(var(--bg))]">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
         <div className="pt-4">
@@ -318,8 +319,8 @@ export default function Notice() {
               else if (isStudent) navigate("/parent/notice");
             }}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+                 bg-[rgb(var(--primary))]  shadow-sm border border-slate-100
+                 text-sm font-bold active:scale-95 transition-transform mb-2.5"
           >
             <FaArrowLeft size={16} />
             Back
@@ -328,8 +329,8 @@ export default function Notice() {
       )}
       {/* ── Header ── */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Notices</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <h1 className="text-2xl font-bold text-[rgb(var(--text))]">Notices</h1>
+        <p className="text-sm text-[rgb(var(--text))] mt-0.5">
           {isAdmin
             ? `Manage and publish notices for students, parents, and staff.`
             : isTeacher
@@ -345,7 +346,7 @@ export default function Notice() {
         {statCards.map((s, i) => (
           <div
             key={i}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-4 flex items-center gap-4"
+            className="bg-[rgb(var(--surface))] rounded-xl border border-[rgb(var(--border))] shadow-sm px-5 py-4 flex items-center gap-4"
           >
             <div
               className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${s.iconBg}`}
@@ -353,10 +354,10 @@ export default function Notice() {
               {s.icon}
             </div>
             <div>
-              <p className="text-xs text-gray-400 font-medium tracking-wide">
+              <p className="text-xs text-[rgb(var(--text))] font-medium tracking-wide">
                 {s.label}
               </p>
-              <p className="text-2xl font-bold text-gray-800 leading-tight">
+              <p className="text-2xl font-bold text-[rgb(var(--text))] leading-tight">
                 {s.value}
               </p>
             </div>
@@ -374,8 +375,8 @@ export default function Notice() {
                 onClick={() => setFilter(f)}
                 className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition ${
                   filter === f
-                    ? "bg-indigo-500 text-white border-indigo-500"
-                    : "bg-white text-gray-500 border-gray-200 hover:border-indigo-300 hover:text-indigo-500"
+                    ? "text-[rgb(var(--text))] bg-[rgb(var(--primary))]"
+                    : "bg-[rgb(var(--surface))] text-[rgb(var(--text))] border-[rgb(var(--border))] hover:border-[rgb(var(--primary))] hover:text-[rgb(var(--primary))]"
                 }`}
               >
                 {f}
@@ -386,7 +387,7 @@ export default function Notice() {
         {user?.role === "school_admin" && (
           <button
             onClick={openCreate}
-            className="flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shrink-0"
+            className="flex items-center gap-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] text-sm font-semibold px-5 py-2.5 rounded-xl transition shrink-0"
           >
             <FiPlus size={15} /> Create Notice
           </button>
@@ -416,19 +417,19 @@ export default function Notice() {
             return (
               <div
                 key={n._id}
-                className={`bg-white rounded-xl border shadow-sm p-5 flex flex-col hover:shadow-md transition ${
+                className={`bg-[rgb(var(--surface))] rounded-xl border shadow-sm p-5 flex flex-col hover:shadow-md transition ${
                   !n.isActive || isExpired
                     ? "opacity-60 border-gray-100"
                     : "border-gray-100"
                 }`}
               >
                 {/* top row */}
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <h3 className="text-sm font-bold text-gray-800 leading-snug flex-1">
+                <div className="flex items-start justify-between gap-2 mb-3 text-[rgb(var(--text))]">
+                  <h3 className="text-sm font-bold leading-snug flex-1">
                     {n.title}
                   </h3>
                   {(!n.isActive || isExpired) && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 shrink-0">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-[rgb(var(--primary))] shrink-0">
                       Inactive
                     </span>
                   )}
@@ -456,12 +457,12 @@ export default function Notice() {
                 </div>
 
                 {/* preview */}
-                <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 flex-1 mb-3">
+                <p className="text-xs  leading-relaxed line-clamp-2 flex-1 mb-3">
                   {n.content}
                 </p>
 
                 {/* dates */}
-                <div className="flex items-center gap-3 text-[11px] text-gray-400 mb-4">
+                <div className="flex items-center gap-3 text-[11px]  mb-4">
                   <span className="flex items-center gap-1">
                     <FiCalendar size={11} /> {n.publishDate?.slice(0, 10)}
                   </span>
@@ -477,10 +478,10 @@ export default function Notice() {
 
                 {/* author */}
                 <div className="flex items-center gap-2 pb-4 border-b border-gray-100 mb-3">
-                  <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold shrink-0">
+                  <div className="w-6 h-6 rounded-full text-[rgb(var(--text))] bg-[rgb(var(--primary))] flex items-center justify-center text-[10px] font-bold shrink-0">
                     {n.createdBy?.charAt(0)?.toUpperCase()}
                   </div>
-                  <span className="text-xs text-gray-400">{n.createdBy}</span>
+                  <span className="text-xs ">{n.createdBy}</span>
                 </div>
 
                 {/* actions */}
@@ -517,20 +518,20 @@ export default function Notice() {
       {/* ════════ View Modal ════════ */}
       {viewNotice && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden">
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-2xl w-full max-w-lg shadow-xl overflow-hidden">
             <div
               className={`h-1.5 w-full ${CATEGORY_STYLES[viewNotice.category]?.bg || "bg-gray-100"}`}
             />
             <div className="px-6 py-5">
               <div className="flex items-start justify-between gap-3 mb-4">
-                <h2 className="text-lg font-bold text-gray-800 leading-snug">
+                <h2 className="text-lg font-bold leading-snug">
                   {viewNotice.title}
                 </h2>
                 <button
                   onClick={() => {
                     setViewNotice(null);
                   }}
-                  className="text-gray-400 hover:text-gray-600 shrink-0"
+                  className="text-[rgb(var(--text))] hover:text-[rgb(var(--primary))] shrink-0"
                 >
                   <FiX size={20} />
                 </button>
@@ -561,32 +562,32 @@ export default function Notice() {
                 )}
               </div>
 
-              <div className="bg-slate-50 rounded-xl p-4 mb-4">
-                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+              <div className="border rounded-xl p-4 mb-4">
+                <p className="text-sm  leading-relaxed whitespace-pre-line">
                   {viewNotice.content}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs mb-4">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-gray-400 font-medium mb-0.5">
+                <div className="border rounded-lg p-3">
+                  <p className=" font-medium mb-0.5">
                     Publish Date
                   </p>
-                  <p className="font-semibold text-gray-700">
+                  <p className="font-semibold ">
                     {viewNotice.publishDate?.slice(0, 10) || "—"}
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-gray-400 font-medium mb-0.5">
+                <div className="border rounded-lg p-3">
+                  <p className=" font-medium mb-0.5">
                     Expiry Date
                   </p>
-                  <p className="font-semibold text-gray-700">
+                  <p className="font-semibold ">
                     {viewNotice.expiryDate?.slice(0, 10) || "—"}
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3 col-span-2">
-                  <p className="text-gray-400 font-medium mb-0.5">Created By</p>
-                  <p className="font-semibold text-gray-700">
+                <div className="border rounded-lg p-3 col-span-2">
+                  <p className=" font-medium mb-0.5">Created By</p>
+                  <p className="font-semibold ">
                     {viewNotice.createdBy}
                   </p>
                 </div>
@@ -597,7 +598,7 @@ export default function Notice() {
                   onClick={() => {
                     setViewNotice(null);
                   }}
-                  className="px-5 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                  className="px-5 py-2 text-sm font-medium text-[rgb(var(--text))] bg-[rgb(var(--primary))]  rounded-lg transition"
                 >
                   Close
                 </button>
@@ -610,14 +611,14 @@ export default function Notice() {
       {/* ════════ Create / Edit Modal ════════ */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-xl">
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800">
+              <h2 className="text-lg font-bold ">
                 {editingId ? "Edit Notice" : "Create Notice"}
               </h2>
               <button
                 onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-[rgb(var(--primary))]"
               >
                 <FiX size={20} />
               </button>
@@ -626,8 +627,8 @@ export default function Notice() {
             <div className="px-6 py-5 space-y-4">
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Notice Title <span className="text-pink-500">*</span>
+                <label className="block text-sm font-mediummb-1">
+                  Notice Title <span className="text-[rgb(var(--primary))]">*</span>
                 </label>
                 <input
                   name="title"
@@ -641,14 +642,16 @@ export default function Notice() {
               {/* Category + Priority */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category <span className="text-pink-500">*</span>
+                  <label className="block text-sm font-medium  mb-1">
+                    Category <span className="text-[rgb(var(--primary))]">*</span>
                   </label>
                   <select
                     name="category"
                     value={form.category}
                     onChange={handleChange}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none
+                      text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+                    focus:border-indigo-400"
                   >
                     <option value="">Select Category</option>
                     <option>Examination</option>
@@ -660,14 +663,16 @@ export default function Notice() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium  mb-1">
                     Priority
                   </label>
                   <select
                     name="priority"
                     value={form.priority}
                     onChange={handleChange}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 
+                    text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+                    text-sm focus:outline-none focus:border-indigo-400"
                   >
                     <option>Normal</option>
                     <option>High</option>
@@ -689,8 +694,8 @@ export default function Notice() {
                       onClick={() => handleAudienceSelect(opt)}
                       className={`px-4 py-1.5 rounded-full text-xs font-semibold border transition ${
                         form.audience === opt
-                          ? "bg-indigo-500 text-white border-indigo-500"
-                          : "bg-white text-gray-500 border-gray-200 hover:border-indigo-300 hover:text-indigo-500"
+                          ? "text-[rgb(var(--text))] bg-[rgb(var(--primary))]"
+                          : "text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
                       }`}
                     >
                       {opt}
@@ -704,17 +709,19 @@ export default function Notice() {
                     name="assignedClass"
                     value={form.assignedClass}
                     onChange={handleChange}
-                    className="w-full border border-indigo-200 bg-indigo-50/40 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
+                    className="w-full border border-indigo-200 
+                    text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+                    rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
                   >
-                    <option value="">— Select a class —</option>
+                    <option value="" className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">— Select a class —</option>
                     {classes.length > 0 ? (
                       classes.map((cls, i) => (
-                        <option key={i} value={cls.name}>
+                        <option key={i} value={cls.name} className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
                           {cls.name}
                         </option>
                       ))
                     ) : (
-                      <option key={c} value={c}>
+                      <option key={c} value={c} className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
                         Class not available
                       </option>
                     )}
@@ -725,8 +732,8 @@ export default function Notice() {
               {/* Publish + Expiry Date */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Publish Date <span className="text-pink-500">*</span>
+                  <label className="block text-sm font-medium t mb-1">
+                    Publish Date <span className="text-[rgb(var(--primary))]">*</span>
                   </label>
                   <input
                     type="date"
@@ -737,7 +744,7 @@ export default function Notice() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium mb-1">
                     Expiry Date
                   </label>
                   <input
@@ -758,17 +765,17 @@ export default function Notice() {
                   name="isActive"
                   checked={form.isActive}
                   onChange={handleChange}
-                  className="w-4 h-4 accent-pink-500"
+                  className="w-4 h-4"
                 />
-                <label htmlFor="isActive" className="text-sm text-gray-700">
+                <label htmlFor="isActive" className="text-sm ">
                   Publish immediately (Active)
                 </label>
               </div>
 
               {/* Content */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Content <span className="text-pink-500">*</span>
+                <label className="block text-sm font-medium  mb-1">
+                  Content <span className="text-[rgb(var(--primary))]">*</span>
                 </label>
                 <textarea
                   name="content"
@@ -784,14 +791,14 @@ export default function Notice() {
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100">
               <button
                 onClick={tryClose}
-                className="px-5 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                className="px-5 py-2 text-sm font-medium text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-lg transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="px-5 py-2 text-sm font-semibold text-white bg-pink-500 hover:bg-pink-600 rounded-lg transition disabled:opacity-60"
+                className="px-5 py-2 text-sm font-semibold text-[rgb(var(--text))] bg-[rgb(var(--primary))] hover:bg-[rgb(var(--primary-light))] rounded-lg transition disabled:opacity-60"
               >
                 {submitting
                   ? "Saving…"
@@ -807,26 +814,26 @@ export default function Notice() {
       {/* ════════ Delete Confirm ════════ */}
       {deleteId && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl p-6 text-center">
+          <div className="bg-[rgb(var(--surface))] rounded-2xl w-full max-w-sm shadow-xl p-6 text-center">
             <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <FiTrash2 size={22} className="text-red-500" />
             </div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">
+            <h3 className="text-base font-bold  mb-1">
               Delete Notice?
             </h3>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm  mb-6">
               This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteId(null)}
-                className="flex-1 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                className="flex-1 py-2 text-sm font-medium  bg-[rgb(var(--primary))] rounded-lg transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
-                className="flex-1 py-2 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition"
+                className="flex-1 py-2 text-sm font-semibold bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded-lg transition"
               >
                 Delete
               </button>
@@ -838,44 +845,44 @@ export default function Notice() {
       {/* ════════ Save Confirm Popup ════════ */}
       {confirmSave && (
         <div className="fixed inset-0 z-60 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
+          <div className=" bg-[rgb(var(--surface))] rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
             {/* top colour strip */}
-            <div className="h-1.5 w-full bg-indigo-500" />
+            <div className="h-1.5 w-full " />
             <div className="p-6 text-center">
               <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiCheckCircle size={22} className="text-indigo-500" />
               </div>
-              <h3 className="text-base font-bold text-gray-800 mb-1">
+              <h3 className="text-base font-bold  mb-1">
                 {editingId ? "Update this notice?" : "Create this notice?"}
               </h3>
-              <p className="text-sm text-gray-500 mb-1">
-                <span className="font-semibold text-gray-700">
+              <p className="text-sm  mb-1">
+                <span className="font-semibold ">
                   "{form.title}"
                 </span>
               </p>
               <p className="text-xs text-gray-400 mb-6">
                 Audience:{" "}
-                <span className="font-medium text-gray-600">
+                <span className="font-medium ">
                   {form.audience === "Class" && form.assignedClass
                     ? `Class: ${form.assignedClass}`
                     : form.audience}
                 </span>
                 &nbsp;·&nbsp; Priority:{" "}
-                <span className="font-medium text-gray-600">
+                <span className="font-medium ">
                   {form.priority}
                 </span>
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setConfirmSave(false)}
-                  className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
+                  className="flex-1 py-2.5 text-sm font-medium rounded-xl text-[rgb(var(--text))] bg-[rgb(var(--primary))] transition"
                 >
                   Go Back
                 </button>
                 <button
                   onClick={confirmAndSave}
                   disabled={submitting}
-                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-indigo-500 hover:bg-indigo-600 rounded-xl transition disabled:opacity-60"
+                  className="flex-1 py-2.5 text-sm font-semibold text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-xl transition disabled:opacity-60"
                 >
                   {submitting ? "Saving…" : "Yes, Save"}
                 </button>
@@ -888,30 +895,30 @@ export default function Notice() {
       {/* ════════ Discard Confirm Popup ════════ */}
       {confirmDiscard && (
         <div className="fixed inset-0 z-60 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
             {/* top colour strip */}
-            <div className="h-1.5 w-full bg-amber-400" />
+            <div className="h-1.5 w-full bg-[rgb(var(--primary))]" />
             <div className="p-6 text-center">
               <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiAlertTriangle size={22} className="text-amber-500" />
               </div>
-              <h3 className="text-base font-bold text-gray-800 mb-1">
+              <h3 className="text-base font-bold  mb-1">
                 Discard changes?
               </h3>
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-sm  mb-6">
                 You have unsaved changes. If you close now, all your changes
                 will be lost.
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setConfirmDiscard(false)}
-                  className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
+                  className="flex-1 py-2.5 text-sm font-medium text-[rgb(var(--text))] bg-[rgb(var(--primary))]  rounded-xl transition"
                 >
                   Keep Editing
                 </button>
                 <button
                   onClick={closeModal}
-                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition"
+                  className="flex-1 py-2.5 text-sm font-semibold text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-xl transition"
                 >
                   Yes, Discard
                 </button>

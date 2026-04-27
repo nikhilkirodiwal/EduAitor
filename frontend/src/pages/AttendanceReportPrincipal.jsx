@@ -37,15 +37,15 @@ const YEARS = [currentYear - 1, currentYear, currentYear + 1];
 /* ─── Reusable Select ────────────────────────────────────── */
 function Sel({ label, value, onChange, disabled, children }) {
   return (
-    <div className="flex flex-col gap-1">
-      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide pl-0.5">
+    <div className="flex flex-col gap-1 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
+      <label className="text-xs font-semibold text-[rgb(var(--text))] bg-[rgb(var(--surface))]  uppercase tracking-wide pl-0.5">
         {label}
       </label>
       <select
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-white
+        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm 
                    focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent
                    disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
       >
@@ -79,14 +79,14 @@ function SummaryBar({ data, type }) {
     const pct = Math.round((present / total) * 100);
 
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-4">
+      <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-2xl border border-slate-200 shadow-sm p-4 mb-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+          <p className="text-xs font-semibold uppercase tracking-wide">
             Daily Summary
           </p>
           <span className={`text-lg font-bold ${PCT_TEXT(pct)}`}>{pct}%</span>
         </div>
-        <div className="h-2 bg-slate-100 rounded-full overflow-hidden mb-4">
+        <div className="h-2  rounded-full overflow-hidden mb-4">
           <div
             className={`h-full rounded-full transition-all duration-500 ${PCT_COLOR(pct)}`}
             style={{ width: `${pct}%` }}
@@ -171,14 +171,14 @@ function DailyRow({ record }) {
   return (
     <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
       <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center text-sm font-bold text-violet-600 shrink-0">
+        <div className="w-9 h-9 rounded-full bg-[rgb(var(--primary))] flex items-center justify-center text-sm font-bold text-[rgb(var(--text))] shrink-0">
           {(firstName ?? "?")[0].toUpperCase()}
         </div>
         <div>
-          <p className="text-sm font-semibold text-slate-800 leading-tight">
+          <p className="text-sm font-semibold text-[rgb(var(--text))] leading-tight">
             {fullName}
           </p>
-          <p className="text-xs text-slate-400">Roll {rollNo ?? "—"}</p>
+          <p className="text-xs text-[rgb(var(--text))]">Roll {rollNo ?? "—"}</p>
         </div>
       </div>
       <span
@@ -206,14 +206,14 @@ function MonthlyRow({ record }) {
     <div className="py-3 border-b border-slate-100 last:border-0">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center text-sm font-bold text-violet-600 shrink-0">
+          <div className="w-9 h-9 rounded-full bg-[rgb(var(--primary))] flex items-center justify-center text-sm font-bold text-[rgb(var(--text))] shrink-0">
             {(name ?? "?")[0].toUpperCase()}
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-800 leading-tight">
+            <p className="text-sm font-semibold  leading-tight">
               {name ?? "—"}
             </p>
-            <p className="text-xs text-slate-400">Roll {rollNumber ?? "—"}</p>
+            <p className="text-xs text-[rgb(var(--text))]">Roll {rollNumber ?? "—"}</p>
           </div>
         </div>
         <span className={`text-base font-bold ${PCT_TEXT(percentage)}`}>
@@ -396,15 +396,15 @@ export default function AttendanceReportPrincipal() {
 
   /* ─────────────────── RENDER ─────────────────── */
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[rgb(var(--surface))]">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
           <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+                 bg-[rgb(var(--surface))] shadow-sm border border-slate-100
+                 text-sm font-bold text-[rgb(var(--text))] active:scale-95 transition-transform mb-2.5"
           >
             <FaArrowLeft size={16} />
             Back
@@ -420,22 +420,22 @@ export default function AttendanceReportPrincipal() {
               Principal View
             </span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">
+          <h1 className="text-2xl font-bold text-[rgb(var(--text))]">
             Attendance Report
           </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
+          <p className="text-sm text-[rgb(var(--text))] mt-0.5">
             School-wide attendance by class, section &amp; subject
           </p>
         </div>
 
         {/* ── Filter Card ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 mb-5">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+        <div className="bg-[rgb(var(--surface))] rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 mb-5">
+          <p className="text-xs font-semibold text-[rgb(var(--text))] uppercase tracking-wider mb-3">
             Filters
           </p>
 
           {metaLoading ? (
-            <div className="flex items-center justify-center py-8 gap-2 text-slate-400">
+            <div className="flex items-center justify-center py-8 gap-2 text-[rgb(var(--text))]">
               <svg
                 className="animate-spin w-4 h-4"
                 fill="none"
@@ -461,9 +461,9 @@ export default function AttendanceReportPrincipal() {
             <div className="grid grid-cols-2 gap-3">
               {/* Class */}
               <Sel label="Class" value={selClass} onChange={handleClassChange}>
-                <option value="">Select class</option>
+                <option value="" className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">Select class</option>
                 {classes.map((c) => (
-                  <option key={c._id} value={c._id}>
+                  <option key={c._id} value={c._id} className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">
                     {c.name}
                   </option>
                 ))}
@@ -476,9 +476,9 @@ export default function AttendanceReportPrincipal() {
                 onChange={(e) => setSelSection(e.target.value)}
                 disabled={!selClass}
               >
-                <option value="">Select section</option>
+                <option value="" className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">Select section</option>
                 {availableSections.map((d) => (
-                  <option key={d._id} value={d.sectionId?._id}>
+                  <option key={d._id} value={d.sectionId?._id} className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">
                     {d.sectionId?.name}
                   </option>
                 ))}
@@ -491,9 +491,9 @@ export default function AttendanceReportPrincipal() {
                   value={selSubject}
                   onChange={(e) => setSelSubject(e.target.value)}
                 >
-                  <option value="">Select subject</option>
+                  <option value="" className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">Select subject</option>
                   {subjects.map((s) => (
-                    <option key={s._id} value={s._id}>
+                    <option key={s._id} value={s._id} className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">
                       {s.name}
                     </option>
                   ))}
@@ -502,11 +502,11 @@ export default function AttendanceReportPrincipal() {
 
               {/* Divider */}
               <div className="col-span-2 border-t border-slate-100" />
-              <p className="col-span-2 text-xs text-slate-400">
+              <p className="col-span-2 text-xs text-[rgb(var(--text))]">
                 Pick{" "}
-                <span className="font-semibold text-slate-600">a date</span> for
+                <span className="font-semibold text-[rgb(var(--text))]">a date</span> for
                 daily view or{" "}
-                <span className="font-semibold text-slate-600">
+                <span className="font-semibold text-[rgb(var(--text))]">
                   month + year
                 </span>{" "}
                 for monthly summary
@@ -514,7 +514,7 @@ export default function AttendanceReportPrincipal() {
 
               {/* Date — full width */}
               <div className="col-span-2 flex flex-col gap-1">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide pl-0.5">
+                <label className="text-xs font-semibold text-[rgb(var(--text))] bg-[rgb(var(--surface))] uppercase tracking-wide pl-0.5">
                   Date
                 </label>
                 <input
@@ -526,7 +526,7 @@ export default function AttendanceReportPrincipal() {
                     setMonth("");
                     setYear("");
                   }}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-700 bg-white
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm bg-[rgb(var(--surface))] text-[rgb(var(--text))]
                              focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent"
                 />
               </div>
@@ -540,9 +540,9 @@ export default function AttendanceReportPrincipal() {
                   setSelDate("");
                 }}
               >
-                <option value="">Month</option>
+                <option value="" className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">Month</option>
                 {MONTHS.map((m, i) => (
-                  <option key={i} value={i + 1}>
+                  <option key={i} value={i + 1} className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">
                     {m}
                   </option>
                 ))}
@@ -557,9 +557,9 @@ export default function AttendanceReportPrincipal() {
                   setSelDate("");
                 }}
               >
-                <option value="">Year</option>
+                <option value="" className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">Year</option>
                 {YEARS.map((y) => (
-                  <option key={y} value={y}>
+                  <option key={y} value={y} className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">
                     {y}
                   </option>
                 ))}
@@ -570,8 +570,8 @@ export default function AttendanceReportPrincipal() {
                 <button
                   onClick={fetchReport}
                   disabled={loading}
-                  className="flex-1 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 disabled:opacity-60
-                             text-white text-sm font-semibold py-2.5 px-4 rounded-xl transition-colors
+                  className="flex-1  bg-[rgb(var(--primary))] text-[rgb(var(--text))]  disabled:opacity-60
+                             text-sm font-semibold py-2.5 px-4 rounded-xl transition-colors
                              flex items-center justify-center gap-2"
                 >
                   {loading ? (
@@ -603,8 +603,8 @@ export default function AttendanceReportPrincipal() {
                 </button>
                 <button
                   onClick={clearAll}
-                  className="border border-slate-200 text-slate-600 text-sm font-medium py-2.5 px-4
-                             rounded-xl hover:bg-slate-50 active:bg-slate-100 transition-colors"
+                  className="border border-slate-200 text-sm font-medium py-2.5 px-4
+                             rounded-xl transition-colors bg-[rgb(var(--surface))] text-[rgb(var(--text))]"
                 >
                   Clear
                 </button>
@@ -620,29 +620,29 @@ export default function AttendanceReportPrincipal() {
               <SummaryBar data={reportData} type={reportType} />
             )}
 
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
               {/* Result header */}
               <div className="px-4 py-3 border-b border-slate-100">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-slate-700">
+                    <p className="text-sm font-semibold">
                       {reportType === "daily"
                         ? "Daily Report"
                         : "Monthly Report"}
                     </p>
                     {/* Breadcrumb: Class › Section › Subject */}
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-[rgb(var(--text))] mt-0.5">
                       {selectedClassName}
                       {selectedSectionName && ` › ${selectedSectionName}`}
                       {selectedSubjectName && ` › ${selectedSubjectName}`}
                     </p>
                     {modeLabel && (
-                      <p className="text-xs text-violet-600 font-medium mt-0.5">
+                      <p className="text-xs  font-medium mt-0.5">
                         {modeLabel}
                       </p>
                     )}
                   </div>
-                  <span className="text-xs bg-slate-100 text-slate-600 font-medium px-2.5 py-1 rounded-full shrink-0 ml-2">
+                  <span className="text-xs text-[rgb(var(--text))] bg-[rgb(var(--primary))] font-medium px-2.5 py-1 rounded-full shrink-0 ml-2">
                     {reportData.length} student
                     {reportData.length !== 1 ? "s" : ""}
                   </span>
@@ -654,10 +654,10 @@ export default function AttendanceReportPrincipal() {
                 {reportData.length === 0 ? (
                   <div className="py-12 text-center">
                     <p className="text-3xl mb-2">📋</p>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-[rgb(var(--text))]">
                       No attendance records found
                     </p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-[rgb(var(--text))] mt-1">
                       Try a different filter or date
                     </p>
                   </div>

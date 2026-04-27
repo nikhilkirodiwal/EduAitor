@@ -12,17 +12,17 @@ const API = import.meta.env.VITE_API_URL;
 const TYPE_STYLES = {
   homework: {
     badge: "bg-amber-50 text-amber-700 border border-amber-200",
-    accent: "border-l-amber-400",
+    accent: "border-[rgb(var(--border-strong))]",
     dot: "bg-amber-400",
   },
   classwork: {
     badge: "bg-blue-50 text-blue-700 border border-blue-200",
-    accent: "border-l-blue-400",
+    accent: "border-[rgb(var(--border-strong))]",
     dot: "bg-blue-400",
   },
   remark: {
     badge: "bg-violet-50 text-violet-700 border border-violet-200",
-    accent: "border-l-violet-400",
+    accent: "border-[rgb(var(--border-strong))]",
     dot: "bg-violet-400",
   },
 };
@@ -82,7 +82,7 @@ function StatCard({ label, value, color }) {
   };
   return (
     <div
-      className={`rounded-xl border px-3 py-2.5 flex flex-col gap-0.5 ${colors[color]}`}
+      className={`rounded-xl border px-3 py-2.5 flex flex-col gap-0.5 bg-[rgb(var(--surface))] ${colors[color]}`}
     >
       <span className="text-xl font-semibold">{value}</span>
       <span className="text-xs font-medium opacity-60">{label}</span>
@@ -97,7 +97,7 @@ function DiaryCard({ entry }) {
 
   return (
     <div
-      className={`bg-white rounded-2xl border border-slate-200 border-l-4 ${ts.accent} p-4`}
+      className={`bg-[rgb(var(--surface))] rounded-2xl border border-slate-200 border-l-4 ${ts.accent} p-4`}
     >
       {/* Top meta row */}
       <div className="flex items-start justify-between gap-2 mb-2">
@@ -109,7 +109,7 @@ function DiaryCard({ entry }) {
           </span>
 
           {entry.classId?.name && (
-            <span className="text-xs text-slate-400">
+            <span className="text-xs ">
               Class {entry.classId.name}
               {entry.sectionName ? ` · Sec ${entry.sectionName}` : ""}
               {entry.roomNumber ? ` (Rm ${entry.roomNumber})` : ""}
@@ -117,13 +117,13 @@ function DiaryCard({ entry }) {
           )}
 
           {entry.subjectId?.name && (
-            <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+            <span className="text-xs  px-2 py-0.5 rounded-full">
               {entry.subjectId.name}
             </span>
           )}
         </div>
 
-        <span className="text-xs text-slate-300 whitespace-nowrap shrink-0">
+        <span className="text-xs  whitespace-nowrap shrink-0">
           {new Date(entry.date).toLocaleTimeString("en-IN", {
             hour: "2-digit",
             minute: "2-digit",
@@ -132,7 +132,7 @@ function DiaryCard({ entry }) {
       </div>
 
       {/* Content */}
-      <p className="text-sm text-slate-600 leading-relaxed">{entry.content}</p>
+      <p className="text-sm  leading-relaxed">{entry.content}</p>
 
       {/* Due date */}
       {entry.type === "homework" && entry.dueDate && (
@@ -159,10 +159,10 @@ function DiaryCard({ entry }) {
       {/* Teacher footer */}
       {entry.teacherId && (
         <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-xs font-semibold shrink-0">
+          <div className="w-6 h-6 rounded-full bg-[rgb(var(--primary))] text-[rgb(var(--text))] flex items-center justify-center  text-xs font-semibold shrink-0">
             {initials(entry.teacherId.name)}
           </div>
-          <span className="text-xs text-slate-400">{entry.teacherId.name}</span>
+          <span className="text-xs text-[rgb(var(--text))]">{entry?.teacherId?.name} -</span>
         </div>
       )}
     </div>
@@ -186,18 +186,18 @@ function FilterBar({ filters, onChange, classes, onClear, hasFilters }) {
     selectedSection?.subjectTeachers?.filter((st) => st.subjectId?._id) || [];
 
   const selCls =
-    "text-xs border border-slate-200 rounded-xl px-3 py-2.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 w-full";
+    "text-xs border rounded-xl px-3 py-2.5  text-[rgb(var(--text))] bg-[rgb(var(--surface))] focus:outline-none focus:ring-2  w-full";
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
+    <div className="bg-[rgb(var(--surface))] rounded-2xl border border-slate-200 p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+        <span className="text-xs font-semibold  uppercase tracking-widest">
           Filters
         </span>
         {hasFilters && (
           <button
             onClick={onClear}
-            className="text-xs text-blue-600 font-medium hover:underline"
+            className="text-xs text-[rgb(var(--primary))] font-medium hover:underline"
           >
             Clear all
           </button>
@@ -311,10 +311,10 @@ function FilterBar({ filters, onChange, classes, onClear, hasFilters }) {
 
 function EmptyState({ hasFilters }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 py-16 flex flex-col items-center gap-3 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
+    <div className="bg-[rgb(var(--surface))] text-[rgb(var(--primary))] rounded-2xl border border-slate-200 py-16 flex flex-col items-center gap-3 text-center">
+      <div className="w-14 h-14 rounded-2xl  flex items-center justify-center">
         <svg
-          className="w-7 h-7 text-slate-400"
+          className="w-7 h-7 "
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -328,10 +328,10 @@ function EmptyState({ hasFilters }) {
         </svg>
       </div>
       <div>
-        <p className="text-sm font-medium text-slate-600">
+        <p className="text-sm font-medium ">
           No diary entries found
         </p>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs  mt-1">
           {hasFilters
             ? "Try adjusting or clearing the filters"
             : "No entries have been added yet"}
@@ -349,7 +349,7 @@ function Skeleton() {
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="bg-white rounded-2xl border border-slate-200 border-l-4 border-l-slate-200 p-4 space-y-2"
+          className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-2xl border border-slate-200 border-l-4 border-l-slate-200 p-4 space-y-2"
         >
           <div className="flex gap-2">
             <div className="h-5 w-20 bg-slate-100 rounded-full" />
@@ -428,7 +428,7 @@ export default function DiaryPrincipal() {
           withCredentials: true,
         },
       );
-
+console.log(res.data.data);
       setEntries(res.data.data || []);
       setStats(
         res.data.stats || { total: 0, homework: 0, classwork: 0, remark: 0 },
@@ -472,7 +472,7 @@ export default function DiaryPrincipal() {
   const activeCount = Object.values(filters).filter((v) => v !== "").length;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen ">
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -482,7 +482,7 @@ export default function DiaryPrincipal() {
       />
 
       {/* ── Sticky Header ────────────────────────────────────────────────────── */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-20">
+      <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] border-b border-slate-200 sticky top-0 z-20">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
           {/* 🔙 BACK BUTTON */}
           {isMobile && (
@@ -490,8 +490,8 @@ export default function DiaryPrincipal() {
               <button
                 onClick={() => navigate(-1)}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+                 bg-[rgb(var(--primary))] shadow-sm border border-slate-100
+                 text-sm font-bold 0 active:scale-95 transition-transform mb-2.5"
               >
                 <FaArrowLeft size={16} />
                 Back
@@ -499,15 +499,15 @@ export default function DiaryPrincipal() {
             </div>
           )}
           <div>
-            <h1 className="text-base font-semibold text-slate-800 leading-tight">
+            <h1 className="text-base font-semibold text-[rgb(var(--primary))] leading-tight">
               School Diary
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs  mt-0.5">
               Principal view · All classes
             </p>
           </div>
           {activeCount > 0 && (
-            <span className="sm:hidden text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full">
+            <span className="sm:hidden text-xs font-medium text-[rgb(var(--text))]  border border-blue-200 px-2.5 py-1 rounded-full">
               {activeCount} filter{activeCount > 1 ? "s" : ""}
             </span>
           )}
@@ -536,13 +536,13 @@ export default function DiaryPrincipal() {
         {/* ── Results summary ───────────────────────────────────────────────── */}
         {!loading && (
           <div className="flex items-center justify-between px-1">
-            <span className="text-xs text-slate-400">
+            <span className="text-xs ">
               {pagination.total} entr{pagination.total !== 1 ? "ies" : "y"}{" "}
               found
               {hasFilters ? " (filtered)" : ""}
             </span>
             {pagination.pages > 1 && (
-              <span className="text-xs text-slate-400">
+              <span className="text-xs ">
                 Page {page} of {pagination.pages}
               </span>
             )}
@@ -559,11 +559,11 @@ export default function DiaryPrincipal() {
             {sortedDates.map((dateKey) => (
               <div key={dateKey}>
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">
+                  <span className="text-xs font-semibold  uppercase tracking-wide whitespace-nowrap">
                     {fmtDay(dateKey)}
                   </span>
-                  <div className="flex-1 h-px bg-slate-200" />
-                  <span className="text-xs text-slate-400 whitespace-nowrap">
+                  <div className="flex-1 h-px " />
+                  <span className="text-xs  whitespace-nowrap">
                     {grouped[dateKey].length} entr
                     {grouped[dateKey].length > 1 ? "ies" : "y"}
                   </span>

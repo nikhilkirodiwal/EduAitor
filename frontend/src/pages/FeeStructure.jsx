@@ -220,15 +220,15 @@ const FeeStructure = () => {
           PAGE WRAPPER — full width, small padding
           No max-width so it fills the right panel
       ══════════════════════════════════════════ */}
-      <div className="w-full p-4 bg-[#f5f4f0] min-h-screen">
+      <div className="w-full text-[rgb(var(--text))] bg-[rgb(var(--bg))] min-h-screen p-8">
         {/* 🔙 BACK BUTTON */}
         {isMobile && (
           <div className="px-4 pt-4">
             <button
               onClick={() => navigate(-1)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+                 shadow-sm border border-slate-100
+                 text-sm font-bold active:scale-95 transition-transform mb-2.5"
             >
               <FaArrowLeft size={16} />
               Back
@@ -239,24 +239,24 @@ const FeeStructure = () => {
         <div className="flex flex-wrap items-end gap-3 mb-4">
           {/* Class selector */}
           <div className="flex flex-col gap-1 flex-1 min-w-45">
-            <label className="text-[10px] font-bold tracking-widest uppercase text-[#9b8ea0]">
+            <label className="text-[10px] font-bold tracking-widest uppercase ">
               Select Class
             </label>
             <div className="relative">
               <select
-                className="fs-select w-full appearance-none bg-white border border-[#e2dff0] rounded-lg px-3 py-2 text-sm text-[#1a1625] cursor-pointer transition-colors"
+                className="fs-select w-full appearance-none  rounded-lg px-3 py-2 text-sm  border-1 cursor-pointer text-[rgb(var(--text))] bg-[rgb(var(--surface))] "
                 onChange={handleClassChange}
                 value={selectedClass}
               >
-                <option value="">— Choose a class —</option>
+                <option value="" className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">— Choose a class —</option>
                 {classes.map((cls) => (
-                  <option key={cls._id} value={cls._id}>
+                  <option key={cls._id} value={cls._id} className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">
                     {cls.name}
                   </option>
                 ))}
               </select>
               {/* dropdown chevron icon */}
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#9b8ea0] text-xs">
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none  text-xs">
                 ▾
               </span>
             </div>
@@ -266,7 +266,7 @@ const FeeStructure = () => {
           {selectedClass && (
             <button
               onClick={openAdd}
-              className="flex items-center gap-2 px-4 py-2 bg-[#9B4FFF] hover:bg-[#4e3789] text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-2 px-4 py-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] text-sm font-semibold rounded-lg transition-colors cursor-pointer whitespace-nowrap"
             >
               <span className="text-base leading-none">+</span> Add Component
             </button>
@@ -276,13 +276,13 @@ const FeeStructure = () => {
         {/* Frequency selector — shown once a class is selected */}
         {selectedClass && (
           <div className="flex flex-col gap-1 mt-4 mb-3 ">
-            <label className="text-[10px] font-bold tracking-widest uppercase text-[#9b8ea0]">
+            <label className="text-[10px] font-bold tracking-widest uppercase ">
               View As
             </label>
             <select
               value={freqFilter}
               onChange={(e) => setFreqFilter(e.target.value)}
-              className="fs-select  bg-white border border-[#e2dff0] rounded-lg px-3 py-2 text-sm text-[#1a1625] cursor-pointer"
+              className="fs-select  rounded-lg px-3 py-2 text-sm  text-[rgb(var(--text))] bg-[rgb(var(--surface))] border cursor-pointer"
             >
               <option value="annually">Annually</option>
               <option value="half-yearly">Half Yearly</option>
@@ -296,12 +296,12 @@ const FeeStructure = () => {
         {feeData && feeCount > 0 && (
           <div className="flex flex-wrap gap-2 mb-3">
             {/* Total component count */}
-            <div className="px-3 py-2 bg-white border border-[#e8e5f5] rounded-lg">
-              <p className="text-[9px] font-bold tracking-widest uppercase text-[#9b8ea0] mb-0.5">
+            <div className="px-3 py-2 text-[rgb(var(--text))] bg-[rgb(var(--surface))]  border rounded-lg">
+              <p className="text-[9px] font-bold tracking-widest uppercase  mb-0.5">
                 Components
               </p>
               <p
-                className="font-bold text-[15px] text-[#1a1625]"
+                className="font-bold text-[15px]"
                 style={{ fontFamily: "Outfit, sans-serif" }}
               >
                 {feeCount}
@@ -309,8 +309,8 @@ const FeeStructure = () => {
             </div>
 
             {/* Sum of mandatory fees only */}
-            <div className="px-3 py-2 bg-white border border-[#e8e5f5] rounded-lg">
-              <p className="text-[9px] font-bold tracking-widest uppercase text-[#9b8ea0] mb-0.5">
+            <div className="px-3 py-2  border rounded-lg">
+              <p className="text-[9px] font-bold tracking-widest uppercase  mb-0.5">
                 Mandatory Total
               </p>
               <p
@@ -321,12 +321,12 @@ const FeeStructure = () => {
               </p>
             </div>
             {/* Sum of optional  fees only */}
-            <div className="px-3 py-2 bg-white border border-[#e8e5f5] rounded-lg">
-              <p className="text-[9px] font-bold tracking-widest uppercase text-[#9b8ea0] mb-0.5">
+            <div className="px-3 py-2  border rounded-lg">
+              <p className="text-[9px] font-bold tracking-widest uppercase mb-0.5">
                 Optional Total
               </p>
               <p
-                className="font-bold text-[15px] text-[#1a1625]"
+                className="font-bold text-[15px]"
                 style={{ fontFamily: "Outfit, sans-serif" }}
               >
                 {fmt(totalOptional)}
@@ -334,12 +334,12 @@ const FeeStructure = () => {
             </div>
 
             {/* Sum of ALL fees (mandatory + optional) — accent colour */}
-            <div className="px-3 py-2 bg-[#9B4FFF] rounded-lg">
-              <p className="text-[9px] font-bold tracking-widest uppercase text-[#c8bce8] mb-0.5">
+            <div className="px-3 py-2 bg-[rgb(var(--primary))] rounded-lg text-[rgb(var(--text))]">
+              <p className="text-[9px] font-bold tracking-widest uppercase  mb-0.5">
                 Grand Total
               </p>
               <p
-                className="font-bold text-[15px] text-white"
+                className="font-bold text-[15px]"
                 style={{ fontFamily: "Outfit, sans-serif" }}
               >
                 {fmt(totalAll)}
@@ -351,12 +351,12 @@ const FeeStructure = () => {
         {/* ══════════════════════════════════════════
             FEE TABLE CARD
         ══════════════════════════════════════════ */}
-        <div className="bg-white rounded-xl border border-[#e8e5f5] overflow-hidden">
+        <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl border overflow-hidden">
           {/* ── State 1: No class selected yet ── */}
           {!selectedClass && (
             <div className="py-12 text-center">
               <div className="text-3xl opacity-30 mb-2">🏫</div>
-              <p className="text-sm font-medium text-[#b0a8c0]">
+              <p className="text-sm font-medium ">
                 Select a class to view its fee structure
               </p>
             </div>
@@ -364,7 +364,7 @@ const FeeStructure = () => {
 
           {/* ── State 2: Loading (class selected but API not yet returned) ── */}
           {selectedClass && feeData === null && (
-            <div className="py-10 text-center text-sm text-[#b0a8c0]">
+            <div className="py-10 text-center text-sm text-[rgb(var(--text))]">
               Loading…
             </div>
           )}
@@ -373,10 +373,10 @@ const FeeStructure = () => {
           {selectedClass && feeData && feeCount === 0 && (
             <div className="py-12 text-center">
               <div className="text-3xl opacity-30 mb-2">📋</div>
-              <p className="text-sm font-medium text-[#b0a8c0]">
+              <p className="text-sm font-medium text-[rgb(var(--text))]">
                 No fee components yet
               </p>
-              <p className="text-xs text-[#c8c4d4] mt-1">
+              <p className="text-xs text-[rgb(var(--text))] mt-1">
                 Click "Add Component" to get started
               </p>
             </div>
@@ -387,20 +387,20 @@ const FeeStructure = () => {
             <table className="w-full border-collapse">
               {/* Table header */}
               <thead>
-                <tr className="bg-[#faf9fd] border-b border-[#f0edf8]">
-                  <th className="px-4 py-2.5 text-left text-[9px] font-bold tracking-widest uppercase text-[#b0a8c0] w-10">
+                <tr className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] border-b">
+                  <th className="px-4 py-2.5 text-left text-[9px] font-bold  uppercase  w-10">
                     #
                   </th>
-                  <th className="px-4 py-2.5 text-left text-[9px] font-bold tracking-widest uppercase text-[#b0a8c0]">
+                  <th className="px-4 py-2.5 text-left text-[9px] font-bold  uppercase ">
                     Component
                   </th>
-                  <th className="px-4 py-2.5 text-left text-[9px] font-bold tracking-widest uppercase text-[#b0a8c0]">
+                  <th className="px-4 py-2.5 text-left text-[9px] font-bold  uppercase ">
                     Type
                   </th>
-                  <th className="px-4 py-2.5 text-right text-[9px] font-bold tracking-widest uppercase text-[#b0a8c0]">
+                  <th className="px-4 py-2.5 text-right text-[9px] font-bold  uppercase ">
                     Amount
                   </th>
-                  <th className="px-4 py-2.5 text-right text-[9px] font-bold tracking-widest uppercase text-[#b0a8c0]">
+                  <th className="px-4 py-2.5 text-right text-[9px] font-bold  uppercase ">
                     Actions
                   </th>
                 </tr>
@@ -411,18 +411,18 @@ const FeeStructure = () => {
                 {feeData.fees.map((fee, i) => (
                   <tr
                     key={fee._id}
-                    className="fee-row border-b border-[#f5f3fc] transition-colors"
+                    className="border text-[rgb(var(--text))]"
                   >
                     {/* Serial number */}
                     <td
-                      className="px-4 py-3 text-[#c8c4d4] text-xs font-semibold"
-                      style={{ fontFamily: "Outfit, sans-serif" }}
+                      className="px-4 py-3 text-[rgb(var(--text))] text-xs font-semibold"
+    
                     >
                       {String(i + 1).padStart(2, "0")}
                     </td>
 
                     {/* Fee component name */}
-                    <td className="px-4 py-3 text-sm font-semibold text-[#1a1625]">
+                    <td className="px-4 py-3 text-sm font-semibold text-[rgb(var(--text))]">
                       {fee.name}
                     </td>
 
@@ -441,8 +441,7 @@ const FeeStructure = () => {
 
                     {/* Formatted INR amount */}
                     <td
-                      className="px-4 py-3 text-right font-semibold text-[#3d2b6e] text-sm"
-                      style={{ fontFamily: "Outfit, sans-serif" }}
+                      className="px-4 py-3 text-right font-semibold  text-sm"
                     >
                       {fmt(fee.amount)}
                     </td>
@@ -453,7 +452,7 @@ const FeeStructure = () => {
                         {/* Edit — opens modal pre-filled with this fee's data */}
                         <button
                           onClick={() => openEdit(fee)}
-                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-[#f0edf8] text-[#5b3faf] hover:bg-[#e4dff5] transition-colors cursor-pointer"
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md text-[rgb(var(--text))] bg-[rgb(var(--surface))] transition-colors cursor-pointer"
                         >
                           ✏️ Edit
                         </button>
@@ -461,7 +460,7 @@ const FeeStructure = () => {
                         {/* Delete — confirms then calls DELETE API */}
                         <button
                           onClick={() => handleDelete(fee._id)}
-                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md bg-[#fde8e8] text-[#c0392b] hover:bg-[#fbd5d5] transition-colors cursor-pointer"
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded-md text-[rgb(var(--text))] bg-[rgb(var(--surface))] transition-colors cursor-pointer"
                         >
                           🗑 Delete
                         </button>
@@ -473,16 +472,16 @@ const FeeStructure = () => {
 
               {/* Grand total footer — always shown when table has rows */}
               <tfoot>
-                <tr className="bg-[#9B4FFF]">
+                <tr className="bg-[rgb(var(--surface))]">
                   <td
                     colSpan={3}
-                    className="px-4 py-3 text-[11px] font-bold tracking-widest uppercase text-[#c8bce8]"
+                    className="px-4 py-3 text-[11px] font-bold tracking-widest uppercase  text-[rgb(var(--primary))]"
                   >
                     Total Fees
                   </td>
                   <td
                     colSpan={2}
-                    className="px-4 py-3 text-right text-lg font-bold text-white"
+                    className="px-4 py-3 text-right text-lg font-bold text-[rgb(var(--primary))]"
                   >
                     {fmt(totalAll)}
                   </td>
@@ -501,21 +500,21 @@ const FeeStructure = () => {
           onClick={() => setConfirmVisible(false)} // click backdrop to cancel
         >
           <div
-            className="bg-white rounded-2xl p-6 w-full max-w-xs shadow-2xl"
+            className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-2xl p-6 w-full max-w-xs shadow-2xl"
             onClick={(e) => e.stopPropagation()} // prevent backdrop click closing when clicking card
           >
             <div className="text-2xl mb-3">🗑</div>
             <h3
-              className="text-base font-bold text-[#1a1625] mb-1"
+              className="text-base font-bold text-[rgb(var(--text))] mb-1"
               style={{ fontFamily: "Outfit, sans-serif" }}
             >
               Remove this component?
             </h3>
-            <p className="text-sm text-[#7a7085] mb-5">This can't be undone.</p>
+            <p className="text-sm  mb-5">This can't be undone.</p>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setConfirmVisible(false)}
-                className="px-4 py-2 bg-[#f0edf8] text-[#5b3faf] text-sm font-semibold rounded-lg hover:bg-[#e4dff5] cursor-pointer"
+                className="px-4 py-2 bg-[rgb(var(--primary))] text-sm font-semibold rounded-lg cursor-pointer"
               >
                 Cancel
               </button>
@@ -539,21 +538,20 @@ const FeeStructure = () => {
           className="fixed inset-0 bg-[#1a1625]/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={(e) => e.target === e.currentTarget && closeModal()}
         >
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+          <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]  rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             {/* Title changes depending on add vs edit mode */}
             <h2
-              className="text-lg font-bold text-[#1a1625] mb-5"
-              style={{ fontFamily: "Outfit, sans-serif" }}
+              className="text-lg font-bold mb-5"
             >
               {editingFee ? "Edit Component" : "Add Fee Component"}
             </h2>
 
             {/* Fee component name */}
-            <label className="block text-[10px] font-bold tracking-widest uppercase text-[#9b8ea0] mb-1.5">
+            <label className="block text-[10px] font-bold tracking-widest uppercase  mb-1.5">
               Component Name
             </label>
             <input
-              className="fs-input w-full border border-[#e2dff0] rounded-lg px-3 py-2 text-sm text-[#1a1625] mb-4 transition-colors"
+              className="fs-input w-full border rounded-lg px-3 py-2 text-sm mb-4 transition-colors"
               placeholder="e.g. Tuition Fee"
               value={formData.name}
               onChange={(e) =>
@@ -567,11 +565,11 @@ const FeeStructure = () => {
             )}
 
             {/* Amount in rupees */}
-            <label className="block text-[10px] font-bold tracking-widest uppercase text-[#9b8ea0] mb-1.5">
+            <label className="block text-[10px] font-bold tracking-widest uppercase  mb-1.5">
               Amount (₹)
             </label>
             <input
-              className="fs-input w-full border border-[#e2dff0] rounded-lg px-3 py-2 text-sm text-[#1a1625] mb-4 transition-colors"
+              className="fs-input w-full border  rounded-lg px-3 py-2 text-sm  mb-4 transition-colors"
               type="number"
               placeholder="e.g. 5000"
               min={0}
@@ -594,9 +592,9 @@ const FeeStructure = () => {
                 onChange={(e) =>
                   setFormData((p) => ({ ...p, isOptional: e.target.checked }))
                 }
-                className="accent-[#5b3faf] w-3.5 h-3.5"
+                className=" w-3.5 h-3.5"
               />
-              <span className="text-sm text-[#2d2540] font-medium">
+              <span className="text-sm text-[rgb(var(--text))] font-medium">
                 Mark as Optional
               </span>
             </label>
@@ -605,14 +603,14 @@ const FeeStructure = () => {
             <div className="flex gap-2 justify-end">
               <button
                 onClick={closeModal}
-                className="px-4 py-2 bg-[#f0edf8] text-[#5b3faf] text-sm font-semibold rounded-lg hover:bg-[#e4dff5] transition-colors cursor-pointer"
+                className="px-4 py-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] text-sm font-semibold rounded-lg  transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className={`px-5 py-2 bg-[#3d2b6e] text-white text-sm font-semibold rounded-lg hover:bg-[#4e3789] transition-colors cursor-pointer ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
+                className={`px-5 py-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] text-sm font-semibold rounded-lg  cursor-pointer ${saving ? "opacity-60 cursor-not-allowed" : ""}`}
               >
                 {saving
                   ? "Saving…"

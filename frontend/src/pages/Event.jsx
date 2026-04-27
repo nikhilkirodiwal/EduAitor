@@ -259,32 +259,26 @@ export default function EventsPage() {
 
   /* ════════════════════════════════════════════════════ */
   return (
-    <div>
+    <div className="p-8 text-[rgb(var(--text))] bg-[rgb(var(--bg))]">
       {/* 🔙 BACK BUTTON */}
-      {isMobile && (
-        <div className="pt-4">
-          <button
-            onClick={() => {
-              if (!user?.role) return;
-
-              if (isAdmin) navigate("/school/event");
-              else if (isTeacher) navigate("/teacher/event");
-              else if (isStudent) navigate("/parent/event");
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
-          >
-            <FaArrowLeft size={16} />
-            Back
-          </button>
-        </div>
-      )}
+        {isMobile && (
+            <div className="px-4 pt-4">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl
+                 bg-[rgb(var(--primary))] shadow-sm border border-slate-100
+                 text-sm font-bold 0 active:scale-95 transition-transform mb-2.5"
+              >
+                <FaArrowLeft size={16} />
+                Back
+              </button>
+            </div>
+          )}
 
       {/* ── Header ── */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Events</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <h1 className="text-2xl font-bold ">Events</h1>
+        <p className="text-sm text-[rgb(var(--text-muted))] mt-0.5">
           Good Afternoon, Welcome to the Events panel.
         </p>
       </div>
@@ -294,7 +288,7 @@ export default function EventsPage() {
         {statCards.map((s, i) => (
           <div
             key={i}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-4 flex items-center gap-4"
+            className="bg-[rgb(var(--surface))]  rounded-xl border border-gray-100 shadow-sm px-5 py-4 flex items-center gap-4"
           >
             <div
               className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${s.iconBg}`}
@@ -302,10 +296,10 @@ export default function EventsPage() {
               {s.icon}
             </div>
             <div>
-              <p className="text-xs text-gray-400 font-medium tracking-wide">
+              <p className="text-xs  font-medium tracking-wide">
                 {s.label}
               </p>
-              <p className="text-2xl font-bold text-gray-800 leading-tight">
+              <p className="text-2xl font-bold  leading-tight">
                 {s.value}
               </p>
             </div>
@@ -316,10 +310,10 @@ export default function EventsPage() {
       {/* ── List header ── */}
       {user?.role === "school_admin" && (
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-gray-800">All Events</h2>
+          <h2 className="text-lg font-semibold ">All Events</h2>
           <button
             onClick={openCreate}
-            className="flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition"
+            className="flex items-center gap-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] text-sm font-semibold px-5 py-2.5 rounded-xl transition"
           >
             <FiPlus size={15} /> Create Event
           </button>
@@ -328,11 +322,11 @@ export default function EventsPage() {
 
       {/* ── Event Cards ── */}
       {loading ? (
-        <div className="text-center py-20 text-gray-400 text-sm">
+        <div className="text-center py-20 text-sm">
           Loading events…
         </div>
       ) : events.length === 0 ? (
-        <div className="text-center py-20 text-gray-400 text-sm">
+        <div className="text-center py-20  text-sm">
           No events found.
         </div>
       ) : (
@@ -344,11 +338,11 @@ export default function EventsPage() {
             return (
               <div
                 key={ev._id}
-                className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition flex flex-col"
+                className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition flex flex-col"
               >
                 {/* title + status */}
                 <div className="flex items-start justify-between mb-2">
-                  <h3 className="text-base font-bold text-gray-800 leading-snug">
+                  <h3 className="text-base font-bold  leading-snug">
                     {ev.title}
                   </h3>
                   <span
@@ -437,15 +431,15 @@ export default function EventsPage() {
       {/* ════════ Create / Edit Modal ════════ */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-xl">
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto shadow-xl">
             {/* header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800">
+              <h2 className="text-lg font-bold ">
                 {editingId ? "Edit Event" : "Add New Event"}
               </h2>
               <button
                 onClick={tryClose}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text))] transition"
               >
                 <FiX size={20} />
               </button>
@@ -462,8 +456,8 @@ export default function EventsPage() {
 
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Event Title <span className="text-pink-500">*</span>
+                <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
+                  Event Title <span className="text-[rgb(var(--primary))]">*</span>
                 </label>
                 <input
                   name="title"
@@ -477,14 +471,15 @@ export default function EventsPage() {
               {/* Type + Priority */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Event Type <span className="text-pink-500">*</span>
+                  <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
+                    Event Type <span className="text-[rgb(var(--primary))]">*</span>
                   </label>
                   <select
                     name="type"
                     value={form.type}
                     onChange={handleChange}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none
+                     focus:border-indigo-400 text-[rgb(var(--text))] bg-[rgb(var(--surface))] "
                   >
                     <option value="">Select Event Type</option>
                     <option>Competition</option>
@@ -494,14 +489,16 @@ export default function EventsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium  mb-1">
                     Priority
                   </label>
                   <select
                     name="priority"
                     value={form.priority}
                     onChange={handleChange}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm 
+                      text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+                    focus:outline-none focus:border-indigo-400"
                   >
                     <option>Normal</option>
                     <option>High</option>
@@ -512,8 +509,8 @@ export default function EventsPage() {
 
               {/* Organizer */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Organizer <span className="text-pink-500">*</span>
+                <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
+                  Organizer <span className="text-[rgb(var(--primary))]">*</span>
                 </label>
                 <input
                   name="organizer"
@@ -527,8 +524,8 @@ export default function EventsPage() {
               {/* Start + End Date */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Start Date <span className="text-pink-500">*</span>
+                  <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
+                    Start Date <span className="text-[rgb(var(--primary))]">*</span>
                   </label>
                   <input
                     type="date"
@@ -539,7 +536,7 @@ export default function EventsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
                     End Date
                   </label>
                   <input
@@ -555,8 +552,8 @@ export default function EventsPage() {
               {/* Time + Location */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Time <span className="text-pink-500">*</span>
+                  <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
+                    Time <span className="text-[rgb(var(--primary))]">*</span>
                   </label>
                   <input
                     type="time"
@@ -567,8 +564,8 @@ export default function EventsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Location <span className="text-pink-500">*</span>
+                  <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
+                    Location <span className="text-[rgb(var(--primary))]">*</span>
                   </label>
                   <input
                     name="location"
@@ -582,14 +579,16 @@ export default function EventsPage() {
 
               {/* Assign Class */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Assign Class <span className="text-pink-500">*</span>
+                <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
+                  Assign Class <span className="text-[rgb(var(--primary))]">*</span>
                 </label>
                 <select
                   name="assignClass"
                   value={form.assignClass}
                   onChange={handleChange}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
+                  className="w-full border border-gray-200 rounded-lg 
+                  text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+                  px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
                 >
                   <option value="All Classes">All Classes</option>
                   {classes.map((cls, i) => (
@@ -608,16 +607,16 @@ export default function EventsPage() {
                   name="registrationRequired"
                   checked={form.registrationRequired}
                   onChange={handleChange}
-                  className="w-4 h-4 accent-pink-500"
+                  className="w-4 h-4 "
                 />
-                <label htmlFor="reg" className="text-sm text-gray-700">
+                <label htmlFor="reg" className="text-sm ">
                   Registration Required
                 </label>
               </div>
 
               {/* Capacity */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
                   Participant Capacity
                 </label>
                 <input
@@ -631,8 +630,8 @@ export default function EventsPage() {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description <span className="text-pink-500">*</span>
+                <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
+                  Description <span className="text-[rgb(var(--primary))]">*</span>
                 </label>
                 <textarea
                   name="description"
@@ -649,14 +648,14 @@ export default function EventsPage() {
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100">
               <button
                 onClick={tryClose}
-                className="px-5 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                className="px-5 py-2 text-sm font-medium text-[rgb(var(--text))] bg-[rgb(var(--surface))] hover:bg-[rgb(var(--surface-hover))] rounded-lg transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="px-5 py-2 text-sm font-semibold text-white bg-pink-500 hover:bg-pink-600 rounded-lg transition disabled:opacity-60"
+                className="px-5 py-2 text-sm font-semibold text-[rgb(var(--text))] bg-[rgb(var(--primary))]  rounded-lg transition disabled:opacity-60"
               >
                 {submitting
                   ? "Saving…"
@@ -672,20 +671,20 @@ export default function EventsPage() {
       {/* ════════ Delete Confirm Modal ════════ */}
       {deleteId && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl p-6 text-center">
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]  rounded-2xl w-full max-w-sm shadow-xl p-6 text-center">
             <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <FiTrash2 size={22} className="text-red-500" />
             </div>
-            <h3 className="text-base font-bold text-gray-800 mb-1">
+            <h3 className="text-base font-bold  mb-1">
               Delete Event?
             </h3>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm t mb-6">
               This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setDeleteId(null)}
-                className="flex-1 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                className="flex-1 py-2 text-sm font-medium text-[rgb(var(--text))] bg-[rgb(var(--surface))] hover:bg-[rgb(var(--surface-hover))] rounded-lg transition"
               >
                 Cancel
               </button>
@@ -702,20 +701,20 @@ export default function EventsPage() {
 
       {confirmSave && (
         <div className="fixed inset-0 z-60 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]  rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
             <div className="h-1.5 w-full bg-indigo-500" />
 
             <div className="p-6 text-center">
               <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FiCheckCircle size={22} className="text-indigo-500" />
+                <FiCheckCircle size={22} className="text-[rgb(var(--primary))]" />
               </div>
 
-              <h3 className="text-base font-bold text-gray-800 mb-1">
+              <h3 className="text-base font-bold  mb-1">
                 {editingId ? "Update this event?" : "Create this event?"}
               </h3>
 
-              <p className="text-sm text-gray-500 mb-6">
-                <span className="font-semibold text-gray-700">
+              <p className="text-sm  mb-6">
+                <span className="font-semibold ">
                   "{form.title}"
                 </span>
               </p>
@@ -723,7 +722,7 @@ export default function EventsPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => setConfirmSave(false)}
-                  className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl"
+                  className="flex-1 py-2.5 text-sm font-medium  rounded-xl"
                 >
                   Go Back
                 </button>
@@ -731,7 +730,7 @@ export default function EventsPage() {
                 <button
                   onClick={confirmAndSave}
                   disabled={submitting}
-                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-indigo-500 hover:bg-indigo-600 rounded-xl"
+                  className="flex-1 py-2.5 text-sm font-semibold text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-xl"
                 >
                   {submitting ? "Saving…" : "Yes, Save"}
                 </button>
@@ -743,33 +742,33 @@ export default function EventsPage() {
 
       {confirmDiscard && (
         <div className="fixed inset-0 z-60 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
-            <div className="h-1.5 w-full bg-amber-400" />
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
+            <div className="h-1.5 w-full bg-[rgb(var(--primary))]" />
 
             <div className="p-6 text-center">
               <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiAlertTriangle size={22} className="text-amber-500" />
               </div>
 
-              <h3 className="text-base font-bold text-gray-800 mb-1">
+              <h3 className="text-base font-bold  mb-1">
                 Discard changes?
               </h3>
 
-              <p className="text-sm text-gray-500 mb-6">
+              <p className="text-sm mb-6">
                 You have unsaved changes. Closing will discard them.
               </p>
 
               <div className="flex gap-3">
                 <button
                   onClick={() => setConfirmDiscard(false)}
-                  className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl"
+                  className="flex-1 py-2.5 text-sm font-medium text-[rgb(var(--text))] bg-[rgb(var(--primary))] hover:bg-[rgb(var(--surface-hover))] rounded-xl"
                 >
                   Keep Editing
                 </button>
 
                 <button
                   onClick={closeModal}
-                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-xl"
+                  className="flex-1 py-2.5 text-sm font-semiboldtext-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-xl"
                 >
                   Yes, Discard
                 </button>

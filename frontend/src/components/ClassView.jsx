@@ -51,7 +51,7 @@ export default function ClassView() {
 
   if (!classData)
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-gray-400 gap-3">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-[rgb(var(--text))] gap-3">
         <FaSchool size={36} />
         <p className="text-sm">Class not found.</p>
         <button
@@ -64,7 +64,7 @@ export default function ClassView() {
                 : "/school/class",
             );
           }}
-          className="text-indigo-500 text-sm hover:underline"
+          className="text-[rgb(var(--text))] text-sm hover:underline"
         >
           Go back
         </button>
@@ -83,7 +83,7 @@ export default function ClassView() {
   const activeDetail = details[activeTab] || details[0];
 
   return (
-    <div className="w-full pb-12 space-y-6">
+    <div className="w-full pb-12 space-y-6 p-8">
       {/* ── Back ── */}
       <button
         onClick={() => {
@@ -95,24 +95,24 @@ export default function ClassView() {
               : "/school/class",
           );
         }}
-        className="flex items-center gap-2 text-sm text-indigo-500 hover:text-indigo-600 transition"
+        className="flex items-center gap-2 text-sm  text-[rgb(var(--text))] transition"
       >
         <FaArrowLeft size={13} /> Back to Classes
       </button>
 
       {/* ── Hero Card ── */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className=" rounded-2xl border border-gray-100 shadow-sm overflow-hidden text-[rgb(var(--text))]">
         <div className="h-1.5 w-full bg-linear-to-r from-indigo-400 to-pink-400" />
         <div className="p-6 sm:p-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             {/* left — class identity */}
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-500 text-white flex items-center justify-center font-bold text-lg shrink-0">
+              <div className="w-14 h-14 rounded-2xl text-[rgb(var(--text))] bg-[rgb(var(--primary))] flex items-center justify-center font-bold text-lg shrink-0">
                 {classData.name.replace(/\D/g, "") ||
                   classData.name.slice(0, 2).toUpperCase()}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">
+                <h1 className="text-2xl font-bold  text-[rgb(var(--text))]">
                   {classData.name}
                 </h1>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -179,7 +179,7 @@ export default function ClassView() {
 
       {/* ── If has sections — tab per section ── */}
       {hasSections && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-[rgb(var(--surface))]  rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           {/* section tabs */}
           <div className="flex items-center gap-1 px-5 pt-4 border-b border-gray-100 overflow-x-auto">
             {details.map((d, i) => (
@@ -188,8 +188,8 @@ export default function ClassView() {
                 onClick={() => setActiveTab(i)}
                 className={`px-4 py-2 text-sm font-semibold rounded-t-lg transition whitespace-nowrap border-b-2 ${
                   activeTab === i
-                    ? "border-indigo-500 text-indigo-600 bg-indigo-50"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
+                    ? "border-indigo-500 text-[rgb(var(--text))] bg-[rgb(var(--primary))]"
+                    : "border-transparent text-[rgb(var(--text))]"
                 }`}
               >
                 {d.sectionId ? `Section ${d.sectionId.name}` : "General"}
@@ -244,9 +244,9 @@ function SingleDetailView({ detail }) {
       </div>
 
       {/* capacity bar */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl border border-gray-100 shadow-sm p-5">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-gray-700">Class Capacity</p>
+          <p className="text-sm font-semibold ">Class Capacity</p>
           <span
             className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
               pct >= 90
@@ -271,7 +271,7 @@ function SingleDetailView({ detail }) {
             style={{ width: `${pct}%` }}
           />
         </div>
-        <div className="flex justify-between text-xs text-gray-400 mt-2">
+        <div className="flex justify-between text-xs  mt-2">
           <span>0</span>
           <span>{detail.studentCount || 0} students</span>
           <span>{detail.capacity || 0} max</span>
@@ -279,12 +279,12 @@ function SingleDetailView({ detail }) {
       </div>
 
       {/* subjects */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+      <div className="bg-[rgb(var(--surface))] rounded-xl border border-gray-100 shadow-sm p-5">
         <div className="flex items-center gap-2 mb-4">
-          <FaBook className="text-indigo-500" size={14} />
-          <h3 className="text-sm font-semibold text-gray-700">
+          <FaBook className="text-[rgb(var(--text))]" size={14} />
+          <h3 className="text-sm font-semibold ">
             Subjects
-            <span className="ml-2 text-xs font-normal text-gray-400">
+            <span className="ml-2 text-xs font-normal ">
               ({detail.subjectTeachers?.length || 0} assigned)
             </span>
           </h3>
@@ -296,12 +296,12 @@ function SingleDetailView({ detail }) {
             {detail.subjectTeachers.map((st, i) => (
               <div
                 key={i}
-                className="text-xs font-medium px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center gap-2"
+                className="text-xs font-medium px-3 py-1 rounded-full  border border-indigo-100 flex items-center gap-2"
               >
                 <span>{st.subjectId?.name}</span>
 
                 {st.teacherId && (
-                  <span className="text-[10px] text-gray-400">
+                  <span className="text-[10px] ">
                     ({st.teacherId.fullName})
                   </span>
                 )}
@@ -317,11 +317,11 @@ function SingleDetailView({ detail }) {
 /* ── Info Card ── */
 function InfoCard({ icon, label, value, color }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-start gap-3">
+    <div className="bg-[rgb(var(--surface))]  text-[rgb(var(--text))] rounded-xl border border-gray-100 shadow-sm p-4 flex items-start gap-3">
       <span className={`mt-0.5 shrink-0 text-base ${color}`}>{icon}</span>
       <div>
-        <p className="text-xs text-gray-400 font-medium mb-0.5">{label}</p>
-        <p className="text-sm font-semibold text-gray-700">{value}</p>
+        <p className="text-xs  font-medium mb-0.5">{label}</p>
+        <p className="text-sm font-semibold ">{value}</p>
       </div>
     </div>
   );

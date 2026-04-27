@@ -158,7 +158,7 @@ export default function EventView() {
 
   /* ══════════════════════════════════════════════════════════ */
   return (
-    <div className="w-full pb-12">
+    <div className="w-full p-8">
       {/* ── Back ── */}
       <button
         onClick={() => {
@@ -168,13 +168,13 @@ export default function EventView() {
           else if (isTeacher) navigate("/teacher/event");
           else if (isStudent) navigate("/parent/event");
         }}
-        className="flex items-center gap-2 text-sm text-indigo-500 hover:text-indigo-700 mb-6 transition"
+        className="flex items-center gap-2 text-sm  text-[rgb(var(--text))] mb-6 transition"
       >
         <FiArrowLeft size={15} /> Back to Events
       </button>
 
       {/* ── Hero Card ── */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+      <div className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
         {/* colour strip */}
         <div className={`h-1.5 w-full ${typeCls.bg}`} />
 
@@ -182,7 +182,7 @@ export default function EventView() {
           {/* top row */}
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
             <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 leading-tight mb-3">
+              <h1 className="text-2xl sm:text-3xl font-bold  leading-tight mb-3">
                 {event.title}
               </h1>
 
@@ -204,7 +204,7 @@ export default function EventView() {
                   {event.priority} Priority
                 </span>
                 {event.registrationRequired && (
-                  <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-purple-100 text-purple-600">
+                  <span className="text-[11px] font-bold px-3 py-1 rounded-full text-[rgb(var(--text))]">
                     Registration Required
                   </span>
                 )}
@@ -213,18 +213,18 @@ export default function EventView() {
 
             {/* attendees bubble */}
             <div className="flex flex-col items-center justify-center bg-indigo-50 rounded-2xl px-6 py-4 shrink-0">
-              <FiUsers size={20} className="text-indigo-400 mb-1" />
-              <p className="text-2xl font-bold text-indigo-600">
+              <FiUsers size={20} className="text-[rgb(var(--primary))] mb-1" />
+              <p className="text-2xl font-bold text-[rgb(var(--primary))]">
                 {event.attendees ?? 0}
               </p>
-              <p className="text-xs text-indigo-400 font-medium">Attendees</p>
+              <p className="text-xs text-[rgb(var(--primary))] font-medium">Attendees</p>
             </div>
           </div>
 
           {/* ── Countdown ── */}
           {!isCompleted && timeLeft && (
-            <div className="bg-linear-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-5 mb-6">
-              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <div className="bg-linear-to-br rounded-2xl border p-5 mb-6">
+              <p className="text-xs font-semibold  uppercase tracking-widest mb-4 flex items-center gap-2">
                 <FiClock size={13} /> {cdLabel}
               </p>
               <div className="grid grid-cols-4 gap-3">
@@ -236,12 +236,12 @@ export default function EventView() {
                 ].map((t, i) => (
                   <div
                     key={i}
-                    className="flex flex-col items-center bg-white rounded-xl py-3 px-2 border border-indigo-100 shadow-sm"
+                    className="flex flex-col items-center bg-[rgb(var(--surface))] rounded-xl py-3 px-2 border border-gray-200 shadow-sm"
                   >
-                    <span className="text-2xl sm:text-3xl font-bold text-indigo-600 tabular-nums leading-none">
+                    <span className="text-2xl sm:text-3xl font-bold text-[rgb(var(--primary))] tabular-nums leading-none">
                       {String(t.value).padStart(2, "0")}
                     </span>
-                    <span className="text-[10px] text-indigo-400 font-semibold mt-1 uppercase tracking-wide">
+                    <span className="text-[10px] text-[rgb(var(--primary))] font-semibold mt-1 uppercase tracking-wide">
                       {t.unit}
                     </span>
                   </div>
@@ -252,13 +252,13 @@ export default function EventView() {
 
           {/* ── Completed banner ── */}
           {isCompleted && (
-            <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 mb-6">
+            <div className="flex items-center gap-3  border-gray-200 rounded-xl px-5 py-4 mb-6">
               <FiCheckCircle size={20} className="text-green-500 shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-gray-700">
+                <p className="text-sm font-semibold text-[rgb(var(--primary))]">
                   This event has been completed
                 </p>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-[rgb(var(--primary))] ">
                   No countdown available for past events
                 </p>
               </div>
@@ -310,11 +310,11 @@ export default function EventView() {
           </div>
 
           {/* ── Description ── */}
-          <div className="bg-slate-50 rounded-xl p-5 border border-slate-100">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
+          <div className=" rounded-xl p-5 border border-slate-100">
+            <p className="text-xs font-semibold  uppercase tracking-widest mb-3">
               Description
             </p>
-            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+            <p className="text-sm leading-relaxed whitespace-pre-line">
               {event.description}
             </p>
           </div>
@@ -322,7 +322,7 @@ export default function EventView() {
       </div>
 
       {/* ── Meta footer ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1 text-xs text-gray-400">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1 text-xs text-[rgb(var(--primary))]">
         <span>
           Created:{" "}
           {new Date(event.createdAt).toLocaleString("en-IN", {
@@ -345,11 +345,11 @@ export default function EventView() {
 /* ── Reusable info card ── */
 function InfoCard({ icon, label, value, color }) {
   return (
-    <div className="flex items-start gap-3 bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+    <div className="flex items-start gap-3 bg-[rgb(var(--surface))] border border-gray-200 rounded-xl p-4 shadow-sm">
       <span className={`mt-0.5 shrink-0 text-lg ${color}`}>{icon}</span>
       <div>
-        <p className="text-xs text-gray-400 font-medium mb-0.5">{label}</p>
-        <p className="text-sm text-gray-700 font-semibold">{value}</p>
+        <p className="text-xs text-[rgb(var(--text-muted))] font-medium mb-0.5">{label}</p>
+        <p className="text-sm text-[rgb(var(--text))] font-semibold">{value}</p>
       </div>
     </div>
   );
