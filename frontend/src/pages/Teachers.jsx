@@ -107,14 +107,14 @@ const Teachers = () => {
       <div className="p-8 flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading teachers...</p>
+          <p className="text-[rgb(var(--text))]">Loading teachers...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 bg-[rgb(var(--bg))] min-h-screen">
       {/* HEADER */}
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
@@ -122,8 +122,8 @@ const Teachers = () => {
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+                 bg-[rgb(var(--primary))] shadow-sm border border-slate-100
+                 text-sm font-bold text-[rgb(var(--text))] active:scale-95 transition-transform mb-2.5"
           >
             <FaArrowLeft size={16} />
             Back
@@ -134,14 +134,14 @@ const Teachers = () => {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Teachers</h1>
 
-          <p className="text-gray-500 text-sm sm:text-base">
+          <p className="text-[rgb(var(--text-muted))] text-sm sm:text-base">
             Manage your school's teaching staff
           </p>
         </div>
 
         <button
           onClick={() => navigate("/school/teacher-manage")}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-green-700 transition"
+          className="bg-[rgb(var(--primary))] text-[rgb(var(--text))] px-4 py-2 rounded-lg flex items-center gap-2 shadow transition"
         >
           <FaPlus />
           Add Teacher
@@ -150,7 +150,7 @@ const Teachers = () => {
 
       {/* STATS */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8 bg-[rgb(var(--surface))] text-[rgb(var(--text))]">
         <Stat title="TOTAL TEACHERS" value={totalTeachers} color="blue" />
         <Stat title="PRESENT TODAY" value={present} color="green" />
         <Stat
@@ -168,7 +168,7 @@ const Teachers = () => {
         <select
           value={filterClass}
           onChange={(e) => setFilterClass(e.target.value)}
-          className="border rounded-lg px-3 py-2 w-full sm:w-64 focus:ring-2 focus:ring-indigo-500 outline-none"
+          className="border rounded-lg px-3 py-2 w-full sm:w-64 focus:ring-2 focus:ring-indigo-500 outline-none text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
         >
           <option value="">All Classes</option>
           {classes.map((c) => (
@@ -181,10 +181,10 @@ const Teachers = () => {
 
       {/* TABLE */}
 
-      <div className="bg-white rounded-xl shadow">
+      <div className="bg-[rgb(var(--surface))] rounded-xl shadow">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-100">
+            <thead className="bg-[rgb(var(--surface))]">
               <tr>
                 <th className="p-4 text-left">Teacher</th>
                 <th className="p-4 text-left">Department</th>
@@ -198,7 +198,7 @@ const Teachers = () => {
 
             <tbody>
               {filteredTeachers.map((teacher) => (
-                <tr key={teacher._id} className="border-t hover:bg-gray-50">
+                <tr key={teacher._id} className="border-t">
                   {/* TEACHER */}
 
                   <td className="p-4">
@@ -210,7 +210,7 @@ const Teachers = () => {
                           className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 bg-indigo-500 text-white rounded-full flex items-center justify-center font-semibold">
+                        <div className="w-10 h-10 bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-full flex items-center justify-center font-semibold">
                           {teacher.fullName?.charAt(0).toUpperCase()}
                         </div>
                       )}
@@ -218,7 +218,7 @@ const Teachers = () => {
                       <div>
                         <p className="font-medium">{teacher.fullName}</p>
 
-                        <p className="text-gray-400 text-xs">
+                        <p className="text-[rgb(var(--text-muted))] text-xs">
                           {teacher.teacherId}
                         </p>
                       </div>
@@ -226,7 +226,7 @@ const Teachers = () => {
                   </td>
 
                   <td className="p-4">
-                    <span className="text-gray-700">
+                    <span className="text-[rgb(var(--text))]">
                       {teacher.department || "-"}
                     </span>
                   </td>
@@ -243,13 +243,13 @@ const Teachers = () => {
                           </span>
                         ))}
                         {teacher.subjects.length > 2 && (
-                          <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full font-medium">
+                          <span className="px-2 py-1 text-xs bg-gray-100 text-[rgb(var(--text))] rounded-full font-medium">
                             +{teacher.subjects.length - 2}
                           </span>
                         )}
                       </div>
                     ) : (
-                      <span className="text-gray-400">-</span>
+                      <span className="text-[rgb(var(--text-muted))]">-</span>
                     )}
                   </td>
 
@@ -265,18 +265,18 @@ const Teachers = () => {
                           </span>
                         ))}
                         {teacher.assignedClasses.length > 2 && (
-                          <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                          <span className="px-2 py-1 text-xs bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded">
                             +{teacher.assignedClasses.length - 2}
                           </span>
                         )}
                       </div>
                     ) : (
-                      <span className="text-gray-400">-</span>
+                      <span className="text-[rgb(var(--text-muted))]">-</span>
                     )}
                   </td>
 
                   <td className="p-4">
-                    <span className="text-gray-700">
+                    <span className="text-[rgb(var(--text))]">
                       {teacher.experience ? `${teacher.experience} yrs` : "-"}
                     </span>
                   </td>
@@ -334,7 +334,7 @@ const Teachers = () => {
 
               {filteredTeachers.length === 0 && (
                 <tr>
-                  <td colSpan="8" className="text-center py-10 text-gray-400">
+                  <td colSpan="8" className="text-center py-10 text-[rgb(var(--text-muted))]">
                     {filterClass
                       ? "No teachers found for selected class"
                       : "No teachers found. Click 'Add Teacher' to get started."}
@@ -375,7 +375,7 @@ const Stat = ({ title, value, color = "blue" }) => {
 
   return (
     <div
-      className={`bg-white rounded-xl shadow p-5 border-l-4 ${colors[color]}`}
+      className={`bg-[rgb(var(--surface))] rounded-xl shadow p-5 border-l-4 ${colors[color]}`}
     >
       <p className="text-xs sm:text-sm text-gray-500 font-medium">{title}</p>
 
@@ -388,7 +388,7 @@ const Stat = ({ title, value, color = "blue" }) => {
 
 const DeleteModal = ({ onCancel, onConfirm }) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl p-6 w-96 max-w-full mx-4">
+    <div className="bg-[rgb(var(--surface))] rounded-xl p-6 w-96 max-w-full mx-4">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
           <FaTrash className="text-red-600" />
@@ -407,7 +407,7 @@ const DeleteModal = ({ onCancel, onConfirm }) => (
       <div className="flex justify-end gap-3">
         <button
           onClick={onCancel}
-          className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+          className="px-4 py-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] transition"
         >
           Cancel
         </button>

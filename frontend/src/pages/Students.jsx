@@ -85,7 +85,7 @@ const Students = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 bg-[rgb(var(--bg))] text-[rgb(var(--text))] min-h-screen">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
           <div className="pt-4">
@@ -103,18 +103,18 @@ const Students = () => {
       {/* HEADER */}
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">
+          <h1 className="text-2xl sm:text-3xl font-bold">
             Students
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-500">
+          <p className="text-sm sm:text-base">
             Good Morning, Dr. Rajesh Kumar! Welcome to the Students panel.
           </p>
         </div>
 
         <button
           onClick={() => navigate("/school/student-manage")}
-          className="flex items-center gap-2 bg-linear-to-r from-indigo-500 to-purple-500 text-white px-5 py-2 rounded-lg shadow hover:opacity-90"
+          className="flex items-center gap-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] px-5 py-2 rounded-lg shadow hover:opacity-90"
         >
           <FaPlus />
           New Admission
@@ -123,7 +123,7 @@ const Students = () => {
 
       {/* STATS */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 bg-(rgb(var(--surface))) p-4 rounded-xl shadow">
         <StatCard
           title="TOTAL STUDENTS"
           value={totalStudents}
@@ -148,18 +148,20 @@ const Students = () => {
 
       {/* CLASS FILTER */}
 
-      <div className="bg-white rounded-xl shadow p-4 sm:p-6 mb-6">
-        <p className="text-sm font-medium mb-2 text-gray-700">Select Class</p>
+      <div className="bg-[rgb(var(--surface))] rounded-xl shadow p-4 sm:p-6 mb-6">
+        <p className="text-sm font-medium mb-2 text-[rgb(var(--text))]">Select Class</p>
 
         <select
           value={selectedClass}
           onChange={(e) => setSelectedClass(e.target.value)}
-          className="border rounded-lg px-4 py-2 w-full sm:w-72"
+          className="border rounded-lg px-4 py-2 w-full sm:w-72 text-[rgb(var(--text))]"
         >
-          <option value="">-- Select a Class --</option>
+          <option value=""  
+          className="text-[rgb(var(--text))]  bg-[rgb(var(--surface))] "
+          >-- Select a Class --</option>
 
           {classes.map((cls) => (
-            <option key={cls._id} value={cls._id}>
+            <option key={cls._id} value={cls._id} className="bg-[rgb(var(--surface))]  text-[rgb(var(--text))]">
               {cls.name}
             </option>
           ))}
@@ -168,9 +170,9 @@ const Students = () => {
 
       {/* DIRECTORY */}
 
-      <div className="bg-white rounded-xl shadow p-4 sm:p-6">
+      <div className="bg-[rgb(var(--surface))] rounded-xl shadow p-4 sm:p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg sm:text-xl font-semibold text-slate-700">
+          <h2 className="text-lg sm:text-xl font-semibold text-[rgb(var(--text))]">
             Student Directory
           </h2>
         </div>
@@ -180,7 +182,7 @@ const Students = () => {
         {students.length > 0 && (
           <div className="overflow-x-auto">
             <table className="w-full min-w-175 text-sm">
-              <thead className="bg-gray-100">
+              <thead className="bg-[rgb(var(--surface))] ">
                 <tr>
                   <th className="p-3 text-left">Name</th>
                   <th className="p-3 text-left">Class</th>
@@ -192,7 +194,7 @@ const Students = () => {
 
               <tbody>
                 {filteredStudents.map((student) => (
-                  <tr key={student._id} className="border-t hover:bg-gray-50">
+                  <tr key={student._id} className="border-t hover:bg-[rgb(var(--bg-hover))]">
                     <td className="p-3 font-medium">
                       {student.firstName} {student.lastName}
                     </td>
@@ -236,7 +238,7 @@ const Students = () => {
 
                 {filteredStudents.length === 0 && (
                   <tr>
-                    <td colSpan="5" className="text-center py-6 text-gray-400">
+                    <td colSpan="5" className="text-center py-6 text-[rgb(var(--text))]">
                       No students found
                     </td>
                   </tr>
@@ -247,16 +249,16 @@ const Students = () => {
         )}
       </div>
       {confirmOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 flex items-center justify-center p-4 z-50 border-bg-[rgb(var(--border-strong))]">
+          <div className="bg-[rgb(var(--surface))] rounded-xl p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-2">Confirmation</h3>
 
-            <p className="text-gray-600 mb-6">{confirmMessage}</p>
+            <p className="text-[rgb(var(--text))] mb-6">{confirmMessage}</p>
 
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmOpen(false)}
-                className="px-4 py-2 bg-gray-200 rounded-lg"
+                className="px-4 py-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded-lg"
               >
                 Cancel
               </button>
@@ -266,7 +268,7 @@ const Students = () => {
                   confirmAction?.();
                   setConfirmOpen(false);
                 }}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg"
+                className="px-4 py-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))]  rounded-lg"
               >
                 Delete
               </button>
@@ -290,11 +292,11 @@ const StatCard = ({ title, value, icon, color }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow p-5 flex items-center gap-4">
+    <div className="bg-[rgb(var(--surface))] rounded-xl shadow p-5 flex items-center gap-4">
       <div className={`${colors[color]} p-3 rounded-lg`}>{icon}</div>
 
       <div>
-        <p className="text-xs sm:text-sm text-gray-500">{title}</p>
+        <p className="text-xs sm:text-sm text-[rgb(var(--text-muted))]">{title}</p>
 
         <p className="text-xl sm:text-2xl font-bold">{value}</p>
       </div>
@@ -303,7 +305,7 @@ const StatCard = ({ title, value, icon, color }) => {
 };
 
 const EmptyState = ({ text }) => (
-  <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+  <div className="flex flex-col items-center justify-center py-16 text-[rgb(var(--text))]">
     <img
       src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png"
       className="w-14 mb-3 opacity-50"

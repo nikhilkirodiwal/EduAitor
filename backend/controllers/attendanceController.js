@@ -4,6 +4,7 @@ import Student from "../models/student.js";
 import Teacher from "../models/teacher.js";
 import Class from "../models/class.js";
 import Subject from "../models/subject.js";
+import { createNotificationHelper } from "./notificationController.js";
 
 /* ─── Helper: derive month/year/academicYear from a date string ── */
 function getDateMeta(dateStr) {
@@ -222,6 +223,25 @@ export const saveAttendance = async (req, res) => {
     }));
 
     const saved = await Attendance.insertMany(docs, { ordered: false });
+    
+    // notification logic for all absent student   
+    const absentStudents = saved.filter(s => s.status === "Absent");
+    const targets = absentStudents.map(s => ({
+  type: "student",
+  studentId: s.studentId,
+  classId,
+  sectionId
+}));
+  if (absentStudents.length > 0) {
+  await createNotificationHelper({
+    title: "Absent Alert 🚫",
+    message: "You were marked absent today. Please check with your school if this is incorrect.",
+    notificationType: "attendance",
+    createdBy: req.user._id,
+    schoolId,
+    targets
+  });
+}
 
     // Return saved docs with studentId + _id so frontend stores them
     const savedRecords = saved.map((s) => ({

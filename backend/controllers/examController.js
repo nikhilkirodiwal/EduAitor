@@ -414,7 +414,7 @@ export const submitMarks = async (req, res) => {
     }
  
     // Verify ownership
-    const exam = await Exam.findOne({ _id: examId, schoolId, teacherId });
+    const exam = await Exam.findOne({ _id: examId, schoolId, teacherId }).populate("className", "name").populate("subject", "name");
     if (!exam) {
       return res.status(403).json({ message: "Not authorized for this exam" });
     }
@@ -506,6 +506,21 @@ export const submitMarks = async (req, res) => {
         };
       })
     );
+
+    await createNotificationHelper({
+  title: "Results Published 📊",
+  message: `${exam.subject.name} results are now available. Check your performance.`,
+  notificationType: "result",
+  createdBy: req.user._id,
+  schoolId,
+  targets: [
+    {
+      type: "class",
+      classId: exam.className,
+      sectionId: exam.sectionId || null
+    }
+  ]
+});
  
     await Result.bulkWrite(bulkOps);
  

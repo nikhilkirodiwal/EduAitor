@@ -74,140 +74,150 @@ import ParentTransport from "./pages/ParentTransport";
 
 const App = () => {
   return (
-    <Routes>
-      {/* Default redirect */}
-      <Route path="*" element={<Navigate to="/admin/login" />} />
+    <div className="bg-[rgb(var(--bg))] text-[rgb(var(--text))] min-h-screen">
+      <Routes>
+        {/* Default redirect */}
+        <Route path="*" element={<Navigate to="/admin/login" />} />
 
-      {/* Login */}
-      <Route path="/admin/login" element={<Login />} />
+        {/* Login */}
+        <Route path="/admin/login" element={<Login />} />
 
-      {/* Protected Routes */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute allowedRoles={["super_admin"]}>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="menu" element={<SuperAdminMenu />} />
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="platform-analytics" element={<PlatformAnalytics />} />
-        <Route path="access-control" element={<AccessControl />} />
-        <Route path="roles" element={<RoleManagement />} />
-        <Route path="schools" element={<Schools />} />
-        <Route path="add-school" element={<AddSchool />} />
-        <Route path="school-manage" element={<SchoolManagement />} />
-        <Route path="school-detail" element={<SchoolDetail />} />
-        <Route path="subscription-plan" element={<SchoolSubscription />} />
-        <Route path="school-view/:id" element={<SchoolView />} />
+        {/* Protected Routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["super_admin"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="menu" element={<SuperAdminMenu />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="platform-analytics" element={<PlatformAnalytics />} />
+          <Route path="access-control" element={<AccessControl />} />
+          <Route path="roles" element={<RoleManagement />} />
+          <Route path="schools" element={<Schools />} />
+          <Route path="add-school" element={<AddSchool />} />
+          <Route path="school-manage" element={<SchoolManagement />} />
+          <Route path="school-detail" element={<SchoolDetail />} />
+          <Route path="subscription-plan" element={<SchoolSubscription />} />
+          <Route path="school-view/:id" element={<SchoolView />} />
 
-        <Route path="*" element={<Navigate to="/admin/dashboard" />} />
-      </Route>
+          <Route path="*" element={<Navigate to="/admin/dashboard" />} />
+        </Route>
 
-      <Route
-        path="/school"
-        element={
-          <ProtectedRoute allowedRoles={["school_admin"]}>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="menu" element={<SchoolMenu />} />
-        <Route path="dashboard" element={<SchoolDashboard />} />
-        <Route path="students" element={<Students />} />
-        <Route path="student-manage" element={<StudentManagement />} />
-        <Route path="student-manage/:id" element={<StudentManagement />} />
-        <Route path="student-view/:id" element={<StudentView />} />
-        <Route path="teachers" element={<Teachers />} />
-        <Route path="teacher-manage" element={<TeacherManagement />} />
-        <Route path="teacher-manage/:id" element={<TeacherManagement />} />
-        <Route path="teacher-view/:id" element={<TeacherView />} />
-        <Route path="section" element={<SectionManagement />} />
-        <Route path="class" element={<Class />} />
-        <Route path="class-view/:id" element={<ClassView />} />
-        <Route path="subject" element={<Subject />} />
-        <Route path="syllabus" element={<Syllabus />} />
-        <Route path="attendance" element={<AttendanceReportPrincipal />} />
-        <Route path="timetable" element={<TimeTable />} />
-        <Route path="fee-structure" element={<FeeStructure />} />
-        <Route path="fee-collection" element={<FeeCollection />} />
-        <Route path="fee-history" element={<FeeHistory />} />
-        <Route path="defaulters" element={<Defaulters />} />
-        <Route path="group" element={<Group />} />
-        <Route path="diary" element={<DiaryPrincipal />} />
-        <Route path="event" element={<Event />} />
-        <Route path="event/:id" element={<EventView />} />
-        <Route path="notice" element={<Notice />} />
-        <Route path="calendar" element={<Calendar />} />
-        <Route path="transport" element={<Transport />} />
-        <Route path="transport-driver" element={<DriverManagement />} />
-        <Route path="transport-bus" element={<BusManagement />} />
-        <Route path="transport-route" element={<RouteManagement />} />
-        <Route path="exam-structure" element={<ExamCreate />} />
-        <Route path="exam-marks" element={<PrincipalResultView />} />
-        <Route path="library" element={<LibraryManagement />} />
+        <Route
+          path="/school"
+          element={
+            <ProtectedRoute allowedRoles={["school_admin"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="menu" element={<SchoolMenu />} />
+          <Route path="dashboard" element={<SchoolDashboard />} />
+          <Route path="students" element={<Students />} />
+          <Route path="student-manage" element={<StudentManagement />} />
+          <Route path="student-manage/:id" element={<StudentManagement />} />
+          <Route path="student-view/:id" element={<StudentView />} />
+          <Route path="teachers" element={<Teachers />} />
+          <Route path="teacher-manage" element={<TeacherManagement />} />
+          <Route path="teacher-manage/:id" element={<TeacherManagement />} />
+          <Route path="teacher-view/:id" element={<TeacherView />} />
+          <Route path="section" element={<SectionManagement />} />
+          <Route path="class" element={<Class />} />
+          <Route path="class-view/:id" element={<ClassView />} />
+          <Route path="subject" element={<Subject />} />
+          <Route path="syllabus" element={<Syllabus />} />
+          <Route path="attendance" element={<AttendanceReportPrincipal />} />
+          <Route path="timetable" element={<TimeTable />} />
+          <Route path="fee-structure" element={<FeeStructure />} />
+          <Route path="fee-collection" element={<FeeCollection />} />
+          <Route path="fee-history" element={<FeeHistory />} />
+          <Route path="defaulters" element={<Defaulters />} />
+          <Route path="group" element={<Group />} />
+          <Route path="diary" element={<DiaryPrincipal />} />
+          <Route path="event" element={<Event />} />
+          <Route path="event/:id" element={<EventView />} />
+          <Route path="notice" element={<Notice />} />
+          <Route path="calendar" element={<Calendar />} />
+          <Route path="transport" element={<Transport />} />
+          <Route path="transport-driver" element={<DriverManagement />} />
+          <Route path="transport-bus" element={<BusManagement />} />
+          <Route path="transport-route" element={<RouteManagement />} />
+          <Route path="exam-structure" element={<ExamCreate />} />
+          <Route path="exam-marks" element={<PrincipalResultView />} />
+          <Route path="library" element={<LibraryManagement />} />
 
-        <Route path="*" element={<Navigate to="/school/dashboard" />} />
-      </Route>
+          <Route path="*" element={<Navigate to="/school/dashboard" />} />
+        </Route>
 
-      <Route
-        path="/teacher"
-        element={
-          <ProtectedRoute allowedRoles={["teacher_admin"]}>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="menu" element={<TeacherMenu />} />
-        <Route path="dashboard" element={<TeacherDashboard />} />
-        <Route path="students" element={<TeacherStudents />} />
-        <Route path="student-view/:id" element={<StudentView />} />
-        <Route path="class" element={<Class />} />
-        <Route path="class-view/:id" element={<ClassView />} />
-        <Route path="assignment" element={<Assignment />} />
-        <Route path="assignment/result" element={<TeacherAssignmentResult />} />
-        <Route path="exam" element={<TeacherExam />} />
-        <Route path="attendance/mark" element={<Attendance />} />
-        <Route path="attendance/report" element={<AttendanceReportTeacher />} />
-        <Route path="syllabus" element={<Syllabus />} />
-        <Route path="diary" element={<DiaryTeacher />} />
-        <Route path="event" element={<Event />} />
-        <Route path="event/:id" element={<EventView />} />
-        <Route path="notice" element={<Notice />} />
-        <Route path="calendar" element={<TeacherCalendar />} />
-        <Route path="group" element={<Group />} />
-        <Route path="timetable" element={<ReadTimetable />} />
+        <Route
+          path="/teacher"
+          element={
+            <ProtectedRoute allowedRoles={["teacher_admin"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="menu" element={<TeacherMenu />} />
+          <Route path="dashboard" element={<TeacherDashboard />} />
+          <Route path="students" element={<TeacherStudents />} />
+          <Route path="student-view/:id" element={<StudentView />} />
+          <Route path="class" element={<Class />} />
+          <Route path="class-view/:id" element={<ClassView />} />
+          <Route path="assignment" element={<Assignment />} />
+          <Route
+            path="assignment/result"
+            element={<TeacherAssignmentResult />}
+          />
+          <Route path="exam" element={<TeacherExam />} />
+          <Route path="attendance/mark" element={<Attendance />} />
+          <Route
+            path="attendance/report"
+            element={<AttendanceReportTeacher />}
+          />
+          <Route path="syllabus" element={<Syllabus />} />
+          <Route path="diary" element={<DiaryTeacher />} />
+          <Route path="event" element={<Event />} />
+          <Route path="event/:id" element={<EventView />} />
+          <Route path="notice" element={<Notice />} />
+          <Route path="calendar" element={<TeacherCalendar />} />
+          <Route path="group" element={<Group />} />
+          <Route path="timetable" element={<ReadTimetable />} />
 
-        <Route path="*" element={<Navigate to="/teacher/dashboard" />} />
-      </Route>
+          <Route path="*" element={<Navigate to="/teacher/dashboard" />} />
+        </Route>
 
-      <Route
-        path="/parent"
-        element={
-          <ProtectedRoute allowedRoles={["student_admin"]}>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="menu" element={<ParentMenu />} />
-        <Route path="dashboard" element={<ParentDashboard />} />
-        <Route path="student" element={<MyChild />} />
-        <Route path="assignment" element={<ParentAssignment />} />
-        <Route path="assignment/result" element={<ParentAssignmentResult />} />
-        <Route path="timetable" element={<ReadTimetable />} />
-        <Route path="exam-result" element={<ParentResultView />} />
-        <Route path="diary" element={<DiaryParent />} />
-        <Route path="event" element={<Event />} />
-        <Route path="event/:id" element={<EventView />} />
-        <Route path="notice" element={<Notice />} />
-        <Route path="group" element={<Group />} />
-        <Route path="calendar" element={<TeacherCalendar />} />
-        <Route path="attendance" element={<AttendanceParent />} />
-        <Route path="fees" element={<ParentFee />} />
-        <Route path="library" element={<ParentLibrary />} />
-        <Route path="transport" element={<ParentTransport />} />
-        {/* <Route
+        <Route
+          path="/parent"
+          element={
+            <ProtectedRoute allowedRoles={["student_admin"]}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="menu" element={<ParentMenu />} />
+          <Route path="dashboard" element={<ParentDashboard />} />
+          <Route path="student" element={<MyChild />} />
+          <Route path="assignment" element={<ParentAssignment />} />
+          <Route
+            path="assignment/result"
+            element={<ParentAssignmentResult />}
+          />
+          <Route path="timetable" element={<ReadTimetable />} />
+          <Route path="exam-result" element={<ParentResultView />} />
+          <Route path="diary" element={<DiaryParent />} />
+          <Route path="event" element={<Event />} />
+          <Route path="event/:id" element={<EventView />} />
+          <Route path="notice" element={<Notice />} />
+          <Route path="group" element={<Group />} />
+          <Route path="calendar" element={<TeacherCalendar />} />
+          <Route path="attendance" element={<AttendanceParent />} />
+          <Route path="fees" element={<ParentFee />} />
+          <Route path="library" element={<ParentLibrary />} />
+          <Route path="transport" element={<ParentTransport />} />
+          {/* <Route
           path="timetable"
           element={
             <ReadTimetable
@@ -218,9 +228,10 @@ const App = () => {
           }
         /> */}
 
-        <Route path="*" element={<Navigate to="/parent/dashboard" />} />
-      </Route>
-    </Routes>
+          <Route path="*" element={<Navigate to="/parent/dashboard" />} />
+        </Route>
+      </Routes>
+    </div>
   );
 };
 

@@ -338,7 +338,7 @@ const TeacherManagement = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 bg-[rgb(var(--bg))] min-h-screen">
       {/* HEADER */}
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
@@ -346,8 +346,8 @@ const TeacherManagement = () => {
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+                 bg-[rgb(var(--surface))] shadow-sm border border-slate-100
+                 text-sm font-bold text-[rgb(var(--text))] active:scale-95 transition-transform mb-2.5"
           >
             <FaArrowLeft size={16} />
             Back
@@ -361,7 +361,7 @@ const TeacherManagement = () => {
 
         <button
           onClick={resetForm}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+          className="px-4 py-2 bg-[rgb(var(--primary))] 0 text-[rgb(var(--text))]  rounded-lg transition"
         >
           Reset
         </button>
@@ -370,7 +370,7 @@ const TeacherManagement = () => {
         {/* STEP SIDEBAR */}
 
         <div className="col-span-12 lg:col-span-3">
-          <div className="bg-white rounded-xl shadow p-4 sticky top-6">
+          <div className="bg-[rgb(var(--surface))] rounded-xl shadow p-4 sticky top-6">
             {steps.map((s, i) => {
               const index = i + 1;
 
@@ -397,17 +397,17 @@ const TeacherManagement = () => {
                   className={`flex items-center gap-3 p-3 rounded-lg mb-2 cursor-pointer transition
                   ${
                     status === "active"
-                      ? "bg-indigo-600 text-white"
-                      : "bg-gray-100 hover:bg-gray-200"
+                      ? "bg-[rgb(var(--primary))] text-[rgb(var(--text))]"
+                      : "bg-[rgb(var(--surface))] hover:bg-[rgb(var(--surface-hover))]"
                   }`}
                 >
                   <div
                     className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-semibold
                     ${
                       status === "complete"
-                        ? "bg-green-500 text-white"
+                        ? "bg-[rgb(var(--surface))] text-[rgb(var(--text))]"
                         : status === "active"
-                          ? "bg-white text-indigo-600"
+                          ? "text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
                           : "bg-gray-300"
                     }`}
                   >
@@ -424,7 +424,7 @@ const TeacherManagement = () => {
         {/* FORM */}
 
         <div className="col-span-12 lg:col-span-9">
-          <div className="bg-white rounded-xl shadow p-6 lg:p-8">
+          <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl shadow p-6 lg:p-8">
             {/* PROGRESS */}
 
             <div className="mb-6">
@@ -670,7 +670,7 @@ const TeacherManagement = () => {
               {step > 1 && (
                 <button
                   onClick={prev}
-                  className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+                  className="px-6 py-2 bg-[rgb(var(--primary))]  rounded-lg  text-[rgb(var(--text))] transition"
                 >
                   Back
                 </button>
@@ -683,8 +683,8 @@ const TeacherManagement = () => {
                   className={`px-6 py-2 rounded-lg text-white ml-auto transition
                   ${
                     validateStep().length
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-indigo-600 hover:bg-indigo-700"
+                      ? "bg-[rgb(var(--primary))] cursor-not-allowed"
+                      : "bg-[rgb(var(--primary))] "
                   }`}
                 >
                   Next
@@ -719,7 +719,7 @@ export default TeacherManagement;
 
 const Input = ({ label, className = "", ...props }) => (
   <div className={className}>
-    <label className="block text-sm mb-1 text-gray-600">{label}</label>
+    <label className="block text-sm mb-1 text-[rgb(var(--text))]">{label}</label>
     <input
       {...props}
       className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
@@ -751,7 +751,7 @@ const Select = ({
 
   return (
     <div>
-      <label className="block text-sm mb-1 text-gray-600">{label}</label>
+      <label className="block text-sm mb-1 text-[rgb(var(--text))]">{label}</label>
 
       <select
         {...props}
@@ -759,7 +759,7 @@ const Select = ({
         value={value}
         multiple={multiple}
         onChange={handleChange}
-        className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+        className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-[rgb(var(--surface))]"
       >
         {!multiple && <option value="">Select</option>}
 
@@ -799,28 +799,28 @@ const File = ({ label, name, onChange }) => (
 );
 
 const ReviewField = ({ label, value }) => (
-  <div className="bg-gray-50 p-3 rounded-lg">
-    <p className="text-xs text-gray-500 mb-1">{label}</p>
+  <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] p-3 rounded-lg border-black/10">
+    <p className="text-xs  mb-1">{label}</p>
     <p className="text-sm font-medium">{value || "Not provided"}</p>
   </div>
 );
 
 const ConfirmModal = ({ message, onCancel, onConfirm }) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl p-6 w-96 max-w-full mx-4">
+    <div className="bg-[rgb(var(--surface))] rounded-xl p-6 w-96 max-w-full mx-4">
       <h3 className="text-lg font-semibold mb-3">Confirmation</h3>
-      <p className="mb-6 text-gray-600">{message}</p>
+      <p className="mb-6 text-[rgb(var(--text))]">{message}</p>
 
       <div className="flex justify-end gap-3">
         <button
           onClick={onCancel}
-          className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+          className="px-4 py-2 bg-[rgb(var(--primary))]  rounded-lg transition"
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+          className="px-4 py-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))]  rounded-lg transition"
         >
           Confirm
         </button>

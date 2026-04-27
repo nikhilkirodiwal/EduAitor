@@ -104,7 +104,7 @@ const Topbar = ({ toggleSidebar }) => {
 
   setInterval(() => {
     fetchNotifications();
-  }, 60000); // Refresh notifications every 60 seconds
+  }, 300000); // Refresh notifications every 60 seconds
 
   // clear notification on clear button-
   // ─── ADD this function alongside handleMarkAsRead ──────────────────────────
@@ -138,23 +138,35 @@ const Topbar = ({ toggleSidebar }) => {
     return () => window.removeEventListener("click", close);
   }, [openDropdown, openNotifications]);
 
+  //  fetch color them function
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      document.documentElement.className = savedTheme;
+    }
+  }, []);
+
   return (
-    <header className="h-16 bg-white/80 backdrop-blur border-b flex items-center justify-between px-5 sticky top-0 z-30 shadow-md">
+    <header className="h-16 bg-[rgb(var(--bg))] backdrop-blur border-b flex items-center justify-between px-5 sticky top-0 z-30 shadow-md">
       {/* LEFT */}
       <div className="flex items-center gap-3">
         <button
           onClick={toggleSidebar}
-          className="lg:hidden text-gray-500 hover:text-gray-700"
+          className="lg:hidden text-[rgb(var(--text))] hover:text-[rgb(var(--text))]"
         >
           <FaBars size={18} />
         </button>
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-xl bg-linear-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white text-lg shadow">
+          <div className="w-10 h-10 rounded-xl bg-[rgb(var(--primary))] flex items-center justify-center text-[rgb(var(--text))] text-lg shadow">
             🎓
           </div>
           <div className="hidden sm:block">
-            <h1 className="text-base font-bold text-indigo-600">EduAltor</h1>
-            <p className="text-[11px] text-gray-400">Track. Assess. Improve.</p>
+            <h1 className="text-base font-bold text-[rgb(var(--text))]">
+              EduAltor
+            </h1>
+            <p className="text-[11px] bg-[rgba(0,0,0,0.05)] ">
+              Track. Assess. Improve.
+            </p>
           </div>
         </div>
       </div>
@@ -162,8 +174,10 @@ const Topbar = ({ toggleSidebar }) => {
       {/* RIGHT */}
       <div className="flex items-center gap-4">
         <div className="hidden md:block text-right">
-          <p className="text-sm font-semibold text-gray-700">{time.t}</p>
-          <p className="text-xs text-gray-400">{time.d}</p>
+          <p className="text-sm font-semibold text-[rgb(var(--text))]">
+            {time.t}
+          </p>
+          <p className="text-xs text-[rgb(var(--text))]">{time.d}</p>
         </div>
 
         {/* --- NOTIFICATION ICON & DROPDOWN --- */}
@@ -173,9 +187,9 @@ const Topbar = ({ toggleSidebar }) => {
               e.stopPropagation();
               setOpenNotifications(!openNotifications);
             }}
-            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200 transition cursor-pointer"
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[rgb(var(--bg))] hover:bg-[rgb(var(--bg-hover))] transition cursor-pointer"
           >
-            <FaBell className="text-gray-600" />
+            <FaBell className="text-[rgb(var(--text))]" />
           </div>
 
           {unreadCount > 0 && (
@@ -264,6 +278,22 @@ const Topbar = ({ toggleSidebar }) => {
           <option>{role.replace("_", " ")}</option>
         </select>
 
+        {/* theme changer */}
+        <select
+          onChange={(e) => {
+            const theme = e.target.value;
+            document.documentElement.className = theme;
+            localStorage.setItem("theme", theme);
+          }}
+          className="hidden md:block bg-[rgb(var(--bg))] px-3 py-2 rounded-lg  text-sm text-[rgb(var(--text))] focus:outline-none"
+        >
+          <option value="">Select Theme</option>
+          <option value="theme-light">Light</option>
+          <option value="theme-dark">Dark</option>
+          <option value="theme-blue">Blue</option>
+          <option value="theme-green">Green</option>
+        </select>
+
         {/* USER DROPDOWN */}
         <div className="relative">
           <div
@@ -271,15 +301,17 @@ const Topbar = ({ toggleSidebar }) => {
               e.stopPropagation();
               setOpenDropdown(!openDropdown);
             }}
-            className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 px-2 py-1.5 rounded-xl transition"
+            className="flex items-center gap-3 cursor-pointer  px-2 py-1.5 rounded-xl transition"
           >
             <div className="hidden md:block text-right leading-tight">
-              <p className="text-sm font-semibold text-gray-800">{name}</p>
-              <p className="text-xs text-gray-400 capitalize">
+              <p className="text-sm font-semibold text-[rgb(var(--text))]">
+                {name}
+              </p>
+              <p className="text-xs text-[rgb(var(--text))] capitalize">
                 {role.replace("_", " ")}
               </p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-linear-to-r from-indigo-500 to-purple-500 text-white flex items-center justify-center text-sm font-bold shadow">
+            <div className="w-10 h-10 rounded-full bg-[rgb(var(--primary))] text-[rgb(var(--text))] flex items-center justify-center text-sm font-bold shadow">
               {initials}
             </div>
           </div>
@@ -287,17 +319,19 @@ const Topbar = ({ toggleSidebar }) => {
           {openDropdown && (
             <div
               onClick={(e) => e.stopPropagation()}
-              className="absolute right-0 mt-3 w-48 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden animate-fadeIn"
+              className="absolute right-0 mt-3 w-48 bg-[rgb(var(--bg))] border border-gray-100 rounded-xl shadow-xl overflow-hidden animate-fadeIn"
             >
               <div className="px-4 py-3 border-b">
-                <p className="text-sm font-semibold text-gray-800">{name}</p>
-                <p className="text-xs text-gray-400 capitalize">
+                <p className="text-sm font-semibold text-[rgb(var(--text))]">
+                  {name}
+                </p>
+                <p className="text-xs text-[rgb(var(--text))] capitalize">
                   {role.replace("_", " ")}
                 </p>
               </div>
               <button
                 onClick={logout}
-                className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-red-50 hover:text-red-500 transition"
+                className="w-full text-left px-4 py-2 text-sm text-[rgb(var(--text))]  hover:text-red-500 transition"
               >
                 ➡️ Logout
               </button>

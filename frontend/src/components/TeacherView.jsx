@@ -38,11 +38,11 @@ const TeacherView = () => {
   if (!teacher) return <div className="p-6 sm:p-10">Teacher not found</div>;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 bg-[rgb(var(--bg))] min-h-screen">
       {/* HEADER */}
       <button
         onClick={() => navigate("/school/teachers")}
-        className="flex items-center gap-2 text-indigo-600 mb-4"
+        className="flex items-center gap-2 text-[rgb(var(--text))] mb-4"
       >
         <FaArrowLeft />
         Back to Teachers
@@ -52,7 +52,7 @@ const TeacherView = () => {
 
         <button
           onClick={() => navigate(`/school/teacher-manage/${teacher._id}`)}
-          className="px-4 py-2 bg-gray-200 rounded-lg"
+          className="px-4 py-2 bg-[rgb(var(--primary))]  rounded-lg  text-[rgb(var(--text))] transition"
         >
           Edit
         </button>
@@ -60,7 +60,7 @@ const TeacherView = () => {
 
       {/* PROFILE CARD */}
 
-      <div className="bg-white rounded-xl shadow p-6 mb-6 flex flex-col sm:flex-row gap-6 items-center">
+      <div className="bg-[rgb(var(--surface))]  text-[rgb(var(--text))]  rounded-xl shadow p-6 mb-6 flex flex-col sm:flex-row gap-6 items-center">
         <img
           src={teacher.photo?.url || "https://i.pravatar.cc"}
           className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border"
@@ -72,14 +72,14 @@ const TeacherView = () => {
             {teacher.fullName}
           </h2>
 
-          <p className="text-gray-500">{teacher.designation}</p>
+          <p className="text-[rgb(var(--text))]">{teacher.designation}</p>
 
-          <p className="text-gray-400 text-sm">{teacher.department}</p>
+          <p className="text-[rgb(var(--text))]">{teacher.department}</p>
         </div>
 
         <button
           onClick={() => setMessageOpen(true)}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+          className="px-4 py-2 bg-[rgb(var(--primary))]  rounded-lg  text-[rgb(var(--text))] transition"
         >
           Message
         </button>
@@ -157,20 +157,20 @@ const TeacherView = () => {
 
       {messageOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md sm:max-w-lg space-y-4">
+          <div className="bg-[rgb(var(--surface))]  text-[rgb(var(--text))]  rounded-xl p-6 w-full max-w-md sm:max-w-lg space-y-4">
             <h3 className="text-lg font-semibold">Send Message</h3>
 
-            <p className="text-sm text-gray-500">To: {teacher.fullName}</p>
+            <p className="text-sm text-[rgb(var(--text))]">To: {teacher.fullName}</p>
 
             <textarea
               placeholder="Write your message..."
-              className="w-full border rounded-lg p-3 h-32"
+              className="w-full border rounded-lg p-3 h-32 bg-[rgb(var(--surface))]  text-[rgb(var(--text))]  border-gray-300"
             />
 
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setMessageOpen(false)}
-                className="px-4 py-2 bg-gray-200 rounded-lg"
+                className="px-4 py-2 bg-[rgb(var(--surface))]  rounded-lg  text-[rgb(var(--text))] transition"
               >
                 Cancel
               </button>
@@ -180,7 +180,7 @@ const TeacherView = () => {
                   toast.success("Message sent (UI only)");
                   setMessageOpen(false);
                 }}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+                className="px-4 py-2 bg-[rgb(var(--primary))]  rounded-lg  text-[rgb(var(--text))] transition"
               >
                 Send
               </button>
@@ -197,7 +197,7 @@ export default TeacherView;
 /* COMPONENTS */
 
 const Card = ({ title, children }) => (
-  <div className="bg-white rounded-xl shadow p-6">
+  <div className="bg-[rgb(var(--surface))]  text-[rgb(var(--text))]  rounded-xl shadow p-6">
     <h3 className="text-lg font-semibold mb-4">{title}</h3>
 
     <div className="space-y-2">{children}</div>
@@ -205,16 +205,16 @@ const Card = ({ title, children }) => (
 );
 
 const Info = ({ label, value }) => (
-  <div className="flex justify-between text-sm">
-    <span className="text-gray-500">{label}</span>
+  <div className="flex justify-between text-sm bg-[rgb(var(--surface))]" >
+    <span className="text-[rgb(var(--text))]">{label}</span>
 
     <span className="font-medium">{value || "-"}</span>
   </div>
 );
 
 const Stat = ({ title, value }) => (
-  <div className="bg-white rounded-xl shadow p-6 text-center">
-    <p className="text-sm text-gray-400">{title}</p>
+  <div className="bg-[rgb(var(--surface))]  rounded-xl shadow p-6 text-center">
+    <p className="text-sm text-[rgb(var(--text))]">{title}</p>
 
     <p className="text-xl font-semibold">{value}</p>
   </div>

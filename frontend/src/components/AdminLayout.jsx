@@ -7,7 +7,7 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="h-screen flex flex-col bg-slate-100">
+    <div className="h-screen flex flex-col">
 
       {/* TOPBAR */}
       <Topbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
@@ -16,7 +16,7 @@ const AdminLayout = () => {
       <div className="flex flex-1 overflow-hidden">
 
         {/* DESKTOP SIDEBAR */}
-        <div className="hidden lg:block w-56 border-r bg-white">
+        <div className="hidden lg:block w-56 border-r">
           <Sidebar />
         </div>
 
@@ -40,7 +40,7 @@ const AdminLayout = () => {
 
         {/* CONTENT */}
         <main className="flex-1 overflow-y-auto">
-          <div className="px-6 py-4">
+          <div className="">
             <Outlet />
           </div>
         </main>

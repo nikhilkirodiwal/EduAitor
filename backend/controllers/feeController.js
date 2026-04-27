@@ -796,23 +796,6 @@ export const getAllStudentAdminHistory = async (req, res) => {
   }
 };
 
-export const getStudentFeeDetails = async (req, res) => {
-  try {
-    const { studentId } = req.params;
-    const schoolId = req.user.school_id;
-    const feeDetails = await buildStudentFeeResponse({ studentId, schoolId });
-
-    if (!feeDetails) {
-      return res.status(404).json({ message: "Student not found" });
-    }
-
-    res.json(feeDetails);
-  } catch (err) {
-    console.error("getStudentFeeDetails error:", err.message);
-    res.status(500).json({ message: err.message });
-  }
-};
-
 const getAppliedFeeAmount = (student, fee) => {
   if (!fee) return 0;
 

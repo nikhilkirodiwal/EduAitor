@@ -24,6 +24,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FaArrowLeft } from "react-icons/fa";
+import CreateNotification from "../components/CreateNotification";
 
 const API = import.meta.env.VITE_API_URL;
 const settingsKey = "schoolDashboardVisibility";
@@ -152,6 +153,7 @@ const SchoolDashboard = () => {
         }),
       ]);
 
+      console.log("Dashboard data:", { students: studentsRes.data, teachers: teachersRes.data, classes: classesRes.data, notices: noticesRes.data, events: eventsRes.data, fees: feesRes.data, defaulters: defaultersRes.data, books: booksRes.data, issues: issuesRes.data }); 
       setDashboard({
         students: studentsRes.data.data || [],
         teachers: teachersRes.data.data || [],
@@ -385,12 +387,13 @@ const SchoolDashboard = () => {
     .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
     .slice(0, 3);
 
+  // ─── Loading ────────────────────────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 p-8">
+      <div className="flex min-h-screen items-center justify-center bg-[rgb(var(--bg))]">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-sky-600" />
-          <p className="text-sm font-semibold text-slate-600">
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-[rgb(var(--border))] border-t-[rgb(var(--primary))]" />
+          <p className="text-sm font-semibold text-[rgb(var(--text-muted))]">
             Loading school dashboard...
           </p>
         </div>
@@ -399,50 +402,56 @@ const SchoolDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
+    <div className="min-h-screen bg-[rgb(var(--bg))]">
+
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
-          <div className="pt-4">
+        <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+                       bg-[rgb(var(--surface))] border border-[rgb(var(--border))]
+                       text-sm font-bold text-[rgb(var(--text))] active:scale-95 transition-transform mb-2.5"
           >
             <FaArrowLeft size={16} />
             Back
           </button>
         </div>
       )}
-      <div className="border-b border-slate-200 bg-white">
+
+      {/* ─── Header ─────────────────────────────────────────────────────────── */}
+      <div className="border-b border-[rgb(var(--border))] bg-[rgb(var(--bg))] rounded-2xl">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-[rgb(var(--text))]">
                 School Dashboard
               </h1>
-              <p className="mt-2 max-w-3xl text-sm text-slate-500">
+              <p className="mt-2 max-w-3xl text-sm text-[rgb(var(--text-muted))]">
                 Monitor reports, fee health, attendance, notices, events, and
                 daily action points from one control center.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
+              {/* Settings — secondary style */}
               <button
                 onClick={() => setSettingsOpen((value) => !value)}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] px-4 py-3 text-sm font-bold text-[rgb(var(--text))] transition hover:border-[rgb(var(--border-strong))]"
               >
                 <FiSettings />
                 Dashboard Settings
               </button>
+              {/* Refresh — primary style */}
               <button
                 onClick={() => fetchDashboard({ silent: true })}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[rgb(var(--primary))] px-4 py-3 text-sm font-bold text-white transition hover:opacity-90"
               >
                 <FiRefreshCw className={refreshing ? "animate-spin" : ""} />
                 Refresh
               </button>
             </div>
           </div>
+
           {settingsOpen && (
             <DashboardSettingsControl
               visibility={visibility}
@@ -458,7 +467,12 @@ const SchoolDashboard = () => {
         </div>
       </div>
 
+      <CreateNotification />
+
+      {/* ─── Body ───────────────────────────────────────────────────────────── */}
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+
+        {/* Stat row */}
         <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             title="Students"
@@ -490,16 +504,19 @@ const SchoolDashboard = () => {
           />
         </section>
 
+        {/* Command Center + Priority Focus */}
         <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
-          <div className="overflow-hidden rounded-3xl bg-linear-to-br from-slate-950 via-sky-950 to-cyan-900 p-6 text-white shadow-xl">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-sky-200">
+
+          {/* Command Center */}
+          <div className="overflow-hidden rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-6 text-[rgb(var(--text))] shadow-sm">
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-[rgb(var(--text-muted))]">
               Command Center
             </p>
-            <h2 className="mt-3 text-2xl font-black">
+            <h2 className="mt-3 text-2xl text-[rgb(var(--text))]">
               {"Your school"} is operating with {metrics.classesReadyRate}%
               classroom readiness
             </h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-300">
+            <p className="mt-2 max-w-2xl text-sm text-[rgb(var(--text-muted))]">
               Keep academic operations, fee recovery, and communication
               priorities visible for your daily admin team.
             </p>
@@ -512,16 +529,17 @@ const SchoolDashboard = () => {
             )}
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          {/* Priority Focus */}
+          <div className="rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-5 shadow-sm">
             <div className="mb-4 flex items-center gap-3">
               <div className="rounded-2xl bg-red-50 p-3 text-red-600">
                 <FaTriangleExclamation />
               </div>
               <div>
-                <h2 className="text-lg font-black text-slate-900">
+                <h2 className="text-lg font-black text-[rgb(var(--text))]">
                   Priority Focus
                 </h2>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-[rgb(var(--text-muted))]">
                   What the school office should review first.
                 </p>
               </div>
@@ -555,6 +573,7 @@ const SchoolDashboard = () => {
           </div>
         </section>
 
+        {/* Reports Overview */}
         {visibility.reports && (
           <SectionCard
             title="Reports Overview"
@@ -568,6 +587,7 @@ const SchoolDashboard = () => {
           </SectionCard>
         )}
 
+        {/* Fee Trend + Attendance */}
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
           {visibility.feeTrends && (
             <SectionCard
@@ -575,14 +595,15 @@ const SchoolDashboard = () => {
               subtitle="Recent six-month collection pattern from fee history"
             >
               <div className="grid gap-5 lg:grid-cols-[0.78fr_1.22fr]">
-                <div className="rounded-2xl bg-slate-50 p-5">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+                {/* Snapshot */}
+                <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] p-5">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(var(--text-muted))]">
                     Collection Snapshot
                   </p>
-                  <p className="mt-3 text-3xl font-black text-slate-900">
+                  <p className="mt-3 text-3xl font-black text-[rgb(var(--text))]">
                     {formatCurrency(dashboard.feeSummary.totalAmount)}
                   </p>
-                  <p className="mt-2 text-sm text-slate-500">
+                  <p className="mt-2 text-sm text-[rgb(var(--text-muted))]">
                     Current loaded collection total from fee history.
                   </p>
                   <div className="mt-5 space-y-3">
@@ -610,14 +631,15 @@ const SchoolDashboard = () => {
                     />
                   </div>
                 </div>
-                <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                {/* Bar chart */}
+                <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-5">
                   <div className="flex h-56 items-end justify-between gap-3">
                     {feeTrend.map((item) => (
                       <div
                         key={item.key}
                         className="flex flex-1 flex-col items-center justify-end gap-3"
                       >
-                        <span className="text-[11px] font-bold text-slate-500">
+                        <span className="text-[11px] font-bold text-[rgb(var(--text-muted))]">
                           {item.value ? formatCurrency(item.value) : "No data"}
                         </span>
                         <div className="flex h-36 w-full items-end">
@@ -627,7 +649,7 @@ const SchoolDashboard = () => {
                             title={`${item.fullLabel}: ${formatCurrency(item.value)}`}
                           />
                         </div>
-                        <span className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">
+                        <span className="text-xs font-black uppercase tracking-[0.14em] text-[rgb(var(--text-muted))]">
                           {item.label}
                         </span>
                       </div>
@@ -652,6 +674,7 @@ const SchoolDashboard = () => {
           )}
         </div>
 
+        {/* Quick Actions + Operational Highlights */}
         <div className="grid gap-6 xl:grid-cols-[1fr_1fr]">
           {visibility.quickActions && (
             <SectionCard
@@ -663,7 +686,7 @@ const SchoolDashboard = () => {
                   <button
                     key={item.label}
                     onClick={() => navigate(item.to)}
-                    className="group rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+                    className="group rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] p-4 text-left transition hover:-translate-y-0.5 hover:border-[rgb(var(--border-strong))] hover:shadow-md"
                   >
                     <div
                       className={`mb-4 inline-flex rounded-2xl p-3 text-lg ${quickActionTone[item.tone]}`}
@@ -672,14 +695,14 @@ const SchoolDashboard = () => {
                     </div>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h3 className="text-base font-black text-slate-900">
+                        <h3 className="text-base font-black text-[rgb(var(--text))]">
                           {item.label}
                         </h3>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="mt-1 text-sm text-[rgb(var(--text-muted))]">
                           {item.helper}
                         </p>
                       </div>
-                      <FiArrowRight className="mt-1 text-slate-300 transition group-hover:text-slate-700" />
+                      <FiArrowRight className="mt-1 text-[rgb(var(--text-muted))] transition group-hover:text-[rgb(var(--text))]" />
                     </div>
                   </button>
                 ))}
@@ -736,31 +759,33 @@ const SchoolDashboard = () => {
   );
 };
 
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
 const DashboardSettingsControl = ({ visibility, onToggle, onReset }) => {
   const controls = [
-    ["highlights", "Highlights"],
-    ["reports", "Reports"],
-    ["feeTrends", "Fee Trends"],
-    ["attendance", "Attendance"],
-    ["quickActions", "Quick Actions"],
-    ["notices", "Latest Notices"],
-    ["events", "Upcoming Events"],
+    ["highlights",   "Highlights"     ],
+    ["reports",      "Reports"        ],
+    ["feeTrends",    "Fee Trends"     ],
+    ["attendance",   "Attendance"     ],
+    ["quickActions", "Quick Actions"  ],
+    ["notices",      "Latest Notices" ],
+    ["events",       "Upcoming Events"],
   ];
 
   return (
-    <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+    <div className="mt-5 rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-base font-black text-slate-900">
+          <h2 className="text-base font-black text-[rgb(var(--text))]">
             Dashboard Content Control
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-[rgb(var(--text-muted))]">
             Choose which dashboard sections stay visible for your school team.
           </p>
         </div>
         <button
           onClick={onReset}
-          className="rounded-2xl bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-100"
+          className="rounded-2xl bg-[rgb(var(--primary))] px-4 py-2 text-sm font-bold text-white transition hover:opacity-90"
         >
           Reset Defaults
         </button>
@@ -772,13 +797,17 @@ const DashboardSettingsControl = ({ visibility, onToggle, onReset }) => {
             onClick={() => onToggle(key)}
             className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
               visibility[key]
-                ? "border-sky-200 bg-sky-50 text-sky-900"
-                : "border-slate-200 bg-white text-slate-600"
+                ? "border-[rgb(var(--border-strong))] bg-[rgb(var(--surface))] text-[rgb(var(--text))]"
+                : "border-[rgb(var(--border))] bg-[rgb(var(--bg))] text-[rgb(var(--text))]"
             }`}
           >
             <span className="text-sm font-bold">{label}</span>
             <span
-              className={`rounded-full px-2 py-1 text-[11px] font-black uppercase ${visibility[key] ? "bg-sky-600 text-white" : "bg-slate-100 text-slate-500"}`}
+              className={`rounded-full px-2 py-1 text-[11px] font-black uppercase ${
+                visibility[key]
+                  ? "bg-[rgb(var(--primary))] text-white"
+                  : "bg-[rgb(var(--surface))] text-[rgb(var(--text-muted))] border border-[rgb(var(--border))]"
+              }`}
             >
               {visibility[key] ? "On" : "Off"}
             </span>
@@ -790,10 +819,10 @@ const DashboardSettingsControl = ({ visibility, onToggle, onReset }) => {
 };
 
 const SectionCard = ({ title, subtitle, children }) => (
-  <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+  <section className="rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-5 shadow-sm">
     <div className="mb-4">
-      <h2 className="text-lg font-black text-slate-900">{title}</h2>
-      <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+      <h2 className="text-lg font-black text-[rgb(var(--text))]">{title}</h2>
+      <p className="mt-1 text-sm text-[rgb(var(--text-muted))]">{subtitle}</p>
     </div>
     {children}
   </section>
@@ -801,20 +830,20 @@ const SectionCard = ({ title, subtitle, children }) => (
 
 const StatCard = ({ title, value, note, icon, tone }) => {
   const tones = {
-    blue: "bg-blue-50 text-blue-600",
-    emerald: "bg-emerald-50 text-emerald-600",
-    amber: "bg-amber-50 text-amber-600",
+    blue:   "bg-blue-50 text-blue-600",
+    emerald:"bg-emerald-50 text-emerald-600",
+    amber:  "bg-amber-50 text-amber-600",
     violet: "bg-violet-50 text-violet-600",
   };
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-3xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(var(--text-muted))]">
             {title}
           </p>
-          <p className="mt-3 text-3xl font-black text-slate-900">{value}</p>
-          <p className="mt-2 text-sm text-slate-500">{note}</p>
+          <p className="mt-3 text-3xl font-black text-[rgb(var(--text))]">{value}</p>
+          <p className="mt-2 text-sm text-[rgb(var(--text-muted))]">{note}</p>
         </div>
         <div className={`rounded-2xl p-3 text-xl ${tones[tone]}`}>{icon}</div>
       </div>
@@ -823,31 +852,29 @@ const StatCard = ({ title, value, note, icon, tone }) => {
 };
 
 const HighlightCard = ({ label, value, subtext }) => (
-  <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-    <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-300">
+  <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] p-4">
+    <p className="text-xs font-bold uppercase tracking-[0.2em] text-[rgb(var(--text-muted))]">
       {label}
     </p>
-    <p className="mt-2 text-2xl font-black text-white">{value}</p>
-    <p className="mt-2 text-sm text-slate-300">{subtext}</p>
+    <p className="mt-2 text-2xl font-black text-[rgb(var(--text))]">{value} </p>
+    <p className="mt-2 text-sm text-[rgb(var(--text-muted))]">{subtext}</p>
   </div>
 );
 
 const AlertRow = ({ label, value, helper, tone }) => {
   const tones = {
-    red: "bg-red-50 text-red-700",
-    amber: "bg-amber-50 text-amber-700",
-    blue: "bg-blue-50 text-blue-700",
-    emerald: "bg-emerald-50 text-emerald-700",
+    red:    "bg-red-50 text-red-700",
+    amber:  "bg-amber-50 text-amber-700",
+    blue:   "bg-blue-50 text-blue-700",
+    emerald:"bg-emerald-50 text-emerald-700",
   };
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3">
+    <div className="flex items-center justify-between gap-3 rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] p-3">
       <div>
-        <p className="text-sm font-bold text-slate-900">{label}</p>
-        <p className="text-xs text-slate-500">{helper}</p>
+        <p className="text-sm font-bold text-[rgb(var(--text))]">{label}</p>
+        <p className="text-xs text-[rgb(var(--text-muted))]">{helper}</p>
       </div>
-      <span
-        className={`rounded-full px-3 py-1 text-xs font-bold ${tones[tone]}`}
-      >
+      <span className={`rounded-full px-3 py-1 text-xs font-bold ${tones[tone]}`}>
         {value}
       </span>
     </div>
@@ -856,20 +883,20 @@ const AlertRow = ({ label, value, helper, tone }) => {
 
 const ReportCard = ({ title, value, helper, icon, tone }) => {
   const tones = {
-    emerald: "bg-emerald-50 text-emerald-600",
-    red: "bg-red-50 text-red-600",
-    blue: "bg-blue-50 text-blue-600",
-    amber: "bg-amber-50 text-amber-600",
+    emerald:"bg-emerald-50 text-emerald-600",
+    red:    "bg-red-50 text-red-600",
+    blue:   "bg-blue-50 text-blue-600",
+    amber:  "bg-amber-50 text-amber-600",
   };
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-[rgb(var(--text-muted))]">
             {title}
           </p>
-          <p className="mt-2 text-2xl font-black text-slate-900">{value}</p>
-          <p className="mt-2 text-sm text-slate-500">{helper}</p>
+          <p className="mt-2 text-2xl font-black text-[rgb(var(--text))]">{value}</p>
+          <p className="mt-2 text-sm text-[rgb(var(--text-muted))]">{helper}</p>
         </div>
         <div className={`rounded-2xl p-3 ${tones[tone]}`}>{icon}</div>
       </div>
@@ -878,30 +905,30 @@ const ReportCard = ({ title, value, helper, icon, tone }) => {
 };
 
 const InfoMetric = ({ label, value, icon }) => (
-  <div className="flex items-center justify-between rounded-2xl bg-white px-4 py-3">
+  <div className="flex items-center justify-between rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] px-4 py-3">
     <div className="flex items-center gap-3">
-      <div className="rounded-2xl bg-slate-100 p-2 text-slate-600">{icon}</div>
-      <span className="text-sm font-bold text-slate-700">{label}</span>
+      <div className="rounded-2xl bg-[rgb(var(--bg))] p-2 text-[rgb(var(--text-muted))]">{icon}</div>
+      <span className="text-sm font-bold text-[rgb(var(--text))]">{label}</span>
     </div>
-    <span className="text-sm font-black text-slate-900">{value}</span>
+    <span className="text-sm font-black text-[rgb(var(--text))]">{value}</span>
   </div>
 );
 
 const AttendanceCard = ({ title, value, helper, tone, icon }) => {
   const tones = {
-    blue: "bg-blue-50 text-blue-600",
-    emerald: "bg-emerald-50 text-emerald-600",
-    amber: "bg-amber-50 text-amber-600",
+    blue:   "bg-blue-50 text-blue-600",
+    emerald:"bg-emerald-50 text-emerald-600",
+    amber:  "bg-amber-50 text-amber-600",
   };
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-[rgb(var(--text-muted))]">
             {title}
           </p>
-          <p className="mt-2 text-3xl font-black text-slate-900">{value}</p>
-          <p className="mt-2 text-sm text-slate-500">{helper}</p>
+          <p className="mt-2 text-3xl font-black text-[rgb(var(--text))]">{value}</p>
+          <p className="mt-2 text-sm text-[rgb(var(--text-muted))]">{helper}</p>
         </div>
         <div className={`rounded-2xl p-3 ${tones[tone]}`}>{icon}</div>
       </div>
@@ -909,38 +936,29 @@ const AttendanceCard = ({ title, value, helper, tone, icon }) => {
   );
 };
 
-const MiniPanel = ({
-  title,
-  tone,
-  actionLabel,
-  onAction,
-  children,
-  emptyMessage,
-}) => {
+const MiniPanel = ({ title, tone, actionLabel, onAction, children, emptyMessage }) => {
   const tones = {
-    blue: "bg-blue-50 text-blue-600",
+    blue:  "bg-blue-50 text-blue-600",
     amber: "bg-amber-50 text-amber-600",
   };
-  const hasChildren = Array.isArray(children)
-    ? children.length > 0
-    : !!children;
+  const hasChildren = Array.isArray(children) ? children.length > 0 : !!children;
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--surface))] p-4">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className={`rounded-2xl p-3 ${tones[tone]}`}>
             {title.includes("Notice") ? <FiBell /> : <FiCalendar />}
           </div>
           <div>
-            <h3 className="text-base font-black text-slate-900">{title}</h3>
-            <p className="text-sm text-slate-500">
+            <h3 className="text-base font-black text-[rgb(var(--text))]">{title}</h3>
+            <p className="text-sm text-[rgb(var(--text-muted))]">
               Daily items that deserve quick visibility
             </p>
           </div>
         </div>
         <button
           onClick={onAction}
-          className="text-xs font-bold text-slate-500 transition hover:text-slate-900"
+          className="text-xs font-bold text-[rgb(var(--text-muted))] transition hover:text-[rgb(var(--text))]"
         >
           {actionLabel}
         </button>
@@ -949,7 +967,7 @@ const MiniPanel = ({
         {hasChildren ? (
           children
         ) : (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-sm font-medium text-slate-500">
+          <div className="rounded-2xl border border-dashed border-[rgb(var(--border))] bg-[rgb(var(--bg))] p-5 text-sm font-medium text-[rgb(var(--text-muted))]">
             {emptyMessage}
           </div>
         )}
@@ -959,13 +977,13 @@ const MiniPanel = ({
 };
 
 const TimelineRow = ({ title, meta, date }) => (
-  <div className="rounded-2xl bg-white p-4">
+  <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--bg))] p-4">
     <div className="flex items-start justify-between gap-3">
       <div>
-        <p className="text-sm font-bold text-slate-900">{title}</p>
-        <p className="mt-1 text-xs text-slate-500">{meta}</p>
+        <p className="text-sm font-bold text-[rgb(var(--text))]">{title}</p>
+        <p className="mt-1 text-xs text-[rgb(var(--text-muted))]">{meta}</p>
       </div>
-      <div className="flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600">
+      <div className="flex items-center gap-1 rounded-full border border-[rgb(var(--border))] bg-[rgb(var(--surface))] px-3 py-1 text-[11px] font-bold text-[rgb(var(--text))]">
         <FiClock className="text-[10px]" />
         {date}
       </div>

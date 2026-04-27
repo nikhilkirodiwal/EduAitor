@@ -2,6 +2,8 @@ import Diary from "../models/diary.js";
 import Class from "../models/class.js";
 import Student from "../models/student.js";
 import mongoose from "mongoose";
+import { createNotificationHelper } from "./notificationController.js"; // Import the helper function
+
 
 export const createDiary = async (req, res) => {
   try {
@@ -9,6 +11,42 @@ export const createDiary = async (req, res) => {
       ...req.body,
       schoolId: req.user.school_id,
       teacherId: req.user.teacher_id,
+    });
+
+    // 🔴 NOTIFICATION LOGIC
+    let title = "New Diary Update 📘";
+    let message = data.content;
+
+    if (data.type === "homework") {
+      title = "New Homework 📚";
+      message = `Homework assigned. Due: ${
+        data.dueDate ? new Date(data.dueDate).toLocaleDateString() : "N/A"
+      }`;
+    }
+
+    if (data.type === "classwork") {
+      title = "Classwork Update 📝";
+      message = "New classwork has been added.";
+    }
+
+    if (data.type === "remark") {
+      title = "Teacher Remark 💬";
+      message = data.content;
+    }
+
+    await createNotificationHelper({
+      title,
+      message,
+      notificationType: "diary",
+      createdBy: req.user._id,
+      schoolId: req.user.school_id,
+      targets: [
+        {
+          type: "class",
+          classId: data.classId,
+          sectionId: data.sectionId
+        }
+      ]
     });
 
     res.json(data);

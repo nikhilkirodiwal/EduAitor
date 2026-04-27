@@ -9,7 +9,6 @@ import {
   getAllDefaulter,
   getAllAdminDefaulter,
   getAllStudentAdminHistory,
-  getStudentFeeDetails,
   getMyFeeDetails,
 } from "../controllers/feeController.js";
 import { authMiddleware } from "../auth/auth.js";
@@ -32,9 +31,8 @@ router.post("/", authMiddleware, collectStudentFee);
 router.get("/", authMiddleware, AllStudentHistory);
 
 //  fee details for student
+// GET /api/fees/parent/student/me
 router.get("/parent/student/me", authMiddleware, getMyFeeDetails);
-// GET /api/fees/parent/student/:studentId
-router.get("/parent/student/:studentId", authMiddleware, getStudentFeeDetails);
 
 // fetch all defaulter
 router.get("/defaulters", authMiddleware, getAllDefaulter);

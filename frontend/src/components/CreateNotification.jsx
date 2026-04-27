@@ -3,25 +3,57 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const TARGET_TYPES = [
-  { value: "all",    label: "🌐 Everyone" },
-  { value: "role",   label: "👥 By Role" },
-  { value: "class",  label: "🏫 By Class" },
+  { value: "all",   label: "🌐 Everyone" },
+  { value: "role",  label: "👥 By Role"  },
+  { value: "class", label: "🏫 By Class" },
 ];
 
 const ROLES = [
-  { value: "teacher_admin",  label: "Teachers" },
-  { value: "student_admin",  label: "Students / Parents" },
-  { value: "school_admin",   label: "School Admins" },
+  { value: "teacher_admin", label: "Teachers"          },
+  { value: "student_admin", label: "Students / Parents" },
+  { value: "school_admin",  label: "School Admins"     },
 ];
 
 const NOTIF_TYPES = [
-  { value: "general",    label: "📢 General" },
-  { value: "exam",       label: "📝 Exam" },
-  { value: "result",     label: "🏆 Result" },
+  { value: "general",    label: "📢 General"    },
+  { value: "exam",       label: "📝 Exam"       },
+  { value: "result",     label: "🏆 Result"     },
   { value: "attendance", label: "📋 Attendance" },
-  { value: "fee",        label: "💰 Fee" },
+  { value: "fee",        label: "💰 Fee"        },
 ];
 
+/* ─── shared class strings ─── */
+const inputCls = [
+  "w-full rounded-xl border px-4 py-3 text-sm outline-none transition",
+  "border-[rgb(var(--border))]",
+  "bg-[rgb(var(--bg))]",
+  "text-[rgb(var(--text))]",
+  "placeholder:text-[rgb(var(--text-muted))]",
+  "focus:border-[rgb(var(--border-strong))]",
+  "focus:ring-2 focus:ring-[rgb(var(--border-strong))]/30",
+].join(" ");
+
+const chipBase =
+  "px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all";
+
+const chipActive = [
+  chipBase,
+  "bg-[rgb(var(--primary))]",
+  "text-white",
+  "border-[rgb(var(--primary))]",
+  "shadow-sm",
+].join(" ");
+
+const chipIdle = [
+  chipBase,
+  "bg-[rgb(var(--surface))]",
+  "text-[rgb(var(--text-muted))]",
+  "border-[rgb(var(--border))]",
+  "hover:border-[rgb(var(--border-strong))]",
+  "hover:text-[rgb(var(--text))]",
+].join(" ");
+
+/* ─── component ─── */
 const CreateNotification = () => {
   const API = import.meta.env.VITE_API_URL;
 
@@ -32,50 +64,51 @@ const CreateNotification = () => {
     targetType: "all",
     selectedRoles: [],
     classId: "",
-
   });
 
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch classes & exams for dropdowns
   useEffect(() => {
-    axios.get(`${API}/classes/all`, { withCredentials: true })
-      .then(r => setClasses(r.data.classes)).catch(() => {});
+    axios
+      .get(`${API}/classes/all`, { withCredentials: true })
+      .then((r) => setClasses(r.data.classes))
+      .catch(() => {});
   }, []);
 
-  const toggleRole = (role) => {
-    setForm(prev => ({
+  const toggleRole = (role) =>
+    setForm((prev) => ({
       ...prev,
       selectedRoles: prev.selectedRoles.includes(role)
-        ? prev.selectedRoles.filter(r => r !== role)
+        ? prev.selectedRoles.filter((r) => r !== role)
         : [...prev.selectedRoles, role],
     }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Build the target object based on targetType
     let target = { type: form.targetType };
     if (form.targetType === "role")  target.roles   = form.selectedRoles;
     if (form.targetType === "class") target.classId = form.classId;
 
     try {
-      await axios.post(`${API}/notifications`, {
-        title: form.title,
-        message: form.message,
-        notificationType: form.notificationType,
-        target,
-      }, { withCredentials: true });
-
+      await axios.post(
+        `${API}/notifications`,
+        {
+          title: form.title,
+          message: form.message,
+          notificationType: form.notificationType,
+          target,
+        },
+        { withCredentials: true },
+      );
       toast.success("Notification sent!");
       setForm({
         title: "", message: "", notificationType: "general",
         targetType: "all", selectedRoles: [], classId: "",
       });
-    } catch (err) {
+    } catch {
       toast.error("Failed to send notification");
     } finally {
       setLoading(false);
@@ -83,44 +116,57 @@ const CreateNotification = () => {
   };
 
   return (
-    <div className="p-6 bg-white rounded-2xl shadow-md max-w-lg mx-auto">
-      <h2 className="text-xl font-bold text-indigo-700 mb-1">📣 Send Notification</h2>
-      <p className="text-xs text-gray-400 mb-5">Target specific roles, classes, or send to everyone</p>
+    /* Card */
+    <div
+      className="mx-auto max-w-lg rounded-2xl border p-6 shadow-sm"
+      style={{
+        background: "rgb(var(--surface))",
+        borderColor: "rgb(var(--border))",
+      }}
+    >
+      {/* Header */}
+      <h2 className="text-xl font-bold text-[rgb(var(--text))]">
+        📣 Send Notification
+      </h2>
+      <p className="mt-1 text-xs text-[rgb(var(--text-muted))]">
+        Target specific roles, classes, or send to everyone
+      </p>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="mt-5 flex flex-col gap-4">
 
-        {/* TITLE */}
+        {/* Title */}
         <input
-          className="border border-gray-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-indigo-300 focus:outline-none"
+          className={inputCls}
           placeholder="Title  (e.g. Holiday Announcement)"
           value={form.title}
-          onChange={e => setForm({ ...form, title: e.target.value })}
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
           required
         />
 
-        {/* MESSAGE */}
+        {/* Message */}
         <textarea
           rows={3}
-          className="border border-gray-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-indigo-300 focus:outline-none resize-none"
+          className={`${inputCls} resize-none`}
           placeholder="Write your message here..."
           value={form.message}
-          onChange={e => setForm({ ...form, message: e.target.value })}
+          onChange={(e) => setForm({ ...form, message: e.target.value })}
           required
         />
 
-        {/* NOTIFICATION TYPE */}
+        {/* Notification Type */}
         <div>
-          <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Notification Type</label>
+          <label className="mb-2 block text-xs font-semibold text-[rgb(var(--text-muted))]">
+            Notification Type
+          </label>
           <div className="flex flex-wrap gap-2">
-            {NOTIF_TYPES.map(t => (
+            {NOTIF_TYPES.map((t) => (
               <button
                 key={t.value}
                 type="button"
                 onClick={() => setForm({ ...form, notificationType: t.value })}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition
-                  ${form.notificationType === t.value
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+                className={
+                  form.notificationType === t.value ? chipActive : chipIdle
+                }
               >
                 {t.label}
               </button>
@@ -128,19 +174,27 @@ const CreateNotification = () => {
           </div>
         </div>
 
-        {/* TARGET TYPE */}
+        {/* Target Type */}
         <div>
-          <label className="text-xs font-semibold text-gray-500 mb-1.5 block">Send To</label>
+          <label className="mb-2 block text-xs font-semibold text-[rgb(var(--text-muted))]">
+            Send To
+          </label>
           <div className="flex flex-wrap gap-2">
-            {TARGET_TYPES.map(t => (
+            {TARGET_TYPES.map((t) => (
               <button
                 key={t.value}
                 type="button"
-                onClick={() => setForm({ ...form, targetType: t.value, selectedRoles: [], classId: "", examId: "" })}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition
-                  ${form.targetType === t.value
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}
+                onClick={() =>
+                  setForm({
+                    ...form,
+                    targetType: t.value,
+                    selectedRoles: [],
+                    classId: "",
+                  })
+                }
+                className={
+                  form.targetType === t.value ? chipActive : chipIdle
+                }
               >
                 {t.label}
               </button>
@@ -148,49 +202,65 @@ const CreateNotification = () => {
           </div>
         </div>
 
-        {/* CONDITIONAL: Role selector */}
+        {/* Conditional: Role selector */}
         {form.targetType === "role" && (
-          <div className="bg-indigo-50 p-3 rounded-xl">
-            <label className="text-xs font-semibold text-gray-500 mb-2 block">Select Roles</label>
-            <div className="flex gap-2 flex-wrap">
-              {ROLES.map(r => (
-                <label key={r.value} className="flex items-center gap-1.5 cursor-pointer">
+          <div
+            className="rounded-xl border p-3"
+            style={{
+              background: "rgb(var(--bg))",
+              borderColor: "rgb(var(--border))",
+            }}
+          >
+            <label className="mb-2 block text-xs font-semibold text-[rgb(var(--text-muted))]">
+              Select Roles
+            </label>
+            <div className="flex flex-wrap gap-3">
+              {ROLES.map((r) => (
+                <label
+                  key={r.value}
+                  className="flex cursor-pointer items-center gap-2"
+                >
                   <input
                     type="checkbox"
                     checked={form.selectedRoles.includes(r.value)}
                     onChange={() => toggleRole(r.value)}
-                    className="accent-indigo-600"
+                    className="accent-[rgb(var(--primary))] h-4 w-4 rounded"
                   />
-                  <span className="text-xs text-gray-700">{r.label}</span>
+                  <span className="text-xs font-medium text-[rgb(var(--text))]">
+                    {r.label}
+                  </span>
                 </label>
               ))}
             </div>
           </div>
         )}
 
-        {/* CONDITIONAL: Class selector */}
+        {/* Conditional: Class selector */}
         {form.targetType === "class" && (
           <select
-            className="border border-gray-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-indigo-300 focus:outline-none"
+            className={inputCls}
             value={form.classId}
-            onChange={e => setForm({ ...form, classId: e.target.value })}
+            onChange={(e) => setForm({ ...form, classId: e.target.value })}
             required
           >
             <option value="">— Select Class —</option>
-            {classes.map(c => (
-              <option key={c._id} value={c._id}>{c.name} {c.section}</option>
+            {classes.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.name} {c.section}
+              </option>
             ))}
           </select>
         )}
 
-
-        {/* SUBMIT */}
+        {/* Submit */}
         <button
           type="submit"
           disabled={loading}
-          className="bg-indigo-600 text-white py-3 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
+          className="mt-1 w-full rounded-xl py-3 text-sm font-bold text-white transition
+                     hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+          style={{ background: "rgb(var(--primary))" }}
         >
-          {loading ? "Sending..." : "Send Notification"}
+          {loading ? "Sending…" : "Send Notification"}
         </button>
       </form>
     </div>

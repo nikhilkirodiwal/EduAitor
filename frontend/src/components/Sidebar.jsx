@@ -17,7 +17,6 @@ import {
   FaBookOpen,
   FaUserAlt,
   FaUsers,
-  FaChartLine,
 } from "react-icons/fa";
 
 import {
@@ -76,11 +75,6 @@ const Sidebar = ({ closeSidebar }) => {
       ? [{ name: "Menu", icon: <FaTachometerAlt />, path: "/admin/menu" }]
       : []),
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/admin/dashboard" },
-    {
-      name: "Platform Analytics",
-      icon: <FaChartLine />,
-      path: "/admin/platform-analytics",
-    },
 
     {
       name: "Access Control",
@@ -295,118 +289,114 @@ const Sidebar = ({ closeSidebar }) => {
   };
 
   return (
-    <aside className="h-full w-56 bg-white border-r border-gray-200 flex flex-col">
-      {/* MOBILE HEADER */}
+<aside className="h-full w-56 bg-[rgb(var(--sidebar))] border-r border-[rgb(var(--border))] flex flex-col">
 
-      <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b">
-        <h2 className="font-semibold text-gray-700">Menu</h2>
+  {/* MOBILE HEADER */}
+  <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-[rgb(var(--border))]">
+    <h2 className="font-semibold text-[rgb(var(--sidebar-text))]">Menu</h2>
+    <button
+      onClick={closeSidebar}
+      className="text-[rgb(var(--sidebar-text))] hover:text-red-400 transition"
+    >
+      <FaTimes />
+    </button>
+  </div>
 
-        <button
-          onClick={closeSidebar}
-          className="text-gray-500 hover:text-red-500"
-        >
-          <FaTimes />
-        </button>
-      </div>
+  {/* MENU */}
+  <div className="flex-1 overflow-y-auto overflow-x-hidden py-2">
+    {menu.map((item, index) => {
+      const isParentActive =
+        item.children &&
+        item.children.some((c) => location.pathname === c.path);
 
-      {/* MENU */}
+      if (item.children) {
+        const isOpen = openMenu === item.name;
 
-      <div className="flex-1 overflow-y-auto overflow-x-hidden py-2">
-        {menu.map((item, index) => {
-          const isParentActive =
-            item.children &&
-            item.children.some((c) => location.pathname === c.path);
-
-          if (item.children) {
-            const isOpen = openMenu === item.name;
-
-            return (
-              <div key={index}>
-                <div
-                  onClick={() => toggleMenu(item.name)}
-                  className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition text-sm
-                  ${
-                    isParentActive
-                      ? "bg-indigo-50 text-indigo-600 border-l-4 border-indigo-500"
-                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 border-l-4 border-transparent"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span>{item.icon}</span>
-                    <span className="font-medium">{item.name}</span>
-                  </div>
-
-                  {isOpen ? (
-                    <FaChevronDown size={10} />
-                  ) : (
-                    <FaChevronRight size={10} />
-                  )}
-                </div>
-
-                {isOpen && (
-                  <div className="bg-gray-50/70">
-                    {item.children.map((child, i) => {
-                      const isActive = location.pathname === child.path;
-
-                      return (
-                        <div
-                          key={i}
-                          onClick={() => {
-                            navigate(child.path);
-                            closeSidebar && closeSidebar();
-                          }}
-                          className={`pl-11 pr-4 py-2 text-sm cursor-pointer transition
-                          ${
-                            isActive
-                              ? "text-indigo-600 font-semibold"
-                              : "text-gray-500 hover:text-indigo-500"
-                          }`}
-                        >
-                          {child.name}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          }
-
-          const isActive = location.pathname === item.path;
-
-          return (
+        return (
+          <div key={index}>
             <div
-              key={index}
-              onClick={() => {
-                navigate(item.path);
-                closeSidebar && closeSidebar();
-              }}
-              className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer text-sm border-l-4
+              onClick={() => toggleMenu(item.name)}
+              className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition text-sm border-l-4
               ${
-                isActive
-                  ? "bg-indigo-50 text-indigo-600 border-indigo-500"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 border-transparent"
+                isParentActive
+                  ? "bg-[rgba(var(--primary),0.15)] text-[rgb(var(--sidebar-active))] border-[rgb(var(--primary))]"
+                  : "text-[rgb(var(--sidebar-text))] border-transparent hover:bg-[rgba(var(--primary),0.08)] hover:text-[rgb(var(--sidebar-active))]"
               }`}
             >
-              {item.icon}
-              <span className="font-medium">{item.name}</span>
+              <div className="flex items-center gap-3">
+                <span>{item.icon}</span>
+                <span className="font-medium">{item.name}</span>
+              </div>
+              {isOpen ? (
+                <FaChevronDown size={10} />
+              ) : (
+                <FaChevronRight size={10} />
+              )}
             </div>
-          );
-        })}
-      </div>
 
-      {/* LOGOUT */}
+            {isOpen && (
+              <div className="bg-black/10">
+                {item.children.map((child, i) => {
+                  const isActive = location.pathname === child.path;
+                  return (
+                    <div
+                      key={i}
+                      onClick={() => {
+                        navigate(child.path);
+                        closeSidebar && closeSidebar();
+                      }}
+                      className={`pl-11 pr-4 py-2 text-sm cursor-pointer transition
+                      ${
+                        isActive
+                          ? "text-[rgb(var(--sidebar-active))] font-semibold"
+                          : "text-[rgb(var(--sidebar-text))] hover:text-[rgb(var(--sidebar-active))]"
+                      }`}
+                    >
+                      {child.name}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      }
 
-      <div className="p-3 border-t border-gray-200">
-        <button
-          onClick={logout}
-          className="flex items-center gap-3 w-full px-4 py-2 rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-500 transition text-sm"
+      const isActive = location.pathname === item.path;
+
+      return (
+        <div
+          key={index}
+          onClick={() => {
+            navigate(item.path);
+            closeSidebar && closeSidebar();
+          }}
+          className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer text-sm border-l-4 transition
+          ${
+            isActive
+              ? "bg-[rgba(var(--primary),0.15)] text-[rgb(var(--sidebar-active))] border-[rgb(var(--primary))]"
+              : "text-[rgb(var(--sidebar-text))] border-transparent hover:bg-[rgba(var(--primary),0.08)] hover:text-[rgb(var(--sidebar-active))]"
+          }`}
         >
-          <FaSignOutAlt />
-          <span className="font-medium">Logout</span>
-        </button>
-      </div>
-    </aside>
+          {item.icon}
+          <span className="font-medium">{item.name}</span>
+        </div>
+      );
+    })}
+  </div>
+
+  {/* LOGOUT */}
+  <div className="p-3 border-t border-[rgb(var(--border))]">
+    <button
+      onClick={logout}
+      className="flex items-center gap-3 w-full px-4 py-2 rounded-lg text-[rgb(var(--sidebar-text))] hover:bg-red-500/10 hover:text-red-400 transition text-sm"
+    >
+      <FaSignOutAlt />
+      <span className="font-medium">Logout</span>
+    </button>
+  </div>
+</aside>
+
   );
 };
 

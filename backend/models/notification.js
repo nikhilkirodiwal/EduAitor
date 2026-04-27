@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 const targetSchema = new mongoose.Schema({
   type: { 
     type: String, 
-    enum: ['all', 'role', 'class', 'exam', 'student', 'teacher'], 
+    enum: ['all', 'role', 'class', 'exam', 'student', 'teacher','diary'], 
     default: 'all' 
   },
   roles:     [{ type: String, enum: ['teacher_admin', 'student_admin', 'school_admin'] }],
@@ -26,7 +26,7 @@ const notificationSchema = new mongoose.Schema({
 
   notificationType: { 
     type: String, 
-    enum: ['general', 'exam', 'result', 'attendance', 'fee'], 
+    enum: ['general', 'exam', 'result', 'attendance', 'fee','diary'], 
     default: 'general' 
   },
   readBy:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

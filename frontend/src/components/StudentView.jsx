@@ -66,23 +66,23 @@ const StudentView = () => {
               : "/school/students",
           );
         }}
-        className="flex items-center gap-2 text-indigo-600 mb-4 cursor-pointer"
+        className="flex items-center gap-2 text-[rgb(var(--text))]  bg-[rgb(var(--primary))] mb-4 cursor-pointer m-4 p-2 rounded-xl"
       >
         <FaArrowLeft />
         Back to Students
       </button>
       {/* TOP BANNER */}
-      <div className="bg-indigo-600 px-6 py-5 sm:px-8">
+      <div className="bg-[rgb(var(--surface))] px-6 py-5 sm:px-8 border-b-[rgb(var(--border))]">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-indigo-50 text-base sm:text-2xl mb-0.5">
+            <p className="text-[rgb(var(--text))] text-base sm:text-2xl mb-0.5">
               Student Profile
             </p>
           </div>
           {user?.role === "school_admin" && (
             <button
               onClick={() => navigate(`/school/student-manage/${student._id}`)}
-              className="px-4 py-2 bg-white text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-50 transition"
+              className="px-4 py-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded-lg text-sm font-medium  transition"
             >
               Edit Student
             </button>
@@ -92,7 +92,7 @@ const StudentView = () => {
 
       <div className="px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto">
         {/* PROFILE CARD */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6 flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+        <div className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm p-6 mb-6 flex flex-col sm:flex-row gap-6 items-center sm:items-start text-[rgb(var(--text))]">
           <img
             src={docs.studentPhoto?.url || randomImg || undefined}
             onError={(e) => {
@@ -102,10 +102,10 @@ const StudentView = () => {
             className="w-24 h-24 rounded-full object-cover ring-4 ring-indigo-100 shrink-0"
           />
           <div className="flex-1 text-center sm:text-left">
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold">
               {student.firstName} {student.lastName}
             </h2>
-            <p className="text-gray-500 text-sm mt-1">
+            <p className="text-[rgb(var(--text))] text-sm mt-1">
               {student.classId?.name || "—"}
               {student.sectionId?.name
                 ? ` · Section ${student.sectionId.name}`
@@ -134,18 +134,18 @@ const StudentView = () => {
           {/* Quick stats */}
           <div className="flex sm:flex-col gap-4 sm:gap-3 text-center sm:text-right shrink-0">
             <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide">
+              <p className="text-xs text-[rgb(var(--text))] uppercase tracking-wide">
                 Admission
               </p>
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-[rgb(var(--text))]">
                 {formatDate(student.admissionDate)}
               </p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 uppercase tracking-wide">
+              <p className="text-xs text-[rgb(var(--text))] uppercase tracking-wide">
                 Student ID
               </p>
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-[rgb(var(--text))]">
                 {student.studentId || "—"}
               </p>
             </div>
@@ -185,7 +185,7 @@ const StudentView = () => {
         )}
 
         {/* MAIN GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-4 ">
           {/* Student Details */}
           <Section title="Student Details" icon="👤">
             <Row label="First Name" value={student.firstName} />
@@ -266,30 +266,30 @@ const StudentView = () => {
 
         {/* PARENT LOGIN — full width */}
         {user?.role === "school_admin" && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm p-5">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-base">🔐</span>
-              <h3 className="text-base font-semibold text-gray-800">
+              <h3 className="text-base font-semibold text-[rgb(var(--text))]">
                 Parent Login
               </h3>
-              <span className="ml-auto text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+              <span className="ml-auto text-xs text-[rgb(var(--text-muted))] bg-[rgb(var(--surface))] px-2 py-0.5 rounded-full">
                 Dev visible
               </span>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
-              <div className="flex-1 bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-                <p className="text-xs text-indigo-400 uppercase tracking-wide mb-1">
+              <div className="flex-1 bg-[rgb(var(--primary))] border border-indigo-100 rounded-xl p-4">
+                <p className="text-xs text-[rgb(var(--text))] uppercase tracking-wide mb-1">
                   Username
                 </p>
-                <p className="text-base font-semibold text-indigo-800">
+                <p className="text-base font-semibold text-[rgb(var(--text))]">
                   {student.username || "—"}
                 </p>
               </div>
-              <div className="flex-1 bg-purple-50 border border-purple-100 rounded-xl p-4">
-                <p className="text-xs text-purple-400 uppercase tracking-wide mb-1">
+              <div className="flex-1 bg-[rgb(var(--primary))] border border-purple-100 rounded-xl p-4">
+                <p className="text-xs text-[rgb(var(--text))] uppercase tracking-wide mb-1">
                   Password (temp)
                 </p>
-                <p className="text-base font-semibold text-purple-800 tracking-widest">
+                <p className="text-base font-semibold text-[rgb(var(--text))] tracking-widest">
                   {student.temp_password || "—"}
                 </p>
               </div>
@@ -306,10 +306,10 @@ export default StudentView;
 /* ================= SUB-COMPONENTS ================= */
 
 const Section = ({ title, icon, children }) => (
-  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+  <div className="bg-[rgb(var(--surface))] rounded-2xl border border-[rgb(var(--border))] shadow-sm p-5">
     <div className="flex items-center gap-2 mb-4">
       <span className="text-base">{icon}</span>
-      <h3 className="text-base font-semibold text-gray-800">{title}</h3>
+      <h3 className="text-base font-semibold text-[rgb(var(--text))]">{title}</h3>
     </div>
     <div className="space-y-2.5 text-sm">{children}</div>
   </div>
@@ -317,14 +317,14 @@ const Section = ({ title, icon, children }) => (
 
 const Row = ({ label, value }) => (
   <div className="flex justify-between gap-3 py-0.5">
-    <span className="text-gray-400 shrink-0">{label}</span>
-    <span className="font-medium text-gray-800 text-right">{value || "—"}</span>
+    <span className="text-[rgb(var(--text-muted))] shrink-0">{label}</span>
+    <span className="font-medium text-[rgb(var(--text))] text-right">{value || "—"}</span>
   </div>
 );
 
 const DocRow = ({ label, file }) => (
   <div className="flex justify-between gap-3 py-0.5">
-    <span className="text-gray-400">{label}</span>
+    <span className="text-[rgb(var(--text-muted))]">{label}</span>
     {file?.url ? (
       <a
         href={file.url}
@@ -348,13 +348,13 @@ const StatCard = ({ label, value, color }) => (
 );
 
 const Loader = () => (
-  <div className="min-h-screen flex items-center justify-center text-gray-400">
+  <div className="min-h-screen flex items-center justify-center text-[rgb(var(--text-muted))]">
     Loading...
   </div>
 );
 
 const Empty = () => (
-  <div className="min-h-screen flex items-center justify-center text-gray-400">
+  <div className="min-h-screen flex items-center justify-center text-[rgb(var(--text))]">
     Student not found
   </div>
 );

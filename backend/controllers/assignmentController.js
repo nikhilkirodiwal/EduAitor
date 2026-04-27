@@ -1,7 +1,7 @@
 import Assignment from "../models/assignment.js";
 import Teacher from "../models/teacher.js";
 import Class from "../models/class.js";
-
+import { createNotificationHelper } from "./notificationController.js";
 /* ================= CREATE ================= */
 
 export const createAssignment = async (req, res) => {
@@ -100,15 +100,33 @@ export const createAssignment = async (req, res) => {
       schoolId,
     });
 
+    await createNotificationHelper({
+  title: "New Assignment 📚",
+  message: `${title} has been assigned. Due date: ${new Date(dueDate).toLocaleDateString()}`,
+  notificationType: "assignment", // ⚠️ add this in enum
+  createdBy: req.user._id,
+  schoolId,
+  targets: [
+    {
+      type: "class",
+      classId,
+      sectionId: req.body.sectionId || null
+    }
+  ]
+              });
+
     res.status(201).json({
       success: true,
       message: "Assignment created",
       data: assignment,
     });
-  } catch (err) {
+  } 
+
+  catch (err) {
     console.error("createAssignment:", err);
     res.status(500).json({ success: false, message: err.message });
   }
+
 };
 
 /* ================= GET TEACHER ASSIGNMENTS ================= */
@@ -221,11 +239,46 @@ export const updateAssignment = async (req, res) => {
       );
     }
 
+    // notification for updation on date + time + questions + title change
+    let shouldNotify = false;
+let message = "Assignment updated.";
+
+if (req.body.dueDate && req.body.dueDate !== assignment.dueDate.toISOString()) {
+  shouldNotify = true;
+  message = `Due date updated to ${new Date(req.body.dueDate).toLocaleDateString()}`;
+}
+
+if (req.body.questions) {
+  shouldNotify = true;
+  message = "Assignment questions/marks updated.";
+}
+
+if (req.body.title && req.body.title !== assignment.title) {
+  shouldNotify = true;
+  message = `Assignment renamed to "${req.body.title}"`;
+}
+
     const updated = await Assignment.findByIdAndUpdate(
       req.params.id,
       updateData,
       { new: true, runValidators: true },
     );
+    if (shouldNotify) {
+  await createNotificationHelper({
+    title: "Assignment Updated ✏️",
+    message,
+    notificationType: "assignment",
+    createdBy: req.user._id,
+    schoolId: assignment.schoolId,
+    targets: [
+      {
+        type: "class",
+        classId: assignment.classId,
+        sectionId: assignment.sectionId || null
+      }
+    ]
+  });
+}
 
     res.json({
       success: true,
