@@ -139,6 +139,16 @@ const Topbar = ({ toggleSidebar }) => {
   }, [openDropdown, openNotifications]);
 
   //  fetch color them function
+  const [theme, setTheme] = useState("");
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.className = savedTheme;
+    }
+  }, []);
+
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme) {
@@ -280,12 +290,14 @@ const Topbar = ({ toggleSidebar }) => {
 
         {/* theme changer */}
         <select
+          value={theme}
           onChange={(e) => {
-            const theme = e.target.value;
-            document.documentElement.className = theme;
-            localStorage.setItem("theme", theme);
+            const selectedTheme = e.target.value;
+            setTheme(selectedTheme);
+            document.documentElement.className = selectedTheme;
+            localStorage.setItem("theme", selectedTheme);
           }}
-          className="hidden md:block bg-[rgb(var(--bg))] px-3 py-2 rounded-lg  text-sm text-[rgb(var(--text))] focus:outline-none"
+          className="hidden md:block bg-[rgb(var(--bg))] px-3 py-2 rounded-lg text-sm text-[rgb(var(--text))] focus:outline-none"
         >
           <option value="">Select Theme</option>
           <option value="theme-light">Light</option>

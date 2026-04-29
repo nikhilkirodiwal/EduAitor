@@ -19,9 +19,8 @@ export const createDiary = async (req, res) => {
 
     if (data.type === "homework") {
       title = "New Homework 📚";
-      message = `Homework assigned. Due: ${
-        data.dueDate ? new Date(data.dueDate).toLocaleDateString() : "N/A"
-      }`;
+      message = `Homework assigned. Due: ${data.dueDate ? new Date(data.dueDate).toLocaleDateString() : "N/A"
+        }`;
     }
 
     if (data.type === "classwork") {
@@ -59,7 +58,10 @@ export const getDiary = async (req, res) => {
   try {
     const data = await Diary.find({
       teacherId: req.user.teacher_id,
-    }).sort({ createdAt: -1 });
+    }).populate("teacherId", "fullName email")
+      .populate("subjectId", "name code")
+      .populate("classId", "name")
+      .sort({ createdAt: -1 });
 
     res.json(data);
   } catch (err) {
@@ -225,10 +227,10 @@ export const getPrincipalDiaryFilters = async (req, res) => {
       Diary.distinct("teacherId", { schoolId }).then((ids) =>
         ids.length
           ? mongoose
-              .model("Teacher")
-              .find({ _id: { $in: ids } })
-              .select("fullName name")
-              .lean()
+            .model("Teacher")
+            .find({ _id: { $in: ids } })
+            .select("fullName name")
+            .lean()
           : [],
       ),
     ]);
@@ -263,10 +265,10 @@ export const getStudentDiary = async (req, res) => {
       .populate("teacherId", "fullName email")
       .populate("subjectId", "name code")
       .populate("classId", "name")
-.populate("sectionId", "name")
+      .populate("sectionId", "name")
       .sort({ date: -1, createdAt: -1 })
       .lean();
-console.log("Diary entries found:", diaryEntries.length);
+    console.log("Diary entries found:", diaryEntries.length);
     res.json(diaryEntries);
   } catch (err) {
     res.status(500).json({ error: err.message });

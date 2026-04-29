@@ -925,7 +925,7 @@ const StatCard = ({ title, value, note, icon, tone }) => {
 };
 
 const HighlightCard = ({ label, value, subtext }) => (
-  <div className="rounded-2xl bg-[rgb(var(--surface))]/10 p-4 backdrop-blur-sm border-1">
+  <div className="rounded-2xl bg-[rgb(var(--surface))]/10 p-4 backdrop-blur-sm border">
     <p className="text-xs font-bold uppercase tracking-[0.2em] text-[rgb(var(--text))]">
       {label}
     </p>
@@ -942,7 +942,7 @@ const AlertRow = ({ label, value, helper, tone }) => {
     emerald: "bg-emerald-50 text-emerald-700",
   };
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl border-1 p-3">
+    <div className="flex items-center justify-between gap-3 rounded-2xl border p-3">
       <div>
         <p className="text-sm font-bold text-[rgb(var(--text))]">{label}</p>
         <p className="text-xs text-[rgb(var(--text))]">{helper}</p>
