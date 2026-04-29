@@ -69,20 +69,20 @@ function TermManagement({ onDataChange }) {
   };
 
   return (
-    <div className="p-4 md:p-8 bg-slate-50">
+    <div className="p-4 md:p-8 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
       <div className="max-w-5xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">
+            <h1 className="text-2xl font-bold ">
               Academic Terms
             </h1>
-            <p className="text-slate-500 text-sm">
+            <p className=" text-sm">
               Manage school terms and sessions
             </p>
           </div>
           <button
             onClick={() => setShowModal(true)}
-            className="w-full sm:w-auto bg-cyan-600 hover:bg-cyan-700 text-white px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-cyan-200 transition-all active:scale-95"
+            className="w-full sm:w-auto bg-[rgb(var(--primary))]  px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg  transition-all active:scale-95"
           >
             <FiPlus /> Add New Term
           </button>
@@ -93,14 +93,14 @@ function TermManagement({ onDataChange }) {
           {terms.map((term) => (
             <div
               key={term._id}
-              className="bg-white p-5 border border-slate-200 rounded-2xl shadow-sm min-w-[280px] flex-1 sm:flex-none"
+              className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] p-5 border border-slate-200 rounded-2xl shadow-sm min-w-70 flex-1 sm:flex-none"
             >
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="font-bold text-slate-800 text-lg">
+                  <h3 className="font-bold text-lg">
                     {term.name}
                   </h3>
-                  <span className="text-xs font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded-md mt-1 inline-block uppercase">
+                  <span className="text-xs font-bold  px-2 py-1 rounded-md mt-1 inline-block uppercase">
                     {term.academicYear}
                   </span>
                 </div>
@@ -134,19 +134,19 @@ function TermManagement({ onDataChange }) {
 
       {/* CUSTOM DELETE POPUP */}
       {deleteId && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center z-[100] p-4">
-          <div className="bg-white rounded-3xl p-6 w-full max-w-[320px] shadow-2xl text-center">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex justify-center items-center z-100 p-4">
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-3xl p-6 w-full max-w-[320px] shadow-2xl text-center">
             <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <FiAlertTriangle size={32} />
             </div>
-            <h2 className="text-xl font-bold text-slate-800">Confirm Delete</h2>
-            <p className="text-slate-500 text-sm mt-2 leading-relaxed">
+            <h2 className="text-xl font-bold ">Confirm Delete</h2>
+            <p className="text-sm mt-2 leading-relaxed">
               Are you sure you want to remove this term? This cannot be undone.
             </p>
             <div className="grid grid-cols-2 gap-3 mt-8">
               <button
                 onClick={() => setDeleteId(null)}
-                className="py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-2xl transition-colors"
+                className="py-3 bg-slate-100 hover:bg-slate-200 text-[rgb(var(--primary))] font-bold rounded-2xl transition-colors"
               >
                 Go Back
               </button>
@@ -164,24 +164,25 @@ function TermManagement({ onDataChange }) {
       {/* ADD/EDIT MODAL UI */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] flex justify-center items-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl relative">
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-3xl p-8 w-full max-w-md shadow-2xl relative">
             <button
               onClick={() => setShowModal(false)}
-              className="absolute right-6 top-6 text-slate-400 hover:text-slate-600"
+              className="absolute right-6 top-6 "
             >
               <FiX size={20} />
             </button>
-            <h2 className="text-2xl font-bold text-slate-800 mb-6">
+            <h2 className="text-2xl font-bold  mb-6">
               {editId ? "Update" : "Create"} Term
             </h2>
 
             <div className="space-y-5">
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">
+                <label className="block text-xs font-bold uppercase mb-2 ml-1">
                   Term Name
                 </label>
                 <input
-                  className="w-full bg-slate-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-cyan-500 transition-all outline-none"
+                  className="w-full border-none rounded-2xl p-4 focus:ring-2
+                   focus:ring-cyan-500 transition-all outline-none"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
@@ -190,11 +191,11 @@ function TermManagement({ onDataChange }) {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase mb-2 ml-1">
+                <label className="block text-xs font-bold  uppercase mb-2 ml-1">
                   Academic Year
                 </label>
                 <input
-                  className="w-full bg-slate-50 border-none rounded-2xl p-4 focus:ring-2 focus:ring-cyan-500 transition-all outline-none"
+                  className="w-full  border-none rounded-2xl p-4 focus:ring-2 focus:ring-cyan-500 transition-all outline-none"
                   value={formData.academicYear}
                   onChange={(e) =>
                     setFormData({ ...formData, academicYear: e.target.value })
@@ -206,7 +207,7 @@ function TermManagement({ onDataChange }) {
 
             <button
               onClick={handleSubmit}
-              className="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl mt-8 hover:bg-slate-800 transition-all active:scale-95"
+              className="w-full text-[rgb(var(--text))] bg-[rgb(var(--primary))] font-bold py-4 rounded-2xl mt-8 transition-all active:scale-95"
             >
               {editId ? "Update Term" : "Save Term"}
             </button>

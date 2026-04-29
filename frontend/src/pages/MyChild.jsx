@@ -104,21 +104,21 @@ const fmtDate = (d) =>
 /* Info row */
 const InfoRow = ({ label, value }) => (
   <div className="flex flex-col gap-0.5">
-    <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+    <span className="text-[10px] font-semibold uppercase tracking-widest text-[rgb(var(--text))]">
       {label}
     </span>
-    <span className="text-sm font-medium text-slate-700">{fmt(value)}</span>
+    <span className="text-sm font-medium text-[rgb(var(--text))]">{fmt(value)}</span>
   </div>
 );
 
 /* Section card */
 const Card = ({ title, accent = "#6366f1", children }) => (
-  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+  <div className="bg-[rgb(var(--surface))] rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
     <div
       className="px-5 py-3 flex items-center gap-2"
       style={{ borderLeft: `4px solid ${accent}` }}
     >
-      <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
+      <h3 className="text-xs font-bold uppercase tracking-widest text-[rgb(var(--text))]">
         {title}
       </h3>
     </div>
@@ -135,16 +135,16 @@ const DocTile = ({ field, doc, onUpload, uploading }) => {
   return (
     <div
       className={`relative rounded-xl border-2 transition-all duration-200 overflow-hidden
-        ${hasDoc ? "border-emerald-200 bg-emerald-50/40" : "border-dashed border-slate-200 bg-slate-50/60 hover:border-indigo-300 hover:bg-indigo-50/30"}`}
+        ${hasDoc ? "border-emerald-200 " : "border-dashed border-slate-200"}`}
     >
       {/* Top row */}
       <div className="flex items-center gap-2 px-3 pt-3 pb-1">
         <span className="text-xl">{field.icon}</span>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-slate-600 truncate">
+          <p className="text-xs font-semibold text-[rgb(var(--text))] truncate">
             {field.label}
           </p>
-          <p className="text-[10px] text-slate-400">{field.hint}</p>
+          <p className="text-[10px] text-[rgb(var(--text))]">{field.hint}</p>
         </div>
         {hasDoc && (
           <span className="shrink-0 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center">
@@ -197,7 +197,7 @@ const DocTile = ({ field, doc, onUpload, uploading }) => {
           </div>
         ) : (
           <div className="mt-1 text-center py-2">
-            <p className="text-[10px] text-slate-400 mb-2">Not uploaded</p>
+            <p className="text-[10px] text-[rgb(var(--text))] mb-2">Not uploaded</p>
             <button
               onClick={() => fileRef.current?.click()}
               disabled={uploading === field.key}
@@ -346,7 +346,7 @@ const MyChild = () => {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-          <p className="text-sm text-slate-500 font-medium">Loading profile…</p>
+          <p className="text-sm text-[rgb(var(--text))] font-medium">Loading profile…</p>
         </div>
       </div>
     );
@@ -358,7 +358,7 @@ const MyChild = () => {
         <div className="text-center">
           <p className="text-5xl mb-3">🎒</p>
           <p className="text-slate-600 font-semibold">No student data found.</p>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-[rgb(var(--text))] text-sm mt-1">
             Please contact your school admin.
           </p>
         </div>
@@ -378,9 +378,9 @@ const MyChild = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen text-[rgb(var(--text))] ">
       {/* ── HERO HEADER ── */}
-      <div className="bg-white border-b border-slate-100 px-4 pt-6 pb-0">
+      <div className="bg-[rgb(var(--surface))] border-b border-slate-100 px-4 pt-6 pb-0">
         <div className="sm:px-5 mx-auto">
           {/* Avatar + name row */}
           <div className="flex items-end gap-4 pb-4">
@@ -392,19 +392,19 @@ const MyChild = () => {
                   className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-2xl bg-linear-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-md border-4 border-white">
-                  <span className="text-3xl font-bold text-white">
+                <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-md border-4 border-white">
+                  <span className="text-3xl font-bold">
                     {s.firstName?.[0]?.toUpperCase()}
                   </span>
                 </div>
               )}
               {/* Online dot */}
-              <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-white" />
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-[rgb(var(--primary))] rounded-full border-2 border-white" />
             </div>
 
             <div className="flex-1 min-w-0 pb-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl font-bold text-slate-800 truncate">
+                <h1 className="text-xl font-bold text-[rgb(var(--text))] truncate">
                   {s.firstName} {s.lastName}
                 </h1>
                 <Badge color="indigo">{s.studentId}</Badge>
@@ -433,11 +433,11 @@ const MyChild = () => {
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
                 className={`flex-1 py-2.5 text-sm font-semibold transition-colors relative
-                  ${activeTab === t.id ? "text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}
+                  ${activeTab === t.id ? "text-[rgb(var(--primary))]" : "text-[rgb(var(--text))] "}`}
               >
                 {t.label}
                 {activeTab === t.id && (
-                  <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-indigo-500 rounded-t-full" />
+                  <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-[rgb(var(--primary))]" />
                 )}
               </button>
             ))}
@@ -450,7 +450,7 @@ const MyChild = () => {
         {/* ══ PROFILE TAB ══ */}
         {activeTab === "profile" && (
           <>
-            <Card title="Personal Information" accent="#6366f1">
+            <Card title="Personal Information">
               <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                 <InfoRow label="First Name" value={s.firstName} />
                 <InfoRow label="Last Name" value={s.lastName} />
@@ -485,7 +485,7 @@ const MyChild = () => {
             </Card>
 
             <Card title="Address" accent="#f59e0b">
-              <p className="text-sm text-slate-700 leading-relaxed">
+              <p className="text-sm text-[rgb(var(--text))] leading-relaxed">
                 {fmt(s.address)}
               </p>
             </Card>
@@ -496,7 +496,7 @@ const MyChild = () => {
         {activeTab === "parents" && (
           <>
             {/* Father */}
-            <Card title="Father's Details" accent="#3b82f6">
+            <Card title="Father's Details">
               <div className="flex gap-4">
                 {docs.fatherPhoto?.url ? (
                   <img
@@ -505,7 +505,7 @@ const MyChild = () => {
                     className="w-14 h-14 rounded-xl object-cover border-2 border-slate-200 shrink-0"
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                  <div className="w-14 h-14 rounded-xl  flex items-center justify-center shrink-0">
                     <span className="text-2xl">👨</span>
                   </div>
                 )}
@@ -569,12 +569,12 @@ const MyChild = () => {
         {activeTab === "documents" && (
           <>
             {/* Progress bar */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+            <div className="bg-[rgb(var(--surface))] rounded-2xl border border-slate-100 shadow-sm p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest">
+                <span className="text-xs font-semibold text-[rgb(var(--text))] uppercase tracking-widest">
                   Upload Progress
                 </span>
-                <span className="text-sm font-bold text-slate-700">
+                <span className="text-sm font-bold text-[rgb(var(--text))]">
                   {uploadedDocs}/{totalDocs}
                 </span>
               </div>
@@ -584,12 +584,12 @@ const MyChild = () => {
                   style={{ width: `${docPercent}%` }}
                 />
               </div>
-              <p className="text-[10px] text-slate-400 mt-1.5">
+              <p className="text-[10px] text-[rgb(var(--text))] mt-1.5">
                 {docPercent === 100
                   ? "✅ All documents uploaded!"
                   : `${totalDocs - uploadedDocs} document${totalDocs - uploadedDocs > 1 ? "s" : ""} pending — tap Upload to add`}
               </p>
-              <p className="text-[10px] text-slate-400 mt-0.5">
+              <p className="text-[10px] text-[rgb(var(--text))] mt-0.5">
                 ⚠️ Uploaded documents cannot be removed by you. Contact school
                 admin if needed.
               </p>
@@ -597,7 +597,7 @@ const MyChild = () => {
 
             {/* Photos */}
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 px-0.5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[rgb(var(--text))] mb-2 px-0.5">
                 Photos
               </p>
               <div className="grid grid-cols-2 gap-3">
@@ -617,7 +617,7 @@ const MyChild = () => {
 
             {/* ID Documents */}
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 px-0.5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[rgb(var(--text))] mb-2 px-0.5">
                 Aadhar Cards
               </p>
               <div className="grid grid-cols-2 gap-3">
@@ -637,7 +637,7 @@ const MyChild = () => {
 
             {/* Certificates */}
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 px-0.5">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[rgb(var(--text))] mb-2 px-0.5">
                 Certificates
               </p>
               <div className="grid grid-cols-2 gap-3">
@@ -745,7 +745,7 @@ const MyChild = () => {
               {/* Due bar */}
               {s.finalFee > 0 && (
                 <div className="mt-4">
-                  <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+                  <div className="flex justify-between text-[10px] text-[rgb(var(--text))] mb-1">
                     <span>Paid</span>
                     <span>
                       {Math.round(((s.totalPaid ?? 0) / s.finalFee) * 100)}%

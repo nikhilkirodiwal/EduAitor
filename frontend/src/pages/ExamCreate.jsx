@@ -258,7 +258,7 @@ function ExamCreate() {
   };
 
   return (
-    <div className="p-4 md:p-8 bg-slate-50 min-h-screen font-sans text-slate-900">
+    <div className="p-4 md:p-8 min-h-screen font-sans text-[rgb(var(--text))]">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
         <div className="px-4 pt-4">
@@ -276,10 +276,10 @@ function ExamCreate() {
       {/* Header */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-4xl font-black text-indigo-950">
+          <h1 className="text-2xl md:text-4xl font-black text-[rgb(var(--primary))] ">
             Exams
           </h1>
-          <p className="text-slate-500 text-sm">
+          <p className="text-sm">
             Schedule and manage school tests
           </p>
         </div>
@@ -288,7 +288,7 @@ function ExamCreate() {
             resetForm();
             setIsModalOpen(true);
           }}
-          className="w-full md:w-auto bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg active:scale-95 transition-all"
+          className="w-full md:w-auto bg-[rgb(var(--primary))] text-[rgb(var(--text))] px-6 py-3 rounded-xl font-bold shadow-lg active:scale-95 transition-all"
         >
           + New Exam
         </button>
@@ -296,11 +296,11 @@ function ExamCreate() {
 
       {/* Filter Bar */}
       <div className="max-w-7xl mx-auto mb-6 flex items-center gap-3 overflow-x-auto pb-2">
-        <span className="text-xs font-bold text-slate-400 uppercase whitespace-nowrap">
+        <span className="text-xs font-bold  uppercase whitespace-nowrap">
           Filter:
         </span>
         <select
-          className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+          className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500"
           value={selectedClassFilter}
           onChange={(e) => setSelectedClassFilter(e.target.value)}
         >
@@ -316,10 +316,10 @@ function ExamCreate() {
       {/* Main List */}
       <div className="max-w-7xl mx-auto">
         {/* Desktop Table - Hidden on Mobile */}
-        <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="hidden md:block text-[rgb(var(--text))] bg-[rgb(var(--surface))]  rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <table className="w-full text-left">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr className="text-slate-400 text-[10px] font-black uppercase tracking-widest">
+            <thead className=" border-b border-slate-200">
+              <tr className=" text-[10px] font-black uppercase tracking-widest">
                 <th className="p-4">Subject & Class</th>
                 <th className="p-4">Date & Day</th>
                 <th className="p-4">Time</th>
@@ -332,13 +332,13 @@ function ExamCreate() {
               {exams.map((exam) => (
                 <tr
                   key={exam._id}
-                  className="hover:bg-slate-50/50 transition-colors"
+                  className="transition-colors"
                 >
                   <td className="p-4">
-                    <div className="font-bold text-slate-800">
+                    <div className="font-bold">
                       {exam.subject.name || exam.subject}
                     </div>
-                    <div className="text-xs text-slate-500">
+                    <div className="text-xs ">
                       Class {exam.className?.name}
                     </div>
                   </td>
@@ -346,11 +346,11 @@ function ExamCreate() {
                     <div className="font-medium text-sm">
                       {new Date(exam.examDate).toLocaleDateString("en-GB")}
                     </div>
-                    <div className="text-[10px] font-bold text-indigo-500 uppercase">
+                    <div className="text-[10px] font-bold text-[rgb(var(--primary))] uppercase">
                       {exam.dayOfWeek}
                     </div>
                   </td>
-                  <td className="p-4 text-sm text-slate-600">
+                  <td className="p-4 text-sm ">
                     {formatTimeTo12h(exam.startTime)} -{" "}
                     {formatTimeTo12h(exam.endTime)}
                   </td>
@@ -362,11 +362,11 @@ function ExamCreate() {
                     <span className="font-bold">{exam.totalMarks}</span>
                   </td>
                   <td className="p-4">
-                    <div className="text-xs text-indigo-500">
+                    <div className="text-xs text-[rgb(var(--primary))]">
                       {exam.termId?.name}
                     </div>
 
-                    <div className="text-xs text-slate-400">
+                    <div className="text-xs">
                       {exam.teacherId?.fullName}
                     </div>
                   </td>
@@ -377,7 +377,7 @@ function ExamCreate() {
     ${
       exam.examDate && new Date(exam.examDate) < new Date()
         ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-        : "bg-slate-100 text-indigo-600 hover:underline cursor-pointer"
+        : "text-[rgb(var(--surface))] bg-[rgb(var(--primary))] hover:underline cursor-pointer"
     }
   `}
                       disabled={exam.examDate < new Date()}
@@ -390,7 +390,7 @@ function ExamCreate() {
     ${
       exam.examDate && new Date(exam.examDate) < new Date()
         ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-        : "bg-slate-100 text-indigo-600 hover:underline cursor-pointer"
+        : "bg-[rgb(var(--primary))] text-[rgb(var(--surface))] hover:underline cursor-pointer"
     }
   `}
                       disabled={exam.examDate < new Date()}
@@ -409,14 +409,14 @@ function ExamCreate() {
           {exams.map((exam) => (
             <div
               key={exam._id}
-              className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200"
+              className="bg-[rgb(var(--surface))] p-5 rounded-2xl shadow-sm border border-slate-200"
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="font-black text-lg text-slate-800">
+                  <h3 className="font-black text-lg text-[rgb(var(--text))]">
                     {exam.subject.name || exam.subject}
                   </h3>
-                  <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-md font-bold uppercase">
+                  <span className="text-xs bg-[rgb(var(--surface))] px-2 py-0.5 rounded-md font-bold uppercase">
                     Class {exam.className?.name}
                   </span>
                 </div>
@@ -424,17 +424,17 @@ function ExamCreate() {
                   <div className="text-sm font-bold">
                     {new Date(exam.examDate).toLocaleDateString("en-GB")}
                   </div>
-                  <div className="text-[10px] text-indigo-500 font-bold uppercase">
+                  <div className="text-[10px] font-bold uppercase">
                     {exam.dayOfWeek}
                   </div>
                 </div>
               </div>
               <div className="flex justify-between items-center text-sm py-3 border-y border-slate-50 my-3">
-                <span className="text-slate-500">
+                <span className="">
                   {formatTimeTo12h(exam.startTime)} -{" "}
                   {formatTimeTo12h(exam.endTime)}
                 </span>
-                <span className="font-bold text-slate-700">
+                <span className="font-bold">
                   {exam.passingMarks} / {exam.totalMarks} Marks
                 </span>
               </div>
@@ -464,12 +464,12 @@ function ExamCreate() {
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             onClick={() => setIsModalOpen(false)}
           ></div>
-          <div className="relative bg-white w-full max-w-xl md:rounded-4xl rounded-t-4xl shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="bg-indigo-600 p-6 text-white shrink-0">
+          <div className="relative text-[rgb(var(--text))] bg-[rgb(var(--surface))] w-full max-w-xl md:rounded-4xl rounded-t-4xl shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="text-[rgb(var(--text))] bg-[rgb(var(--primary))] p-6  shrink-0">
               <h2 className="text-xl font-bold">
                 {editingId ? "Edit Exam" : "Schedule Exam"}
               </h2>
-              <p className="text-indigo-100 text-xs opacity-80">
+              <p className=" text-xs opacity-80">
                 Enter exam details below
               </p>
             </div>
@@ -480,12 +480,12 @@ function ExamCreate() {
             >
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">
+                  <label className="text-[10px] font-bold uppercase">
                     Exam Term
                   </label>
                   <select
                     required
-                    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl outline-none"
+                    className="w-full mt-1 p-3 border rounded-xl outline-none text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
                     value={formData.termId}
                     onChange={(e) =>
                       setFormData({ ...formData, termId: e.target.value })
@@ -505,12 +505,12 @@ function ExamCreate() {
                 <div className="grid grid-cols-2 gap-4">
                   {/* Class Selection */}
                   <div className="col-span-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">
+                    <label className="text-[10px] font-bold  uppercase">
                       Class
                     </label>
                     <select
                       required
-                      className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                      className="w-full mt-1 p-3 border rounded-xl outline-none text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
                       value={formData.className}
                       onChange={(e) => handleClassChange(e.target.value)}
                     >
@@ -523,14 +523,14 @@ function ExamCreate() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">
+                    <label className="text-[10px] font-bold  uppercase">
                       Section
                     </label>
 
                     <select
                       value={formData.sectionId}
                       onChange={(e) => handleSectionChange(e.target.value)}
-                      className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                      className="w-full mt-1 p-3 border rounded-xl text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
                       disabled={!formData.className}
                     >
                       <option value="">Select Section</option>
@@ -547,21 +547,21 @@ function ExamCreate() {
 
                   {/* Subject Selection - Now Filtered */}
                   <div className="col-span-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">
+                    <label className="text-[10px] font-bold  uppercase">
                       Subject
                     </label>
                     <select
                       required
-                      className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                      className=" mt-1 p-3 border rounded-xl outline-none text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
                       value={formData.subject}
                       onChange={(e) =>
                         setFormData({ ...formData, subject: e.target.value })
                       }
                       disabled={!formData.className}
                     >
-                      <option value="">Pick Subject</option>
+                      <option value="" className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">Pick Subject</option>
                       {filteredSubjects.map((s) => (
-                        <option key={s._id} value={s._id}>
+                        <option key={s._id} value={s._id} className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
                           {s.name}
                         </option>
                       ))}
@@ -571,21 +571,21 @@ function ExamCreate() {
 
                 {/* Teacher Selection - New */}
                 <div className="col-span-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">
+                  <label className="text-[10px] font-bold  uppercase">
                     Assign Teacher (Invigilator/Examiner)
                   </label>
                   <select
                     required
-                    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                    className="w-full mt-1 p-3 text-[rgb(var(--text))] bg-[rgb(var(--surface))] border rounded-xl"
                     value={formData.teacherId}
                     onChange={(e) =>
                       setFormData({ ...formData, teacherId: e.target.value })
                     }
                     disabled={!formData.className}
                   >
-                    <option value="">Select Teacher</option>
+                    <option value="" className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">Select Teacher</option>
                     {filteredTeachers.map((t) => (
-                      <option key={t._id} value={t._id}>
+                      <option key={t._id} value={t._id} className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
                         {t.name}
                       </option>
                     ))}
@@ -595,13 +595,13 @@ function ExamCreate() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">
+                  <label className="text-[10px] font-bold  uppercase">
                     Date
                   </label>
                   <input
                     type="date"
                     required
-                    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                    className="w-full mt-1 p-3 border rounded-xl outline-none text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
                     value={formData.examDate}
                     onChange={(e) =>
                       setFormData({
@@ -613,10 +613,10 @@ function ExamCreate() {
                   />
                 </div>
                 <div className="col-span-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">
+                  <label className="text-[10px] font-bold  uppercase">
                     Day
                   </label>
-                  <div className="mt-1 p-3 bg-indigo-50 text-indigo-700 rounded-xl font-bold text-sm text-center border border-indigo-100 uppercase">
+                  <div className="mt-1 p-3 text-[rgb(var(--primary))] rounded-xl font-bold text-sm text-center border border-indigo-100 uppercase">
                     {formData.dayOfWeek || "---"}
                   </div>
                 </div>
@@ -624,13 +624,13 @@ function ExamCreate() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">
+                  <label className="text-[10px] font-bold  uppercase">
                     Start Time
                   </label>
                   <input
                     type="time"
                     required
-                    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                    className="w-full mt-1 p-3 border rounded-xl outline-none text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
                     value={formData.startTime}
                     onChange={(e) =>
                       setFormData({ ...formData, startTime: e.target.value })
@@ -638,13 +638,13 @@ function ExamCreate() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">
+                  <label className="text-[10px] font-bold  uppercase">
                     End Time
                   </label>
                   <input
                     type="time"
                     required
-                    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                    className="w-full mt-1 p-3 border rounded-xl outline-none text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
                     value={formData.endTime}
                     onChange={(e) =>
                       setFormData({ ...formData, endTime: e.target.value })
@@ -655,13 +655,13 @@ function ExamCreate() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">
+                  <label className="text-[10px] font-bold  uppercase">
                     Total Marks
                   </label>
                   <input
                     type="number"
                     required
-                    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                    className="w-full mt-1 p-3 border rounded-xl"
                     value={formData.totalMarks}
                     onChange={(e) =>
                       setFormData({ ...formData, totalMarks: e.target.value })
@@ -669,13 +669,13 @@ function ExamCreate() {
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase">
+                  <label className="text-[10px] font-bold  uppercase">
                     Passing Marks
                   </label>
                   <input
                     type="number"
                     required
-                    className="w-full mt-1 p-3 bg-slate-50 border rounded-xl"
+                    className="w-full mt-1 p-3  border rounded-xl"
                     value={formData.passingMarks}
                     onChange={(e) =>
                       setFormData({ ...formData, passingMarks: e.target.value })
@@ -688,13 +688,13 @@ function ExamCreate() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 py-3 font-bold text-slate-400 hover:text-slate-600 transition"
+                  className="flex-1 py-3 font-bold text-[rgb(var(--primary))] border rounded-2xl transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-2 py-4 bg-indigo-600 text-white font-bold rounded-2xl shadow-xl hover:bg-indigo-700"
+                  className="flex-2 py-4 text-[rgb(var(--text))] bg-[rgb(var(--primary))] font-bold rounded-2xl"
                 >
                   {editingId ? "Update Exam" : "Save Exam"}
                 </button>
@@ -708,12 +708,12 @@ function ExamCreate() {
         <div className="fixed inset-0 z-100 flex items-end md:items-center justify-center p-4">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300"
+            className="absolute inset-0  backdrop-blur-md animate-in fade-in duration-300"
             onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })}
           ></div>
 
           {/* Popup Card */}
-          <div className="relative bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom-10 md:zoom-in-95 duration-300">
+          <div className="relative text-[rgb(var(--text))] bg-[rgb(var(--surface))] w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom-10 md:zoom-in-95 duration-300">
             <div
               className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 rotate-12 ${
                 confirmModal.type === "delete"
@@ -728,12 +728,12 @@ function ExamCreate() {
               )}
             </div>
 
-            <h3 className="text-2xl font-black text-slate-800 leading-tight">
+            <h3 className="text-2xl font-black  leading-tight">
               {confirmModal.type === "delete"
                 ? "Delete Exam?"
                 : "Save Changes?"}
             </h3>
-            <p className="text-slate-500 text-sm mt-3 px-4">
+            <p className=" text-sm mt-3 px-4">
               {confirmModal.type === "delete"
                 ? "This will remove the exam and all associated results permanently."
                 : "Are you sure you want to update the exam schedule with these new details?"}
@@ -744,8 +744,8 @@ function ExamCreate() {
                 onClick={() => executeFinalAction()}
                 className={`w-full py-4 text-white font-bold rounded-2xl shadow-xl transition-all active:scale-95 ${
                   confirmModal.type === "delete"
-                    ? "bg-red-500 shadow-red-200"
-                    : "bg-indigo-600 shadow-indigo-200"
+                    ? "bg-red-500"
+                    : "text-[rgb(var(--text))] bg-[rgb(var(--primary))]"
                 }`}
               >
                 {confirmModal.type === "delete"
@@ -757,7 +757,7 @@ function ExamCreate() {
                 onClick={() =>
                   setConfirmModal({ isOpen: false, type: "", data: null })
                 }
-                className="w-full py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl hover:bg-slate-200 transition-colors"
+                className="w-full py-4 text-[rgb(var(--text))] bg-[rgb(var(--primary))] font-bold rounded-2xl"
               >
                 Go Back
               </button>

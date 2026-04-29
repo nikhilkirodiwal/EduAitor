@@ -97,7 +97,7 @@ const ModeBadge = ({ mode }) => {
   };
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${styles[mode] || "bg-gray-50 text-gray-600 border-gray-200"}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${styles[mode] || "bg-[rgb(var(--surface))] text-gray-600 border-gray-200"}`}
     >
       {mode}
     </span>
@@ -151,14 +151,14 @@ const ProgressBar = ({ pct }) => {
 
 // Summary metric card
 const MetricCard = ({ label, value, sub, valueClass = "" }) => (
-  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-1">
-    <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+  <div className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col gap-1">
+    <p className="text-xs font-medium text-[rgb(var(--text))] uppercase tracking-wider">
       {label}
     </p>
     <p className={`text-xl font-semibold leading-tight ${valueClass}`}>
       {value}
     </p>
-    {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+    {sub && <p className="text-xs text-[rgb(var(--text))] mt-0.5">{sub}</p>}
   </div>
 );
 
@@ -169,15 +169,15 @@ const Tab = ({ label, active, onClick, count }) => (
     className={`relative flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200
       ${
         active
-          ? "bg-indigo-600 text-white shadow-sm shadow-indigo-200"
-          : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+          ? "bg-[rgb(var(--primary))] text-[rgb(var(--text))] shadow-sm"
+          : "text-[rgb(var(--primary))] hover:text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
       }`}
   >
     {label}
     {count != null && (
       <span
         className={`text-xs px-1.5 py-0.5 rounded-full font-semibold
-        ${active ? "bg-indigo-500 text-indigo-100" : "bg-gray-200 text-gray-500"}`}
+        ${active ? "bg-[rgb(var(--primary))] text-[rgb(var(--text))]" : "bg-[rgb(var(--surface))] text-[rgb(var(--text))]"}`}
       >
         {count}
       </span>
@@ -216,10 +216,10 @@ const FeeStructureTab = ({ feeStructure, totalFees }) => {
 
   const Section = ({ title, items }) => (
     <div className="mb-4 last:mb-0">
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">
+      <p className="text-xs font-semibold text-[rgb(var(--text))] uppercase tracking-wider mb-2 px-1">
         {title}
       </p>
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {items.map((f, i) => (
           <div
             key={f._id}
@@ -227,9 +227,9 @@ const FeeStructureTab = ({ feeStructure, totalFees }) => {
           >
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-indigo-300 shrink-0" />
-              <span className="text-sm text-gray-700">{f.name}</span>
+              <span className="text-sm text-[rgb(var(--text))]">{f.name}</span>
             </div>
-            <span className="text-sm font-semibold text-gray-800">
+            <span className="text-sm font-semibold text-[rgb(var(--text))]">
               {fmtINR(f.amount)}
             </span>
           </div>
@@ -260,9 +260,9 @@ const FeeStructureTab = ({ feeStructure, totalFees }) => {
 const PaymentHistoryTab = ({ payments }) => {
   if (!payments.length)
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-3">
+      <div className="flex flex-col items-center justify-center py-16 text-[rgb(var(--text))] gap-3">
         <svg
-          className="w-10 h-10 text-gray-300"
+          className="w-10 h-10 text-[rgb(var(--text))]"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -287,7 +287,7 @@ const PaymentHistoryTab = ({ payments }) => {
       {sorted.map((p, i) => (
         <div
           key={p._id}
-          className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5 flex items-center gap-3"
+          className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5 flex items-center gap-3"
           style={{ animationDelay: `${i * 60}ms` }}
         >
           {/* Icon circle */}
@@ -310,19 +310,19 @@ const PaymentHistoryTab = ({ payments }) => {
           {/* Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-semibold text-gray-800">
+              <span className="text-sm font-semibold text-[rgb(var(--text))]">
                 {fmtINR(p.amountPaid)}
               </span>
               <ModeBadge mode={p.paymentMode} />
             </div>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-[rgb(var(--text))]">
                 {fmtShortDate(p.paidDate)}
               </span>
               {p.remarks && (
                 <>
-                  <span className="text-gray-300">·</span>
-                  <span className="text-xs text-gray-400 truncate max-w-30">
+                  <span className="text-[rgb(var(--text))]">·</span>
+                  <span className="text-xs text-[rgb(var(--text))] truncate max-w-30">
                     {p.remarks}
                   </span>
                 </>
@@ -332,7 +332,7 @@ const PaymentHistoryTab = ({ payments }) => {
 
           {/* Receipt */}
           <div className="text-right shrink-0">
-            <span className="text-xs font-mono text-gray-400 bg-gray-50 border border-gray-100 px-2 py-1 rounded-lg">
+            <span className="text-xs font-mono text-[rgb(var(--text))] bg-[rgb(var(--surface))] border border-gray-100 px-2 py-1 rounded-lg">
               {p.receiptNo}
             </span>
           </div>
@@ -340,15 +340,15 @@ const PaymentHistoryTab = ({ payments }) => {
       ))}
 
       {/* Running total */}
-      <div className="flex justify-between items-center bg-gray-50 rounded-2xl border border-gray-100 px-4 py-3 mt-1">
-        <span className="text-xs font-medium text-gray-500">
+      <div className="flex justify-between items-center bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 px-4 py-3 mt-1">
+        <span className="text-xs font-medium text-[rgb(var(--text))]">
           {payments.length} payment{payments.length !== 1 ? "s" : ""} total
         </span>
-        <span className="text-sm font-bold text-gray-800">
+        <span className="text-sm font-bold text-[rgb(var(--text))]">
           {fmtINR(payments.reduce((s, p) => s + p.amountPaid, 0))}
         </span>
       </div>
-    </div>
+    </div>  
   );
 };
 
@@ -371,7 +371,7 @@ const SummaryTab = ({ data }) => {
   return (
     <div className="space-y-4">
       {/* Donut summary */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm p-5">
         <div className="flex items-center gap-5">
           {/* SVG donut */}
           <div className="relative shrink-0">
@@ -404,7 +404,7 @@ const SummaryTab = ({ data }) => {
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-sm font-bold text-gray-700">
+              <span className="text-sm font-bold text-[rgb(var(--text))]">
                 {paidPercent}%
               </span>
             </div>
@@ -415,24 +415,24 @@ const SummaryTab = ({ data }) => {
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0" />
-                <span className="text-xs text-gray-500">Paid</span>
+                <span className="text-xs text-[rgb(var(--text))]">Paid</span>
               </div>
-              <span className="text-sm font-semibold text-gray-800">
+              <span className="text-sm font-semibold text-[rgb(var(--text))]">
                 {fmtINR(totalPaid)}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-400 shrink-0" />
-                <span className="text-xs text-gray-500">Due</span>
+                <span className="text-xs text-[rgb(var(--text))]">Due</span>
               </div>
               <span className="text-sm font-semibold text-red-500">
                 {fmtINR(balanceDue)}
               </span>
             </div>
             <div className="border-t border-gray-50 pt-2 flex justify-between items-center">
-              <span className="text-xs text-gray-400">Total</span>
-              <span className="text-sm font-bold text-gray-700">
+              <span className="text-xs text-[rgb(var(--text))]">Total</span>
+              <span className="text-sm font-bold text-[rgb(var(--text))]">
                 {fmtINR(finalFee)}
               </span>
             </div>
@@ -442,8 +442,8 @@ const SummaryTab = ({ data }) => {
 
       {/* Monthly payment bars */}
       {monthKeys.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+        <div className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm p-4">
+          <p className="text-xs font-semibold text-[rgb(var(--text))] uppercase tracking-wider mb-4">
             Monthly payments
           </p>
           <div className="flex items-end gap-2 h-24">
@@ -454,14 +454,14 @@ const SummaryTab = ({ data }) => {
                   key={k}
                   className="flex-1 flex flex-col items-center gap-1"
                 >
-                  <span className="text-[10px] text-gray-400 font-medium">
+                  <span className="text-[10px] text-[rgb(var(--text))] font-medium">
                     {(monthly[k] / 1000).toFixed(0)}k
                   </span>
                   <div
-                    className="w-full rounded-t-md bg-indigo-500 transition-all duration-700"
+                    className="w-full rounded-t-md bg-[rgb(var(--primary))] transition-all duration-700"
                     style={{ height: `${h}px` }}
                   />
-                  <span className="text-[9px] text-gray-400 text-center leading-tight">
+                  <span className="text-[9px] text-[rgb(var(--text))] text-center leading-tight">
                     {k}
                   </span>
                 </div>
@@ -478,7 +478,7 @@ const SummaryTab = ({ data }) => {
             (a, b) => new Date(b.paidDate) - new Date(a.paidDate),
           )[0];
           return (
-            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-3 flex items-center gap-3">
+            <div className="bg-[rgb(var(--surface))]  border border-emerald-100 rounded-2xl px-4 py-3 flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
                 <svg
                   className="w-4 h-4 text-emerald-600"
@@ -495,10 +495,10 @@ const SummaryTab = ({ data }) => {
                 </svg>
               </div>
               <div>
-                <p className="text-xs font-medium text-emerald-700">
+                <p className="text-xs font-medium ">
                   Last payment
                 </p>
-                <p className="text-sm font-semibold text-emerald-800">
+                <p className="text-sm font-semibold">
                   {fmtINR(last.amountPaid)} on {fmtDate(last.paidDate)}
                 </p>
               </div>
@@ -543,15 +543,15 @@ export default function ParentFee({ studentId, token }) {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[rgb(var(--surface))]">
         <Skeleton />
       </div>
     );
 
   if (error)
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-6 max-w-sm w-full text-center">
+      <div className="min-h-screen bg-[rgb(var(--bg))] flex items-center justify-center p-6">
+        <div className="bg-[rgb(var(--surface))] rounded-2xl border border-red-100 shadow-sm p-6 max-w-sm w-full text-center">
           <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3">
             <svg
               className="w-6 h-6 text-red-500"
@@ -567,10 +567,10 @@ export default function ParentFee({ studentId, token }) {
               />
             </svg>
           </div>
-          <p className="text-sm font-semibold text-gray-700 mb-1">
+          <p className="text-sm font-semibold text-[rgb(var(--text))] mb-1">
             Failed to load
           </p>
-          <p className="text-xs text-gray-400 mb-4">{error}</p>
+          <p className="text-xs text-[rgb(var(--text))] mb-4">{error}</p>
           <button
             onClick={
               () => setFeeData(MOCK_DATA) /* or re-trigger fetchFeeDetails */
@@ -607,7 +607,7 @@ export default function ParentFee({ studentId, token }) {
       : "No discount";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[rgb(var(--bg))]">
       {/* ── Top header bar ──────────────────────────────────────────────────── */}
 
       {/* Back button (mobile) */}
@@ -615,7 +615,7 @@ export default function ParentFee({ studentId, token }) {
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 px-3 py-1.5 mb-4 rounded-xl
-                     bg-white shadow-sm border border-slate-100
+                     bg-[rgb(var(--surface))] shadow-sm border border-slate-100
                      text-sm font-bold text-slate-600 active:scale-95 transition-transform"
         >
           <FaArrowLeft size={14} /> Back
@@ -624,15 +624,15 @@ export default function ParentFee({ studentId, token }) {
 
       <div className="max-w-2xl mx-auto px-4 pb-8">
         {/* ── Student card ────────────────────────────────────────────────── */}
-        <div className="bg-indigo-600 rounded-2xl mt-4 p-4 shadow-md shadow-indigo-100 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-lg shrink-0 border-2 border-indigo-400">
+        <div className=" rounded-2xl mt-4 p-4 shadow-md text-[rgb(var(--text))] bg-[rgb(var(--surface))] flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-[rgb(var(--primary))]  flex items-center justify-center text-[rgb(var(--text))] font-bold text-lg shrink-0 border-2">
             {initials(student.name)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white font-semibold text-base truncate">
+            <p className="text-[rgb(var(--primary))] font-semibold text-base truncate">
               {student.name}
             </p>
-            <p className="text-indigo-200 text-xs mt-0.5">
+            <p className=" text-xs mt-0.5">
               {student.className} – Sec {student.section} &nbsp;·&nbsp; Roll No.{" "}
               {student.rollNo}
             </p>
@@ -644,12 +644,12 @@ export default function ParentFee({ studentId, token }) {
           <MetricCard
             label="Total fee"
             value={fmtINR(totalFee)}
-            valueClass="text-gray-800"
+            valueClass="text-[rgb(var(--text))]"
           />
           <MetricCard
             label="Discount"
             value={discountAmount > 0 ? fmtINR(discountAmount) : fmtINR(0)}
-            valueClass={discountAmount > 0 ? "text-amber-600" : "text-gray-500"}
+            valueClass={discountAmount > 0 ? "text-amber-600" : "text-[rgb(var(--text))]"}
             sub={discountSub}
           />
           <MetricCard
@@ -667,15 +667,15 @@ export default function ParentFee({ studentId, token }) {
         </div>
 
         {/* ── Progress bar ────────────────────────────────────────────────── */}
-        <div className="mt-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5">
-          <div className="flex justify-between text-xs text-gray-400 mb-2">
+        <div className="mt-4 bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm px-4 py-3.5">
+          <div className="flex justify-between text-xs text-[rgb(var(--text))] mb-2">
             <span>Payment progress</span>
-            <span className="font-medium text-gray-600">
+            <span className="font-medium">
               {paidPercent}% of {fmtINR(finalFee)}
             </span>
           </div>
           <ProgressBar pct={paidPercent} />
-          <div className="flex justify-between text-[11px] text-gray-400 mt-1.5">
+          <div className="flex justify-between text-[11px] text-[rgb(var(--text))] mt-1.5">
             <span>{fmtINR(totalPaid)} paid</span>
             <span>{fmtINR(balanceDue)} remaining</span>
           </div>

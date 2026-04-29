@@ -236,7 +236,7 @@ const DriverManagement = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 text-[rgb(var(--text))] min-h-screen">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
           <div className="pt-4">
@@ -254,16 +254,16 @@ const DriverManagement = () => {
       {/* HEADER */}
       <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[rgb(var(--text))]">
             Driver Management
           </h1>
-          <p className="text-gray-500 text-sm sm:text-base">
+          <p className="text-[rgb(var(--primary))] text-sm sm:text-base">
             Manage school transport drivers
           </p>
         </div>
         <button
           onClick={openAdd}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-blue-700 transition"
+          className="text-[rgb(var(--text))] bg-[rgb(var(--primary))] px-4 py-2 rounded-lg flex items-center gap-2 shadow  transition"
         >
           <FaPlus />
           Add Driver
@@ -284,7 +284,7 @@ const DriverManagement = () => {
 
       {/* FILTERS */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-        <h2 className="text-lg font-semibold text-gray-700">
+        <h2 className="text-lg font-semibold">
           Driver Directory
         </h2>
         <div className="flex gap-2 flex-wrap">
@@ -293,12 +293,12 @@ const DriverManagement = () => {
             placeholder="Search name, phone, route..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border rounded-lg px-3 py-2 w-full sm:w-64 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+            className="border rounded-lg px-3 py-2 w-full sm:w-64 text-[rgb(var(--text))] bg-[rgb(var(--surface))] focus:ring-2 focus:ring-blue-500 outline-none text-sm"
           />
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+            className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
           >
             <option value="">All Status</option>
             <option value="Active">Active</option>
@@ -309,9 +309,9 @@ const DriverManagement = () => {
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-xl shadow overflow-x-auto">
+      <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]  rounded-xl shadow overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-100">
+          <thead className="bg-[rgb(var(--surface))]">
             <tr>
               <th className="p-4 text-left">Driver</th>
               <th className="p-4 text-left">Phone</th>
@@ -324,7 +324,7 @@ const DriverManagement = () => {
           </thead>
           <tbody>
             {filtered.map((driver) => (
-              <tr key={driver._id} className="border-t hover:bg-gray-50">
+              <tr key={driver._id} className="border-t hover:bg[rgb(var(--primary-light))]">
                 {/* DRIVER */}
                 <td className="p-4">
                   <div className="flex items-center gap-3">
@@ -335,13 +335,13 @@ const DriverManagement = () => {
                         className="w-10 h-10 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-semibold text-sm">
+                      <div className="w-10 h-10 bg-[rgb(var(--primary))] rounded-full flex items-center justify-center font-semibold text-sm">
                         {initials(driver.name)}
                       </div>
                     )}
                     <div>
-                      <p className="font-medium text-gray-800">{driver.name}</p>
-                      <p className="text-gray-400 text-xs">
+                      <p className="font-medium text-[rgb(var(--text))]">{driver.name}</p>
+                      <p className="text-[rgb(var(--text))] text-xs">
                         {driver.driverId || driver._id?.slice(-6)}
                       </p>
                     </div>
@@ -349,21 +349,21 @@ const DriverManagement = () => {
                 </td>
 
                 {/* PHONE */}
-                <td className="p-4 text-gray-600">{driver.phone || "-"}</td>
+                <td className="p-4 text-[rgb(var(--text))]">{driver.phone || "-"}</td>
 
                 {/* BUS / ROUTE */}
                 <td className="p-4">
-                  <p className="font-medium text-blue-700">
+                  <p className="font-medium ">
                     {driver.bus?.busId || "Unassigned"}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-[rgb(var(--text))]">
                     {driver.route?.name || "No route"}
                   </p>
                 </td>
 
                 {/* LICENSE */}
                 <td className="p-4">
-                  <p className="text-gray-700 text-xs">
+                  <p className=" text-xs">
                     {driver.license || "-"}
                   </p>
                   {driver.licenseExpiry && (
@@ -381,7 +381,7 @@ const DriverManagement = () => {
                 </td>
 
                 {/* EXPERIENCE */}
-                <td className="p-4 text-gray-600">
+                <td className="p-4 ">
                   {driver.experience ? `${driver.experience}` : "-"}
                 </td>
 
@@ -434,7 +434,7 @@ const DriverManagement = () => {
 
             {filtered.length === 0 && (
               <tr>
-                <td colSpan="7" className="text-center py-10 text-gray-400">
+                <td colSpan="7" className="text-center py-10 bg-[rgb(var(--primary))]/10 text-[rgb(var(--text))]">
                   No drivers found. Click "Add Driver" to get started.
                 </td>
               </tr>
@@ -499,9 +499,9 @@ const StatCard = ({ title, value, color = "blue" }) => {
   };
   return (
     <div
-      className={`bg-white rounded-xl shadow p-5 border-l-4 ${colors[color]}`}
+      className={`text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-xl shadow p-5 border-l-4 ${colors[color]}`}
     >
-      <p className="text-xs sm:text-sm text-gray-500 font-medium">{title}</p>
+      <p className="text-xs sm:text-sm  font-medium">{title}</p>
       <p className="text-xl sm:text-2xl font-bold mt-1">{value}</p>
     </div>
   );
@@ -545,7 +545,7 @@ const DriverFormModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
@@ -556,24 +556,24 @@ const DriverFormModal = ({
               <h3 className="text-lg font-semibold">
                 {isEdit ? "Edit Driver" : "Add New Driver"}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm ">
                 {isEdit ? "Update driver details" : "Register a new driver"}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+            className="hover:text-[rgb(var(--primary))] text-xl font-bold"
           >
             ✕
           </button>
         </div>
 
         {/* Fields */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
           {fields.map(({ label, key, placeholder, type }) => (
             <div key={key} className={key === "route" ? "sm:col-span-2" : ""}>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              <label className="block text-xs font-semibold  uppercase tracking-wide mb-1">
                 {label}
               </label>
               <input
@@ -589,7 +589,7 @@ const DriverFormModal = ({
           ))}
           {/* BUS */}
           <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1 block">
+            <label className="text-xs font-semibold mb-1 block">
               Assigned Bus (Optional)
             </label>
             <select
@@ -597,7 +597,7 @@ const DriverFormModal = ({
               onChange={(e) =>
                 setForm((p) => ({ ...p, bus: e.target.value, route: "" }))
               }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
             >
               <option value="">Select Bus</option>
               {buses.length === 0 ? (
@@ -614,7 +614,7 @@ const DriverFormModal = ({
 
           {/* ROUTE */}
           <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1 block">
+            <label className="text-xs font-semibold  mb-1 block">
               Assigned Route (Optional)
             </label>
             <select
@@ -622,7 +622,7 @@ const DriverFormModal = ({
               onChange={(e) =>
                 setForm((p) => ({ ...p, route: e.target.value }))
               }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
             >
               <option value="">Select Route</option>
               {routes.length === 0 ? (
@@ -638,7 +638,7 @@ const DriverFormModal = ({
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1 block">
+            <label className="text-xs font-semibold  mb-1 block">
               Status
             </label>
             <select
@@ -646,7 +646,7 @@ const DriverFormModal = ({
               onChange={(e) =>
                 setForm((p) => ({ ...p, status: e.target.value }))
               }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
             >
               <option value="Active">Active</option>
               <option value="On Leave">On Leave</option>
@@ -660,14 +660,14 @@ const DriverFormModal = ({
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+            className="px-4 py-2 rounded-lg text-[rgb(var(--text))] bg-[rgb(var(--primary))] transition text-sm font-medium"
           >
             Discard
           </button>
           <button
             onClick={onSubmit}
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
+            className="px-4 py-2 rounded-lg text-[rgb(var(--text))] bg-[rgb(var(--primary))] transition text-sm font-medium"
           >
             {loading ? "Saving..." : isEdit ? "Update Driver" : "Add Driver"}
           </button>
@@ -692,7 +692,7 @@ const ViewModal = ({ driver, onClose, isExpiringSoon, initials }) => {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+      <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-xl p-6 w-full max-w-md mx-4">
         {/* Avatar + name */}
         <div className="flex items-center gap-4 mb-5">
           {driver.photo?.url ? (
@@ -702,13 +702,13 @@ const ViewModal = ({ driver, onClose, isExpiringSoon, initials }) => {
               className="w-14 h-14 rounded-full object-cover"
             />
           ) : (
-            <div className="w-14 h-14 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg font-bold">
+            <div className="w-14 h-14 bg-[rgb(var(--primary))] rounded-full flex items-center justify-center text-lg font-bold">
               {initials(driver.name)}
             </div>
           )}
           <div>
-            <h3 className="text-lg font-bold text-gray-800">{driver.name}</h3>
-            <p className="text-sm text-gray-400">
+            <h3 className="text-lg font-bold text-[rgb(var(--text))]">{driver.name}</h3>
+            <p className="text-sm text-[rgb(var(--text))]">
               {driver.driverId || driver._id?.slice(-8)}
             </p>
           </div>
@@ -717,15 +717,15 @@ const ViewModal = ({ driver, onClose, isExpiringSoon, initials }) => {
         {/* Details grid */}
         <div className="grid grid-cols-2 gap-3 mb-5">
           {rows.map(([label, val]) => (
-            <div key={label} className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-400 uppercase font-semibold tracking-wide mb-1">
+            <div key={label} className="bg-[rgb(var(--surface))] rounded-lg p-3">
+              <p className="text-xs text-[rgb(var(--text))] uppercase font-semibold tracking-wide mb-1">
                 {label}
               </p>
               <p
                 className={`text-sm font-semibold ${
                   label === "License Expiry" && isExpiringSoon(val)
                     ? "text-red-500"
-                    : "text-gray-800"
+                    : "text-[rgb(var(--text))]"
                 }`}
               >
                 {label === "License Expiry" && isExpiringSoon(val) && "⚠️ "}
@@ -738,7 +738,7 @@ const ViewModal = ({ driver, onClose, isExpiringSoon, initials }) => {
         <div className="flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+            className="px-4 py-2 bg-[rgb(var(--primary-light))] text-[rgb(var(--text))] rounded-lg hover:bg-[rgb(var(--primary))] transition text-sm font-medium"
           >
             Close
           </button>
@@ -752,24 +752,24 @@ const ViewModal = ({ driver, onClose, isExpiringSoon, initials }) => {
 
 const DeleteModal = ({ onCancel, onConfirm }) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl p-6 w-96 max-w-full mx-4">
+    <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl p-6 w-96 max-w-full mx-4">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
           <FaTrash className="text-red-600" />
         </div>
         <div>
           <h3 className="text-lg font-semibold">Delete Driver</h3>
-          <p className="text-sm text-gray-500">This action cannot be undone</p>
+          <p className="text-sm text-[rgb(var(--text))]">This action cannot be undone</p>
         </div>
       </div>
-      <p className="text-gray-600 mb-6 text-sm">
+      <p className="text-[rgb(var(--text))] mb-6 text-sm">
         Are you sure you want to delete this driver? All associated data will be
         permanently removed from the system.
       </p>
       <div className="flex justify-end gap-3">
         <button
           onClick={onCancel}
-          className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm"
+          className="px-4 py-2 bg-[rgb(var(--primary-light))] text-[rgb(var(--text))] rounded-lg hover:bg-[rgb(var(--primary))] transition text-sm"
         >
           Cancel
         </button>

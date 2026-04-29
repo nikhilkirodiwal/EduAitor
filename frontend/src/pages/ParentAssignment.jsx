@@ -69,7 +69,7 @@ export default function ParentAssignment() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-screen text-gray-400">
+      <div className="flex items-center justify-center min-h-screen text-[rgb(var(--text))]">
         Loading...
       </div>
     );
@@ -102,7 +102,7 @@ export default function ParentAssignment() {
     );
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8   text-[rgb(var(--text))] min-h-screen">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
           <div className="pt-4">
@@ -118,15 +118,15 @@ export default function ParentAssignment() {
         </div>
       )}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Assignments</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold ">My Assignments</h1>
+        <p className="text-sm  mt-1">
           {assignments.length} assignment{assignments.length !== 1 ? "s" : ""}{" "}
           available
         </p>
       </div>
 
       {assignments.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">
+        <div className="text-center py-20 text-[rgb(var(--text))]">
           <p className="text-5xl mb-3">📋</p>
           <p className="font-medium">No assignments yet</p>
         </div>
@@ -144,14 +144,14 @@ export default function ParentAssignment() {
             return (
               <div
                 key={a._id}
-              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between h-full"
+              className="bg-[rgb(var(--bg))]  text-[rgb(var(--text))] rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between h-full"
               >
                 <div className="flex items-start justify-between gap-2 mb-3">
                   <div>
-                    <h3 className="font-semibold text-gray-900 leading-snug">
+                    <h3 className="font-semibold text-[rgb(var(--text))] leading-snug">
                       {a.title}
                     </h3>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-[rgb(var(--text))] mt-0.5">
                       {a.subjectId?.name}
                       {a.chapterId?.name ? ` · ${a.chapterId.name}` : ""}
                     </p>
@@ -163,7 +163,7 @@ export default function ParentAssignment() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
+                <div className="flex items-center gap-4 text-xs text-[rgb(var(--text))] mb-4">
                   <span>🏆 {a.totalMarks} marks</span>
                   <span>❓ {a.questions?.length} questions</span>
                   <span>
@@ -184,7 +184,9 @@ export default function ParentAssignment() {
                     </div>
                     <button
                       onClick={() => openReport(a)}
-                      className="w-full py-2 rounded-xl border border-indigo-200 text-indigo-600 text-sm font-semibold hover:bg-indigo-50 transition"
+                      className="w-full py-2 rounded-xl border border-indigo-200  text-sm font-semibold  
+                        cursor-pointer
+                      transition"
                     >
                       View Report
                     </button>
@@ -196,8 +198,8 @@ export default function ParentAssignment() {
                     className={`w-full py-2 rounded-xl text-sm font-semibold transition
                       ${
                         overdue
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                          ? "bg-[rgb(var(--primary-light))] text-[rgb(var(--text))] cursor-not-allowed"
+                          : "bg-indigo-600 hover:bg-indigo-700 text-[rgb(var(--text))] cursor-pointer"
                       }`}
                   >
                     {overdue ? "Overdue" : "Start Assignment"}
@@ -262,19 +264,19 @@ function AttemptView({ assignment, onBack, onSubmitted }) {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
           <button
             onClick={onBack}
-            className="text-sm text-gray-600 hover:text-gray-900 mb-4 flex items-center gap-1"
+            className="text-sm text-gray-600 hover:text-[rgb(var(--text))] mb-4 flex items-center gap-1"
           >
             ← Back
           </button>
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-xl font-bold text-[rgb(var(--text))]">
             {assignment.title}
           </h1>
           {assignment.description && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-[rgb(var(--text))] mt-1">
               {assignment.description}
             </p>
           )}
-          <div className="flex gap-4 text-xs text-gray-400 mt-3">
+          <div className="flex gap-4 text-xs text-[rgb(var(--text))] mt-3">
             <span>🏆 {assignment.totalMarks} marks</span>
             <span>❓ {assignment.questions.length} questions</span>
             {assignment.duration && <span>⏱ {assignment.duration} min</span>}
@@ -295,7 +297,7 @@ function AttemptView({ assignment, onBack, onSubmitted }) {
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-800">{q.text}</p>
                   <div className="flex gap-2 mt-1">
-                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full uppercase font-medium">
+                    <span className="text-xs bg-gray-100 text-[rgb(var(--text))] px-2 py-0.5 rounded-full uppercase font-medium">
                       {q.type}
                     </span>
                     <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-medium">
@@ -393,7 +395,7 @@ function ReportView({ report, onBack }) {
       <div className="max-w-6xl mx-auto w-full">
         <button
           onClick={onBack}
-          className="text-sm text-gray-600 hover:text-gray-900 mb-4 flex items-center gap-1"
+          className="text-sm text-gray-600 hover:text-[rgb(var(--text))] mb-4 flex items-center gap-1"
         >
           ← Back to assignments
         </button>
@@ -401,7 +403,7 @@ function ReportView({ report, onBack }) {
         {/* Score card */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-5">
           <div className="text-center mb-5">
-            <p className="text-sm text-gray-400 mb-4">Your score</p>
+            <p className="text-sm text-[rgb(var(--text))] mb-4">Your score</p>
             <div
               className={`inline-flex items-center justify-center w-24 h-24 rounded-full text-4xl font-bold mb-3 ${GRADE_BG(pct)}`}
             >
@@ -409,11 +411,11 @@ function ReportView({ report, onBack }) {
             </div>
             <div className="text-2xl font-bold text-gray-800">
               {a.totalMarksAwarded} / {a.totalMarks}
-              <span className="text-base font-normal text-gray-400 ml-1">
+              <span className="text-base font-normal text-[rgb(var(--text))] ml-1">
                 marks
               </span>
             </div>
-            <div className="text-sm text-gray-500 mt-1">
+            <div className="text-sm text-[rgb(var(--text))] mt-1">
               {pct}% · Attempt #{a.attemptNumber}
             </div>
             <div className="mt-4 bg-gray-100 rounded-full h-3 overflow-hidden">
@@ -458,7 +460,7 @@ function ReportView({ report, onBack }) {
                 key={i}
                 className={`${s.bg} rounded-xl py-3 px-4 text-center`}
               >
-                <p className="text-xs text-gray-400">{s.label}</p>
+                <p className="text-xs text-[rgb(var(--text))]">{s.label}</p>
                 <p className={`text-lg font-bold mt-0.5 ${s.text}`}>
                   {s.value}
                 </p>
@@ -470,7 +472,7 @@ function ReportView({ report, onBack }) {
         {/* Question breakdown */}
         <h3 className="font-bold text-gray-800 text-base mb-3">
           Question Breakdown
-          <span className="ml-2 text-sm font-normal text-gray-400">
+          <span className="ml-2 text-sm font-normal text-[rgb(var(--text))]">
             {a.answers.length} questions
           </span>
         </h3>
@@ -517,7 +519,7 @@ function ReportView({ report, onBack }) {
                     >
                       {idx + 1}
                     </span>
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-[rgb(var(--text))]">
                       {ans.questionType}
                     </span>
                   </div>
@@ -539,7 +541,7 @@ function ReportView({ report, onBack }) {
                         Pending review
                       </span>
                     )}
-                    <span className="text-xs font-semibold text-gray-500">
+                    <span className="text-xs font-semibold text-[rgb(var(--text))]">
                       {isMCQ ? (
                         <span
                           className={
@@ -549,9 +551,9 @@ function ReportView({ report, onBack }) {
                           {ans.marksAwarded}
                         </span>
                       ) : (
-                        <span className="text-gray-400">?</span>
+                        <span className="text-[rgb(var(--text))]">?</span>
                       )}
-                      <span className="text-gray-400">
+                      <span className="text-[rgb(var(--text))]">
                         {" "}
                         / {ans.maxMarks} marks
                       </span>
@@ -641,7 +643,7 @@ function ReportView({ report, onBack }) {
                   {/* Short / Long answer */}
                   {!isMCQ && (
                     <div>
-                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">
+                      <p className="text-xs text-[rgb(var(--text))] font-semibold uppercase tracking-wide mb-2">
                         Your answer
                       </p>
                       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm text-gray-700 leading-relaxed min-h-12">
@@ -671,7 +673,7 @@ function ReportView({ report, onBack }) {
               const isMCQ = ans.questionType === "mcq";
               return (
                 <div key={idx} className="flex items-center gap-3 text-sm">
-                  <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-500 text-xs font-bold flex items-center justify-center shrink-0">
+                  <span className="w-6 h-6 rounded-full bg-gray-100 text-[rgb(var(--text))] text-xs font-bold flex items-center justify-center shrink-0">
                     {idx + 1}
                   </span>
                   <span className="flex-1 text-gray-600 truncate">

@@ -241,7 +241,7 @@ const RouteManagement = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 text-[rgb(var(--text))]  min-h-screen">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
           <div className="pt-4">
@@ -259,16 +259,16 @@ const RouteManagement = () => {
       {/* HEADER */}
       <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+          <h1 className="text-2xl sm:text-3xl font-bold ">
             Route Management
           </h1>
-          <p className="text-gray-500 text-sm sm:text-base">
+          <p className=" text-sm sm:text-base">
             Configure and monitor school transport routes
           </p>
         </div>
         <button
           onClick={openAdd}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-blue-700 transition"
+          className="text-[rgb(var(--text))] bg-[rgb(var(--primary))] px-4 py-2 rounded-lg flex items-center gap-2 shadow  transition"
         >
           <FaPlus />
           Add Route
@@ -284,19 +284,19 @@ const RouteManagement = () => {
 
       {/* FILTERS */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-        <h2 className="text-lg font-semibold text-gray-700">Route Directory</h2>
+        <h2 className="text-lg font-semibold text-[rgb(var(--primary))]">Route Directory</h2>
         <div className="flex gap-2 flex-wrap">
           <input
             type="text"
             placeholder="Search route, bus, driver..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border rounded-lg px-3 py-2 w-full sm:w-64 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+            className="border rounded-lg px-3 py-2 w-full sm:w-64 focus:ring-2 focus:ring-blue-500 outline-none text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
           />
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+            className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
           >
             <option value="">All Status</option>
             <option value="Active">Active</option>
@@ -306,10 +306,10 @@ const RouteManagement = () => {
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-xl shadow">
+      <div className="btext-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-xl shadow">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-100">
+            <thead className="">
               <tr>
                 <th className="p-4 text-left">Route</th>
                 <th className="p-4 text-left">Bus / Driver</th>
@@ -323,18 +323,18 @@ const RouteManagement = () => {
             <tbody>
               {filtered.map((route) => (
                 <React.Fragment key={route._id}>
-                  <tr className="border-t hover:bg-gray-50">
+                  <tr className="border-t ">
                     {/* ROUTE NAME */}
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-full flex items-center justify-center shrink-0">
                           <FaRoute className="text-sm" />
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-800">
+                          <p className="font-semibold text-[rgb(var(--text))]">
                             {route.name}
                           </p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-[rgb(var(--text-light))]">
                             {route.routeId}
                           </p>
                         </div>
@@ -343,21 +343,21 @@ const RouteManagement = () => {
 
                     {/* BUS / DRIVER */}
                     <td className="p-4">
-                      <p className="font-medium text-blue-700">
+                      <p className="font-medium text-[rgb(var(--primary))]">
                         {route.bus?.busId || "unassigned"}
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-[rgb(var(--text-light))]">
                         {route.driver?.name || "unassigned"}
                       </p>
                     </td>
 
                     {/* STOPS */}
-                    <td className="p-4 text-gray-700">
+                    <td className="p-4 text-[rgb(var(--text))]">
                       {route.stops ?? 0} stops
                     </td>
 
                     {/* TIMING */}
-                    <td className="p-4 text-gray-600 text-xs">
+                    <td className="p-4 text-[rgb(var(--text-light))] text-xs">
                       {route.startTime && route.endTime
                         ? `${formatTime(route.startTime)} – ${formatTime(route.endTime)}`
                         : "—"}
@@ -414,9 +414,9 @@ const RouteManagement = () => {
 
                   {/* STOPS EXPANDED ROW */}
                   {expandedRoute === route._id && (
-                    <tr key={`${route._id}-stops`} className="bg-blue-50">
+                    <tr key={`${route._id}-stops`} className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] bprder">
                       <td colSpan="6" className="px-6 py-3">
-                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                        <p className="text-xs font-semibold  uppercase tracking-wide mb-2">
                           Stops
                         </p>
                         {Array.isArray(route.stopsList) &&
@@ -432,7 +432,7 @@ const RouteManagement = () => {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-sm text-gray-400">
+                          <p className="text-sm ">
                             No stops configured for this route.
                           </p>
                         )}
@@ -444,7 +444,7 @@ const RouteManagement = () => {
 
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="text-center py-10 text-gray-400">
+                  <td colSpan="6" className="text-center py-10 text-[rgb(var(--text-light))]">
                     {filterStatus || search
                       ? "No routes match your filters."
                       : "No routes found. Click 'Add Route' to get started."}
@@ -498,9 +498,9 @@ const StatCard = ({ title, value, color = "blue" }) => {
   };
   return (
     <div
-      className={`bg-white rounded-xl shadow p-5 border-l-4 ${colors[color]}`}
+      className={`text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-xl shadow p-5 border-l-4 ${colors[color]}`}
     >
-      <p className="text-xs sm:text-sm text-gray-500 font-medium">{title}</p>
+      <p className="text-xs sm:text-sm text-[rgb(var(--text-light))] font-medium">{title}</p>
       <p className="text-xl sm:text-2xl font-bold mt-1">{value}</p>
     </div>
   );
@@ -561,18 +561,18 @@ const RouteFormModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <FaRoute className="text-blue-600" />
+            <div className="w-10 h-10 text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-full flex items-center justify-center">
+              <FaRoute className="text-[rgb(var(--primary))]" />
             </div>
             <div>
               <h3 className="text-lg font-semibold">
                 {isEdit ? "Edit Route" : "Add New Route"}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-[rgb(var(--text-light))]">
                 {isEdit
                   ? "Update route details"
                   : "Create a new transport route"}
@@ -581,7 +581,7 @@ const RouteFormModal = ({
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+            className="text-[rgb(var(--text-light))] hover:text-[rgb(var(--text))] text-xl font-bold"
           >
             ✕
           </button>
@@ -591,7 +591,7 @@ const RouteFormModal = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {fields.map(({ label, key, placeholder, type, full }) => (
             <div key={key} className={full ? "sm:col-span-2" : ""}>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              <label className="block text-xs font-semibold text-[rgb(var(--text-light))] uppercase tracking-wide mb-1">
                 {label}
               </label>
               <input
@@ -608,7 +608,7 @@ const RouteFormModal = ({
           ))}
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1 block">
+            <label className="text-xs font-semibold text-[rgb(var(--text-light))] mb-1 block">
               Assigned Bus
             </label>
             <select
@@ -616,11 +616,11 @@ const RouteFormModal = ({
               onChange={(e) =>
                 setForm((p) => ({ ...p, bus: e.target.value, driver: "" }))
               }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
             >
-              <option value="">Select Bus</option>
+              <option value="" className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">Select Bus</option>
               {availableBuses.map((b) => (
-                <option key={b._id} value={b._id}>
+                <option key={b._id} value={b._id} className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
                   {b.busId}
                 </option>
               ))}
@@ -628,7 +628,7 @@ const RouteFormModal = ({
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1 block">
+            <label className="text-xs font-semibold text-[rgb(var(--text-light))] mb-1 block">
               Assigned Driver
             </label>
             <select
@@ -636,11 +636,11 @@ const RouteFormModal = ({
               onChange={(e) =>
                 setForm((p) => ({ ...p, driver: e.target.value }))
               }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
             >
-              <option value="">Select Driver</option>
+              <option value="" className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">Select Driver</option>
               {availableDrivers.map((d) => (
-                <option key={d._id} value={d._id}>
+                <option key={d._id} value={d._id} className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
                   {d.name}
                 </option>
               ))}
@@ -648,7 +648,7 @@ const RouteFormModal = ({
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1 block">
+            <label className="text-xs font-semibold text-[rgb(var(--text-light))] mb-1 block">
               Status
             </label>
             <select
@@ -660,10 +660,10 @@ const RouteFormModal = ({
                   ...(e.target.value !== "Active" && { bus: "", driver: "" }),
                 }))
               }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
             >
-              <option value="Active">Active</option>
-              <option value="Suspended">Suspended</option>
+              <option value="Active" className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">Active</option>
+              <option value="Suspended" className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">Suspended</option>
             </select>
           </div>
         </div>
@@ -673,14 +673,14 @@ const RouteFormModal = ({
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+            className="px-4 py-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-lg 00 transition text-sm font-medium"
           >
             Discard
           </button>
           <button
             onClick={onSubmit}
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
+            className="px-4 py-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-lg  transition text-sm font-medium"
           >
             {loading ? "Saving..." : isEdit ? "Update Route" : "Add Route"}
           </button>
@@ -694,17 +694,17 @@ const RouteFormModal = ({
 
 const DeleteModal = ({ route, onCancel, onConfirm }) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl p-6 w-96 max-w-full mx-4">
+    <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-xl p-6 w-96 max-w-full mx-4">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
           <FaTrash className="text-red-600" />
         </div>
         <div>
           <h3 className="text-lg font-semibold">Delete Route</h3>
-          <p className="text-sm text-gray-500">This action cannot be undone</p>
+          <p className="text-sm text-[rgb(var(--text-light))]">This action cannot be undone</p>
         </div>
       </div>
-      <p className="text-gray-600 mb-6 text-sm">
+      <p className="text-[rgb(var(--text))] mb-6 text-sm">
         Are you sure you want to delete{" "}
         <span className="font-semibold">"{route.name}"</span>? All associated
         stop and assignment data will be permanently removed.
@@ -712,13 +712,17 @@ const DeleteModal = ({ route, onCancel, onConfirm }) => (
       <div className="flex justify-end gap-3">
         <button
           onClick={onCancel}
-          className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm"
+          className="px-4 py-2 text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+            cursor-pointer
+          rounded-lg hover:bg-[rgb(var(--surface-light))] transition text-sm"
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
-          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm"
+          className="px-4 py-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] 
+            cursor-pointer
+          rounded-lg hover:bg-[rgb(var(--primary-light))] transition text-sm"
         >
           Delete Route
         </button>

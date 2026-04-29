@@ -35,7 +35,7 @@ const GRADE_STYLE = {
 const ATTENDANCE_STYLE = {
   Present:     "bg-green-100 text-green-700",
   Absent:      "bg-red-100 text-red-600",
-  Leave:       "bg-slate-100 text-slate-600",
+  Leave:       "bg-slate-100 text-[rgb(var(--text))]",
   MedicalLeave:"bg-blue-100 text-blue-600",
   Exempted:    "bg-purple-100 text-purple-600",
 };
@@ -163,7 +163,7 @@ export default function ParentResultView() {
 
   /* ══════════════════════════════════════════════════════ */
   return (
-    <div className="p-4 md:p-8 bg-slate-50 min-h-screen font-sans text-slate-900">
+    <div className="p-4 md:p-8  min-h-screen font-sans text-[rgb(var(--text))]">
 
       {/* Back button (mobile) */}
       {isMobile && (
@@ -171,7 +171,7 @@ export default function ParentResultView() {
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 px-3 py-1.5 mb-4 rounded-xl
                      bg-white shadow-sm border border-slate-100
-                     text-sm font-bold text-slate-600 active:scale-95 transition-transform"
+                     text-sm font-bold text-[rgb(var(--text))] active:scale-95 transition-transform"
         >
           <FaArrowLeft size={14} /> Back
         </button>
@@ -179,10 +179,10 @@ export default function ParentResultView() {
 
       {/* ── Header ── */}
       <div className="max-w-3xl mx-auto mb-6">
-        <h1 className="text-2xl md:text-3xl font-black text-indigo-950">
+        <h1 className="text-2xl md:text-3xl font-black text-[rgb(var(--text))]">
           My Results
         </h1>
-        <p className="text-slate-500 text-sm mt-0.5">
+        <p className="text-[rgb(var(--text))] text-sm mt-0.5">
           View your exam results and performance
         </p>
       </div>
@@ -230,12 +230,12 @@ export default function ParentResultView() {
               onClick={() => setActiveTerm(t._id)}
               className={`px-4 py-2 rounded-xl text-xs font-bold border transition whitespace-nowrap
                 ${activeTerm === t._id
-                  ? "bg-indigo-600 text-white border-indigo-600 shadow-md"
-                  : "bg-white text-slate-500 border-slate-200 hover:border-indigo-300 hover:text-indigo-500"
+                  ? "bg-[rgb(var(--primary))]  text-[rgb(var(--text))] shadow-md"
+                  : "bg-[rgb(var(--bg))]  text-[rgb(var(--text))] border-slate-200 "
                 }`}
             >
               {t.name}
-              <span className={`ml-1.5 text-[10px] ${activeTerm === t._id ? "text-indigo-200" : "text-slate-400"}`}>
+              <span className={`ml-1.5 text-[10px] ${activeTerm === t._id ? "text-indigo-200" : "text-[rgb(var(--text))]"}`}>
                 {t.academicYear}
               </span>
             </button>
@@ -270,10 +270,10 @@ export default function ParentResultView() {
                 {s.icon}
               </div>
               <div>
-                <p className="text-[9px] text-slate-400 font-bold tracking-wide uppercase">
+                <p className="text-[9px] text-[rgb(var(--text))] font-bold tracking-wide uppercase">
                   {s.label}
                 </p>
-                <p className="text-xl font-black text-slate-800">{s.value}</p>
+                <p className="text-xl font-black text-[rgb(var(--text))]">{s.value}</p>
               </div>
             </div>
           ))}
@@ -289,12 +289,12 @@ export default function ParentResultView() {
 
             return (
               <div key={idx}
-                   className="bg-white rounded-2xl border border-slate-200
+                   className="bg-[rgb(var(--surface))]  text-[rgb(var(--text))]  rounded-2xl border border-slate-200
                               shadow-sm overflow-hidden">
                 {/* Subject header */}
                 <div className="flex items-start justify-between px-5 pt-4 pb-3">
                   <div>
-                    <h3 className="font-black text-slate-800 text-base">{sub.name}</h3>
+                    <h3 className="font-black text-[rgb(var(--text))] text-base">{sub.name}</h3>
                     <div className="flex items-center gap-2 mt-1">
                       {sub.isPassed === true && (
                         <span className="flex items-center gap-1 text-[10px] font-bold
@@ -316,12 +316,12 @@ export default function ParentResultView() {
                                        ${gStyle.badge}`}>
                         {sub.grade}
                       </div>
-                      <div className="text-xs font-bold text-slate-400 mt-1">
+                      <div className="text-xs font-bold text-[rgb(var(--text))] mt-1">
                         {sub.pct}%
                       </div>
                     </div>
                   ) : (
-                    <span className="text-xs font-bold text-slate-400 bg-slate-100
+                    <span className="text-xs font-bold text-[rgb(var(--text))] bg-[rgb(var(--surface))]
                                      px-2 py-1 rounded-lg">
                       No Marks
                     </span>
@@ -342,12 +342,12 @@ export default function ParentResultView() {
 
                 {/* Aggregate marks */}
                 {sub.totalMax > 0 && (
-                  <div className="px-5 py-3 bg-slate-50 border-t border-slate-100">
+                  <div className="px-5 py-3 bg-[rgb(var(--surface))] border-t border-slate-100">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-500 font-medium">
+                      <span className="text-[rgb(var(--text))] font-medium">
                         Total Marks
                       </span>
-                      <span className="font-black text-slate-700">
+                      <span className="font-black text-[rgb(var(--text))]">
                         {sub.totalObtained} / {sub.totalMax}
                       </span>
                     </div>
@@ -357,7 +357,7 @@ export default function ParentResultView() {
                 {/* Per-exam breakdown */}
                 {sub.exams.length > 1 && (
                   <div className="border-t border-slate-100">
-                    <div className="px-5 py-2 text-[10px] font-bold text-slate-400
+                    <div className="px-5 py-2 text-[10px] font-bold text-[rgb(var(--text))]
                                     uppercase tracking-wide">
                       Exam Breakdown
                     </div>
@@ -368,14 +368,14 @@ export default function ParentResultView() {
                             ? new Date(exam.examId.examDate).toLocaleDateString("en-GB")
                             : "—";
                         const attStyle =
-                          ATTENDANCE_STYLE[exam.attendanceStatus] || "bg-slate-100 text-slate-500";
+                          ATTENDANCE_STYLE[exam.attendanceStatus] || "bg-slate-100 text-[rgb(var(--text))]";
 
                         return (
                           <div key={eIdx}
                                className="flex items-center justify-between px-5 py-2.5">
                             <div className="flex items-center gap-2">
-                              <FiCalendar size={11} className="text-slate-400" />
-                              <span className="text-xs text-slate-600 font-medium">
+                              <FiCalendar size={11} className="text-[rgb(var(--text))]" />
+                              <span className="text-xs text-[rgb(var(--text))] font-medium">
                                 {examDate}
                               </span>
                               <span className={`text-[10px] font-bold px-1.5 py-0.5
@@ -385,7 +385,7 @@ export default function ParentResultView() {
                             </div>
                             {exam.attendanceStatus === "Present" && exam.marksObtained != null ? (
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-slate-700">
+                                <span className="text-xs font-bold text-[rgb(var(--text))]">
                                   {exam.marksObtained}/{exam.totalMarks}
                                 </span>
                                 {exam.grade && (
@@ -397,7 +397,7 @@ export default function ParentResultView() {
                                 )}
                               </div>
                             ) : (
-                              <span className="text-xs text-slate-400">—</span>
+                              <span className="text-xs text-[rgb(var(--text))]">—</span>
                             )}
                           </div>
                         );
@@ -413,8 +413,8 @@ export default function ParentResultView() {
 
       {/* Empty state */}
       {!loading && activeTerm && subjectGroups.length === 0 && (
-        <div className="max-w-3xl mx-auto text-center py-20 text-slate-400">
-          <FiAlertTriangle size={36} className="mx-auto mb-3 opacity-30" />
+        <div className="max-w-3xl mx-auto text-center py-20 text-[rgb(var(--text))]">
+          <FiAlertTriangle size={36} className="mx-auto mb-3" />
           <p className="text-sm font-medium">
             No results found for {activeTerm$?.name}.
           </p>

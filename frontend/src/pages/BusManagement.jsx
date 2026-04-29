@@ -204,7 +204,7 @@ const BusManagement = () => {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 text-[rgb(var(--text))]  min-h-screen">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
           <div className="pt-4">
@@ -222,16 +222,16 @@ const BusManagement = () => {
       {/* HEADER */}
       <div className="mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+          <h1 className="text-2xl sm:text-3xl font-bold ">
             Bus Management (WORKING)
           </h1>
-          <p className="text-gray-500 text-sm sm:text-base">
+          <p className=" text-sm sm:text-base">
             Manage school fleet & maintenance
           </p>
         </div>
         <button
           onClick={openAdd}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-blue-700 transition"
+          className="text-[rgb(var(--text))] bg-[rgb(var(--primary))]  px-4 py-2 rounded-lg flex items-center gap-2 shadow transition"
         >
           <FaPlus />
           Add Bus
@@ -248,19 +248,19 @@ const BusManagement = () => {
 
       {/* FILTERS */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-        <h2 className="text-lg font-semibold text-gray-700">Fleet Directory</h2>
+        <h2 className="text-lg font-semibold ">Fleet Directory</h2>
         <div className="flex gap-2 flex-wrap">
           <input
             type="text"
             placeholder="Search bus ID, model, driver..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="border rounded-lg px-3 py-2 w-full sm:w-64 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+            className="border rounded-lg px-3 py-2 w-full sm:w-64 focus:ring-2 focus:ring-blue-500 outline-none text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
           />
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+            className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
           >
             <option value="">All Status</option>
             <option value="Active">Active</option>
@@ -271,10 +271,10 @@ const BusManagement = () => {
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-xl shadow">
+      <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]  rounded-xl shadow">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-gray-100">
+            <thead className="">
               <tr>
                 <th className="p-4 text-left">Bus</th>
                 <th className="p-4 text-left">Model</th>
@@ -288,7 +288,7 @@ const BusManagement = () => {
 
             <tbody>
               {filtered.map((bus) => (
-                <tr key={bus._id} className="border-t hover:bg-gray-50">
+                <tr key={bus._id} className="border-t ">
                   {/* BUS ID */}
                   <td className="p-4">
                     <div className="flex items-center gap-3">
@@ -296,29 +296,29 @@ const BusManagement = () => {
                         <FaBus />
                       </div>
                       <div>
-                        <p className="font-bold text-blue-700">{bus.busId}</p>
-                        <p className="text-gray-400 text-xs">{bus.regNo}</p>
+                        <p className="font-bold text-[rgb(var(--primary))]">{bus.busId}</p>
+                        <p className=" text-xs">{bus.regNo}</p>
                       </div>
                     </div>
                   </td>
 
                   {/* MODEL */}
-                  <td className="p-4 text-gray-700">{bus.model || "-"}</td>
+                  <td className="p-4 ">{bus.model || "-"}</td>
 
                   {/* DRIVER / ROUTE */}
                   <td className="p-4">
-                    <p className="font-medium text-gray-800">
+                    <p className="font-medium text-[rgb(var(--text))]">
                       {bus.driver?.name || "Unassigned"}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-[rgb(var(--text-light))]">
                       {bus.route?.name || "No route"}
                     </p>
                   </td>
 
                   {/* CAPACITY */}
-                  <td className="p-4 text-gray-700">
+                  <td className="p-4 ">
                     {bus.capacity ?? 0}
-                    <span className="text-gray-400 text-xs"> seats</span>
+                    <span className="text-[rgb(var(--text-light))] text-xs"> seats</span>
                   </td>
 
                   {/* NEXT SERVICE */}
@@ -326,7 +326,7 @@ const BusManagement = () => {
                     className={`p-4 text-xs ${
                       bus.nextService && new Date(bus.nextService) <= new Date()
                         ? "text-red-600 font-semibold"
-                        : "text-gray-600"
+                        : ""
                     }`}
                   >
                     {bus.nextService
@@ -373,7 +373,7 @@ const BusManagement = () => {
 
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan="8" className="text-center py-10 text-gray-400">
+                  <td colSpan="8" className="text-center py-10 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
                     No buses found. Click "Add Bus" to register one.
                   </td>
                 </tr>
@@ -428,9 +428,9 @@ const StatCard = ({ title, value, color = "blue" }) => {
   };
   return (
     <div
-      className={`bg-white rounded-xl shadow p-5 border-l-4 ${colors[color]}`}
+      className={`text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-xl shadow p-5 border-l-4 ${colors[color]}`}
     >
-      <p className="text-xs sm:text-sm text-gray-500 font-medium">{title}</p>
+      <p className="text-xs sm:text-sm  font-medium">{title}</p>
       <p className="text-xl sm:text-2xl font-bold mt-1">{value}</p>
     </div>
   );
@@ -481,25 +481,25 @@ const BusFormModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <FaBus className="text-blue-600" />
+              <FaBus className="text-[rgb(var(--primary))]" />
             </div>
             <div>
               <h3 className="text-lg font-semibold">
                 {isEdit ? "Edit Bus" : "Register New Bus"}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm ">
                 {isEdit ? "Update bus details" : "Add a new bus to the fleet"}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+            className="text-[rgb(var(--primary))] text-xl font-bold"
           >
             ✕
           </button>
@@ -509,7 +509,7 @@ const BusFormModal = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {fields.map(({ label, key, placeholder, type, disabled }) => (
             <div key={key}>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              <label className="block text-xs font-semibold text-[rgb(var(--text-light))] uppercase tracking-wide mb-1">
                 {label}
               </label>
               <input
@@ -528,7 +528,7 @@ const BusFormModal = ({
           ))}
           {/* DRIVER */}
           <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1 block">
+            <label className="text-xs font-semibold text-[rgb(var(--text-light))] mb-1 block">
               Assigned Driver
             </label>
             <select
@@ -536,15 +536,17 @@ const BusFormModal = ({
               onChange={(e) =>
                 setForm((p) => ({ ...p, driver: e.target.value }))
               }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
             >
-              <option value="">Select Driver</option>
+              <option value="" className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
+                Select Driver
+              </option>
 
               {drivers.length === 0 ? (
                 <option disabled>No drivers available</option>
               ) : (
                 availableDrivers.map((d) => (
-                  <option key={d._id} value={d._id}>
+                  <option key={d._id} value={d._id} className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
                     {d.name}
                   </option>
                 ))
@@ -554,7 +556,7 @@ const BusFormModal = ({
 
           {/* ROUTE */}
           <div>
-            <label className="text-xs font-semibold text-gray-500 mb-1 block">
+            <label className="text-xs font-semibold text-[rgb(var(--text-light))] mb-1 block">
               Assigned Route
             </label>
             <select
@@ -562,15 +564,17 @@ const BusFormModal = ({
               onChange={(e) =>
                 setForm((p) => ({ ...p, route: e.target.value }))
               }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
             >
-              <option value="">Select Route</option>
+              <option value="" className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
+                Select Route
+              </option>
 
               {routes.length === 0 ? (
                 <option disabled>No routes available</option>
               ) : (
                 availableRoutes.map((r) => (
-                  <option key={r._id} value={r._id}>
+                  <option key={r._id} value={r._id} className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
                     {r.name}
                   </option>
                 ))
@@ -579,7 +583,7 @@ const BusFormModal = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">
+            <label className="block text-xs font-semibold text-[rgb(var(--text-light))] mb-1">
               Next Service Date
             </label>
             <input
@@ -592,7 +596,7 @@ const BusFormModal = ({
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1">
+            <label className="block text-xs font-semibold text-[rgb(var(--text-light))] mb-1">
               Status
             </label>
             <select
@@ -600,7 +604,7 @@ const BusFormModal = ({
               onChange={(e) =>
                 setForm((p) => ({ ...p, status: e.target.value }))
               }
-              className="w-full border rounded-lg px-3 py-2 text-sm"
+              className="w-full border rounded-lg px-3 py-2 text-sm text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
             >
               <option value="Active">Active</option>
               <option value="Maintenance">Maintenance</option>
@@ -614,14 +618,14 @@ const BusFormModal = ({
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-medium"
+            className="px-4 py-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))]  rounded-lg transition text-sm font-medium"
           >
             Discard
           </button>
           <button
             onClick={onSubmit}
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
+            className="px-4 py-2 rounded-lg transition text-sm font-medium text-[rgb(var(--text))] bg-[rgb(var(--primary))]"
           >
             {loading ? "Saving..." : isEdit ? "Update Bus" : "Register Bus"}
           </button>
@@ -635,17 +639,17 @@ const BusFormModal = ({
 
 const DeleteModal = ({ bus, onCancel, onConfirm }) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-xl p-6 w-96 max-w-full mx-4">
+    <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-xl p-6 w-96 max-w-full mx-4">
       <div className="flex items-center gap-3 mb-4">
         <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
           <FaTrash className="text-red-600" />
         </div>
         <div>
           <h3 className="text-lg font-semibold">Delete Bus</h3>
-          <p className="text-sm text-gray-500">This action cannot be undone</p>
+          <p className="text-sm text-[rgb(var(--text-light))]">This action cannot be undone</p>
         </div>
       </div>
-      <p className="text-gray-600 mb-6 text-sm">
+      <p className="text-[rgb(var(--text))] mb-6 text-sm">
         Are you sure you want to delete{" "}
         <span className="font-semibold">{bus.busId}</span> ({bus.regNo})? It
         will be permanently removed from the fleet.
@@ -653,7 +657,7 @@ const DeleteModal = ({ bus, onCancel, onConfirm }) => (
       <div className="flex justify-end gap-3">
         <button
           onClick={onCancel}
-          className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm"
+          className="px-4 py-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-lg hover:bg-[rgb(var(--primary-light))] transition text-sm"
         >
           Cancel
         </button>

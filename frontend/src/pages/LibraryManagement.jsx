@@ -364,10 +364,10 @@ const LibraryManagement = () => {
   const minDueDate = new Date().toISOString().split("T")[0];
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-12">
+    <div className="min-h-screen text-[rgb(var(--text))] p-8">
       <ToastContainer />
 
-      <div className="border-b border-slate-200 bg-white">
+      <div className="border-b border-slate-200">
         {/* 🔙 BACK BUTTON */}
         {isMobile && (
           <div className="px-4 pt-4">
@@ -382,19 +382,19 @@ const LibraryManagement = () => {
             </button>
           </div>
         )}
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6">
+        <div className="mx-auto flex max-w-7xl items-center rounded-2xl justify-between px-4 py-6 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
           <div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900">
+            <h1 className="text-2xl font-black tracking-tight text-[rgb(var(--text))]">
               Library Management
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-[rgb(var(--text))]">
               Manage inventory, issue books to students, and process returns
               with school-ready workflows.
             </p>
           </div>
           <button
             onClick={openAddBookModal}
-            className="hidden rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-100 sm:block"
+            className="hidden rounded-xl bg-[rgb(var(--primary))] px-5 py-2.5 text-sm font-bold text-[rgb(var(--text))] shadow-lg sm:block"
           >
             Add Book
           </button>
@@ -408,9 +408,9 @@ const LibraryManagement = () => {
           ))}
         </div>
 
-        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+        <div className="mb-6 rounded-2xl border border-slate-200  p-3 shadow-sm">
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <div className="flex rounded-xl bg-slate-100 p-1">
+            <div className="flex rounded-xl  p-1">
               <TabButton
                 active={activeTab === "inventory"}
                 label="Inventory"
@@ -431,7 +431,7 @@ const LibraryManagement = () => {
             <input
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
-              className="flex-1 rounded-xl bg-slate-50 px-4 py-3 text-sm outline-none ring-0"
+              className="flex-1 rounded-xl bg-[rgb(var(--surface))] px-4 py-3 text-sm outline-none ring-0"
               placeholder={
                 activeTab === "inventory"
                   ? "Search by title, author, ISBN or category"
@@ -441,7 +441,7 @@ const LibraryManagement = () => {
 
             <button
               onClick={openAddBookModal}
-              className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white sm:hidden"
+              className="rounded-xl bg-[rgb(var(--primary))] px-4 py-3 text-sm font-bold text-[rgb(var(--text))] sm:hidden"
             >
               Add Book
             </button>
@@ -487,7 +487,7 @@ const LibraryManagement = () => {
           onClose={closeAllModals}
           title={isEditing ? "Edit Book" : "Add New Book"}
         >
-          <form onSubmit={handleSaveBook} className="space-y-4 p-5">
+          <form onSubmit={handleSaveBook} className="space-y-4 p-5 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
             <Input
               label="Book Title"
               value={bookForm.title}
@@ -530,7 +530,7 @@ const LibraryManagement = () => {
                 }
               />
             </div>
-            <button className="w-full rounded-2xl bg-blue-600 py-3 text-sm font-black text-white">
+            <button className="w-full rounded-2xl text-[rgb(var(--text))] bg-[rgb(var(--primary))] py-3 text-sm font-black">
               {isEditing ? "Update Book" : "Save Book"}
             </button>
           </form>
@@ -539,15 +539,15 @@ const LibraryManagement = () => {
 
       {showIssueModal && selectedBook && (
         <ModalWrapper onClose={closeAllModals} title="Issue Book">
-          <div className="space-y-4 p-5">
-            <div className="rounded-2xl bg-blue-50 p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-blue-600">
+          <div className="space-y-4 p-5 text-[rgb(var(--text))] bg-[rgb(var(--surface))] ">
+            <div className="rounded-2xl text-[rgb(var(--text))] bg-[rgb(var(--surface))] p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-[rgb(var(--primary))]">
                 {selectedBook.category}
               </p>
-              <h3 className="mt-1 text-lg font-black text-slate-900">
+              <h3 className="mt-1 text-lg font-black text-[rgb(var(--text))]">
                 {selectedBook.title}
               </h3>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-[rgb(var(--primary))]">
                 {selectedBook.author} | Available {selectedBook.availableCopies}
                 /{selectedBook.totalCopies}
               </p>
@@ -555,7 +555,7 @@ const LibraryManagement = () => {
 
             <form onSubmit={handleIssueBook} className="space-y-4">
               <div>
-                <label className="mb-1 ml-1 block text-[10px] font-black uppercase text-slate-400">
+                <label className="mb-1 ml-1 block text-[10px] font-black uppercase ">
                   Student
                 </label>
                 <select
@@ -566,7 +566,7 @@ const LibraryManagement = () => {
                       studentId: event.target.value,
                     }))
                   }
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm outline-none"
+                  className="w-full rounded-xl border border-[rgb(var(--primary))] bg-[rgb(var(--surface))] p-3.5 text-sm outline-none"
                   required
                 >
                   <option value="">Select student</option>
@@ -595,7 +595,7 @@ const LibraryManagement = () => {
                 }
               />
 
-              <button className="w-full rounded-2xl bg-slate-900 py-3 text-sm font-black text-white">
+              <button className="w-full rounded-2xl  text-[rgb(var(--text))] bg-[rgb(var(--primary))] py-3 text-sm font-black ">
                 Confirm Issue
               </button>
             </form>
@@ -605,15 +605,15 @@ const LibraryManagement = () => {
 
       {showDetailsModal && selectedBook && (
         <ModalWrapper onClose={closeAllModals} title="Book Details">
-          <div className="space-y-5 p-5">
+          <div className="space-y-5 p-5 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-blue-600">
+              <p className="text-xs font-bold uppercase tracking-wide">
                 {selectedBook.category}
               </p>
-              <h3 className="mt-1 text-xl font-black text-slate-900">
+              <h3 className="mt-1 text-xl font-black ">
                 {selectedBook.title}
               </h3>
-              <p className="text-sm italic text-slate-500">
+              <p className="text-sm italic">
                 by {selectedBook.author}
               </p>
             </div>
@@ -629,7 +629,7 @@ const LibraryManagement = () => {
             <div className="flex gap-3">
               <button
                 onClick={openEditBookModal}
-                className="flex-1 rounded-xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-700"
+                className="flex-1 rounded-xl px-4 py-3 text-sm font-bold text-[rgb(var(--text))] bg-[rgb(var(--primary))]"
               >
                 Edit
               </button>
@@ -671,7 +671,7 @@ const TabButton = ({ active, label, onClick }) => (
   <button
     onClick={onClick}
     className={`rounded-lg px-4 py-2 text-sm font-bold transition ${
-      active ? "bg-white text-blue-600 shadow-sm" : "text-slate-500"
+      active ? "text-[rgb(var(--text))] bg-[rgb(var(--primary))] shadow-sm" : "text-[rgb(var(--text))]"
     }`}
   >
     {label}
@@ -688,9 +688,9 @@ const StatCard = ({ title, value, tone }) => {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 text-[rgb(var(--text))] bg-[rgb(var(--surface))] p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-xs font-black uppercase tracking-widest text-slate-400">
+        <span className="text-xs font-black uppercase tracking-widest ">
           {title}
         </span>
         <span
@@ -699,31 +699,31 @@ const StatCard = ({ title, value, tone }) => {
           {title}
         </span>
       </div>
-      <p className="text-2xl font-black text-slate-900">{value}</p>
+      <p className="text-2xl font-black text-[rgb(var(--text))]">{value}</p>
     </div>
   );
 };
 
 const BookCard = ({ book, onIssue, onDetails }) => (
-  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+  <div className="rounded-2xl border border-slate-200 text-[rgb(var(--text))] bg-[rgb(var(--surface))] p-5 shadow-sm">
     <div className="mb-4 flex items-start justify-between gap-3">
       <div>
-        <p className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+        <p className="rounded-md  px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[rgb(var(--text))]">
           {book.category}
         </p>
-        <h3 className="mt-3 text-lg font-black text-slate-900">{book.title}</h3>
-        <p className="text-sm italic text-slate-500">by {book.author}</p>
+        <h3 className="mt-3 text-lg font-black text-[rgb(var(--text))]">{book.title}</h3>
+        <p className="text-sm italic text-[rgb(var(--primary))]">by {book.author}</p>
       </div>
       <StatusPill availableCopies={book.availableCopies} />
     </div>
 
-    <div className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
+    <div className="rounded-xl bg-[rgb(var(--surface))] p-3 text-sm text-[rgb(var(--text))]">
       <p>ISBN: {book.isbn}</p>
       <p>
         Copies:{" "}
-        <span className="font-bold text-slate-900">{book.availableCopies}</span>{" "}
+        <span className="font-bold text-[rgb(var(--text))]">{book.availableCopies}</span>{" "}
         available out of{" "}
-        <span className="font-bold text-slate-900">{book.totalCopies}</span>
+        <span className="font-bold text-[rgb(var(--text))]">{book.totalCopies}</span>
       </p>
     </div>
 
@@ -731,13 +731,13 @@ const BookCard = ({ book, onIssue, onDetails }) => (
       <button
         onClick={onIssue}
         disabled={book.availableCopies < 1}
-        className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
+        className="flex-1 rounded-xl bg-[rgb(var(--primary))]  px-4 py-2.5 text-sm font-bold text-[rgb(var(--text))] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
       >
         Issue
       </button>
       <button
         onClick={onDetails}
-        className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700"
+        className="rounded-xl text-[rgb(var(--text))] bg-[rgb(var(--primary))] px-4 py-2.5 text-sm font-bold "
       >
         Details
       </button>
@@ -767,24 +767,24 @@ const IssueTable = ({ records, mode, onReturn }) => {
         {records.map((record) => (
           <div
             key={record._id}
-            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+            className="rounded-2xl border border-slate-200 text-[rgb(var(--text))] bg-[rgb(var(--surface))] p-4 shadow-sm"
           >
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-blue-600">
+                <p className="text-xs font-bold uppercase tracking-wide text-[rgb(var(--primary))]">
                   {record.bookId?.category || "Library Book"}
                 </p>
-                <p className="mt-1 text-lg font-black text-slate-900">
+                <p className="mt-1 text-lg font-black text-[rgb(var(--text))]">
                   {record.bookId?.title}
                 </p>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-[rgb(var(--primary))]">
                   {record.bookId?.author} | {record.bookId?.isbn}
                 </p>
               </div>
               <StatusBadge status={record.status} />
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-slate-50 p-3">
+            <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-[rgb(var(--surface))] p-3">
               <MiniDetail
                 label="Student"
                 value={getStudentName(record.studentId)}
@@ -808,7 +808,7 @@ const IssueTable = ({ records, mode, onReturn }) => {
             </div>
 
             <div className="mt-3 flex items-center justify-between">
-              <p className="text-xs font-semibold text-slate-500">
+              <p className="text-xs font-semibold text-[rgb(var(--primary))]">
                 {record.studentId?.classId?.name || "Class N/A"}
                 {record.studentId?.sectionId?.name
                   ? ` - ${record.studentId.sectionId.name}`
@@ -825,12 +825,12 @@ const IssueTable = ({ records, mode, onReturn }) => {
               {isLoanDesk ? (
                 <button
                   onClick={() => onReturn(record)}
-                  className="w-full rounded-xl bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700"
+                  className="w-full rounded-xl text-[rgb(var(--text))] bg-[rgb(var(--primary))] px-4 py-2.5 text-sm font-bold "
                 >
                   Return
                 </button>
               ) : (
-                <div className="rounded-xl bg-slate-100 px-4 py-2.5 text-center text-sm font-bold text-slate-500">
+                <div className="rounded-xl bg-[rgb(var(--surface))] px-4 py-2.5 text-center text-sm font-bold text-[rgb(var(--primary))]">
                   Completed
                 </div>
               )}
@@ -839,11 +839,11 @@ const IssueTable = ({ records, mode, onReturn }) => {
         ))}
       </div>
 
-      <div className="hidden lg:block rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="hidden lg:block rounded-2xl border border-slate-200 text-[rgb(var(--text))] bg-[rgb(var(--surface))] shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           {/* HEADER */}
-          <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
-            <tr>
+          <thead className="text-xs uppercase tracking-wide">
+            <tr className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
               <th className="text-left px-6 py-4 font-bold">Borrower Name</th>
               <th className="text-left px-6 py-4 font-bold">Book</th>
               <th className="text-left px-6 py-4 font-bold">Issued</th>
@@ -862,14 +862,12 @@ const IssueTable = ({ records, mode, onReturn }) => {
               return (
                 <tr
                   key={record._id}
-                  className={`hover:bg-slate-50 transition ${
-                    index % 2 === 0 ? "bg-white" : "bg-slate-50/40"
-                  }`}
+                  
                 >
                   {/* BORROWER */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 flex items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
+                      <div className="h-9 w-9 flex items-center justify-center rounded-full text-[rgb(var(--text))] bg-[rgb(var(--primary))] text-xs font-bold">
                         {getStudentName(record.studentId)
                           .split(" ")
                           .map((n) => n[0])
@@ -878,10 +876,10 @@ const IssueTable = ({ records, mode, onReturn }) => {
                       </div>
 
                       <div>
-                        <p className="font-semibold text-slate-900">
+                        <p className="font-semibold ">
                           {getStudentName(record.studentId)}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs ">
                           class- {record.studentId?.classId?.name || ""}
                         </p>
                       </div>
@@ -890,23 +888,23 @@ const IssueTable = ({ records, mode, onReturn }) => {
 
                   {/* BOOK */}
                   <td className="px-6 py-4">
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-[rgb(var(--text))]">
                       {record.bookId?.title}
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-[rgb(var(--text))]">
                       {record.bookId?.author}
                     </p>
                   </td>
 
                   {/* ISSUED */}
-                  <td className="px-6 py-4 font-medium text-slate-700">
+                  <td className="px-6 py-4 font-medium text-[rgb(var(--text))]">
                     {formatDate(record.issueDate)}
                   </td>
 
                   {/* DUE / RETURN */}
                   <td
                     className={`px-6 py-4 font-medium ${
-                      isOverdue ? "text-red-600" : "text-slate-700"
+                      isOverdue ? "text-red-600" : "text-[rgb(var(--text))]"
                     }`}
                   >
                     {mode === "circulation"
@@ -926,12 +924,12 @@ const IssueTable = ({ records, mode, onReturn }) => {
                       {mode === "circulation" ? (
                         <button
                           onClick={() => onReturn(record)}
-                          className="rounded-lg bg-emerald-500 px-4 py-1.5 text-xs font-bold text-white hover:bg-emerald-600"
+                          className="rounded-lg px-4 py-1.5 text-xs font-bold text-[rgb(var(--text))] bg-[rgb(var(--primary))] "
                         >
                           Return
                         </button>
                       ) : (
-                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                        <span className="text-xs font-semibold text-[rgb(var(--bg))] bg-[rgb(var(--primary))] px-3 py-1 rounded-full">
                           Completed
                         </span>
                       )}
@@ -949,12 +947,12 @@ const IssueTable = ({ records, mode, onReturn }) => {
 
 const ModalWrapper = ({ children, onClose, title }) => (
   <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-    <div className="w-full max-w-xl rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
+    <div className="w-full max-w-xl rounded-t-3xl bg-[rgb(var(--primary))] text-[rgb(var(--text))] shadow-2xl sm:rounded-3xl">
       <div className="flex items-center justify-between border-b border-slate-200 p-4">
-        <h2 className="text-lg font-black text-slate-900">{title}</h2>
+        <h2 className="text-lg ">{title}</h2>
         <button
           onClick={onClose}
-          className="text-xl text-slate-300 transition hover:text-slate-600"
+          className="text-xl"
         >
           x
         </button>
@@ -972,19 +970,19 @@ const ConfirmDialog = ({
   confirmLabel,
 }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-    <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
-      <h3 className="text-lg font-black text-slate-900">{title}</h3>
-      <p className="mt-2 text-sm text-slate-500">{description}</p>
+    <div className="w-full max-w-sm rounded-3xl text-[rgb(var(--text))] bg-[rgb(var(--surface))] p-6 shadow-2xl">
+      <h3 className="text-lg font-black ">{title}</h3>
+      <p className="mt-2 text-sm ">{description}</p>
       <div className="mt-6 flex gap-3">
         <button
           onClick={onCancel}
-          className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-600"
+          className="flex-1 rounded-xl text-[rgb(var(--text))] bg-[rgb(var(--primary))] px-4 py-2.5 text-sm font-bold "
         >
           Cancel
         </button>
         <button
           onClick={onConfirm}
-          className="flex-1 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white"
+          className="flex-1 rounded-xl text-[rgb(var(--text))] bg-[rgb(var(--primary))] px-4 py-2.5 text-sm font-bold "
         >
           {confirmLabel}
         </button>
@@ -995,7 +993,7 @@ const ConfirmDialog = ({
 
 const Input = ({ label, type = "text", min, value, onChange }) => (
   <div>
-    <label className="mb-1 ml-1 block text-[10px] font-black uppercase text-slate-400">
+    <label className="mb-1 ml-1 block text-[10px] font-black uppercase text-[rgb(var(--text))]">
       {label}
     </label>
     <input
@@ -1003,7 +1001,7 @@ const Input = ({ label, type = "text", min, value, onChange }) => (
       min={min}
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm outline-none focus:border-blue-400 focus:bg-white"
+      className="w-full rounded-xl border border-[rgb(var(--primary))] bg-[rgb(var(--surface))] p-3.5 text-sm outline-none focus:border-blue-400 focus:bg-white"
       required
     />
   </div>
@@ -1011,13 +1009,13 @@ const Input = ({ label, type = "text", min, value, onChange }) => (
 
 const Select = ({ label, value, options, onChange }) => (
   <div>
-    <label className="mb-1 ml-1 block text-[10px] font-black uppercase text-slate-400">
+    <label className="mb-1 ml-1 block text-[10px] font-black uppercase ">
       {label}
     </label>
     <select
       value={value}
       onChange={(event) => onChange(event.target.value)}
-      className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-sm outline-none focus:border-blue-400"
+      className="w-full rounded-xl border border-[rgb(var(--primary))] bg-[rgb(var(--surface))] p-3.5 text-sm outline-none focus:border-blue-400"
       required
     >
       <option value="">Select category</option>
@@ -1031,23 +1029,23 @@ const Select = ({ label, value, options, onChange }) => (
 );
 
 const DetailBox = ({ label, value }) => (
-  <div className="rounded-xl bg-slate-50 p-3">
-    <p className="text-[10px] font-black uppercase text-slate-400">{label}</p>
-    <p className="mt-1 font-bold text-slate-800">{value}</p>
+  <div className="rounded-xl text-[rgb(var(--text))] bg-[rgb(var(--surface))] border p-3">
+    <p className="text-[10px] font-black uppercase">{label}</p>
+    <p className="mt-1 font-bold">{value}</p>
   </div>
 );
 
 const MiniDetail = ({ label, value }) => (
-  <div>
-    <p className="text-[10px] font-black uppercase text-slate-400">{label}</p>
-    <p className="mt-1 text-sm font-bold text-slate-800">{value}</p>
+  <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
+    <p className="text-[10px] font-black uppercase ">{label}</p>
+    <p className="mt-1 text-sm font-bold ">{value}</p>
   </div>
 );
 
 const EmptyState = ({ title, description }) => (
-  <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-    <h3 className="text-lg font-black text-slate-900">{title}</h3>
-    <p className="mt-2 text-sm text-slate-500">{description}</p>
+  <div className="rounded-2xl border border-dashed border-slate-300 text-[rgb(var(--text))] bg-[rgb(var(--surface))] p-10 text-center">
+    <h3 className="text-lg font-black ">{title}</h3>
+    <p className="mt-2 text-sm ">{description}</p>
   </div>
 );
 

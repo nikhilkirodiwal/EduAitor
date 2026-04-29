@@ -188,7 +188,7 @@ export default function PrincipalResultView() {
 
   /* ══════════════════════════════════════════════════════ */
   return (
-    <div className="p-4 md:p-8 bg-slate-50 min-h-screen font-sans text-slate-900">
+    <div className="p-4 md:p-8  min-h-screen font-sans text-[rgb(var(--text))]">
 
       {/* Back button (mobile) */}
       {isMobile && (
@@ -206,10 +206,10 @@ export default function PrincipalResultView() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between
                       items-start md:items-center gap-3 mb-8">
         <div>
-          <h1 className="text-2xl md:text-4xl font-black text-indigo-950">
+          <h1 className="text-2xl md:text-4xl font-black ">
             Result Sheet
           </h1>
-          <p className="text-slate-500 text-sm mt-0.5">
+          <p className=" text-sm mt-0.5">
             View class-wise results by term and section
           </p>
         </div>

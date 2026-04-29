@@ -66,7 +66,7 @@ function DiaryParent() {
     });
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4">
+    <div className="min-h-screen p-8 text-[rgb(var(--text))]">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
         <div className="px-4 pt-4">
@@ -81,12 +81,12 @@ function DiaryParent() {
           </button>
         </div>
       )}
-      <h1 className="text-lg font-semibold mb-4 text-slate-700">
+      <h1 className="text-lg font-semibold mb-4 text-[rgb(var(--text))]">
         📘 Student Diary
       </h1>
 
       {sortedDates.length === 0 ? (
-        <div className="text-center text-slate-400 mt-20">
+        <div className="text-center text-[rgb(var(--text))] mt-20">
           No diary entries yet
         </div>
       ) : (
@@ -95,7 +95,7 @@ function DiaryParent() {
             <div key={dateKey}>
               {/* Date Header */}
               <div className="flex items-center gap-2 mb-2">
-                <h2 className="text-xs font-semibold text-slate-500 uppercase">
+                <h2 className="text-xs font-semibold text-[rgb(var(--text))] uppercase">
                   {fmtDay(dateKey)}
                 </h2>
                 <div className="flex-1 h-px bg-slate-200" />
@@ -109,7 +109,7 @@ function DiaryParent() {
                   return (
                     <div
                       key={entry._id}
-                      className={`bg-white p-4 rounded-xl border border-slate-200 border-l-4 ${ts.border}`}
+                      className={`bg-[rgb(var(--surface))] p-4 rounded-xl border border-slate-200 border-l-4 ${ts.border}`}
                     >
                       {/* Top Row */}
                       <div className="flex justify-between items-center mb-2">
@@ -119,7 +119,7 @@ function DiaryParent() {
                           {entry.type}
                         </span>
 
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-[rgb(var(--text))]">
                           {fmtDate(entry.date)}
                         </span>
                       </div>
@@ -127,20 +127,20 @@ function DiaryParent() {
                       <div className="flex gap-2">
                         {/* Class */}
                         {entry.classId?.name && (
-                          <p className="text-xs text-slate-500 mb-1">
+                          <p className="text-xs text-[rgb(var(--text))] mb-1">
                             Class - {entry.classId.name}
                           </p>
                         )}
 
                         {/* Subject */}
                         {entry.subjectId?.name && (
-                          <p className="text-xs text-slate-500 mb-1">
+                          <p className="text-xs text-[rgb(var(--text))] mb-1">
                             {entry.subjectId.name}
                           </p>
                         )}
                       </div>
                       {/* Content */}
-                      <p className="text-sm text-slate-700">{entry.content}</p>
+                      <p className="text-sm text-[rgb(var(--text))]">{entry.content}</p>
 
                       {/* Due Date */}
                       {entry.type === "homework" && entry.dueDate && (
@@ -151,7 +151,7 @@ function DiaryParent() {
 
                       {/* Teacher */}
                       {entry.teacherId?.fullName && (
-                        <p className="text-xs text-slate-400 mt-2">
+                        <p className="text-xs text-[rgb(var(--text))] mt-2">
                           👨‍🏫 {entry.teacherId?.fullName}
                         </p>
                       )}

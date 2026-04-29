@@ -75,11 +75,11 @@ const StatusPill = ({ status, type = "route" }) => {
 /* ─── InfoCell ─── */
 const InfoCell = ({ label, value, mono = false }) => (
   <div className="flex flex-col gap-0.5">
-    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+    <span className="text-[10px] font-bold uppercase tracking-widest text-[rgb(var(--text))]">
       {label}
     </span>
     <span
-      className={`text-sm font-semibold text-slate-700 ${mono ? "font-mono" : ""}`}
+      className={`text-sm font-semibold text-[rgb(var(--text))] ${mono ? "font-mono" : ""}`}
     >
       {fmt(value)}
     </span>
@@ -89,7 +89,7 @@ const InfoCell = ({ label, value, mono = false }) => (
 /* ─── Card ─── */
 const Card = ({ children, className = "" }) => (
   <div
-    className={`bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden ${className}`}
+    className={`bg-[rgb(var(--surface))] rounded-2xl border border-slate-100 shadow-sm overflow-hidden ${className}`}
   >
     {children}
   </div>
@@ -101,7 +101,7 @@ const CardHeader = ({ icon, title, accent }) => (
     style={{ borderLeft: `3px solid ${accent}` }}
   >
     <span className="text-base">{icon}</span>
-    <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+    <h3 className="text-[11px] font-bold uppercase tracking-widest text-[rgb(var(--text))]">
       {title}
     </h3>
   </div>
@@ -187,10 +187,10 @@ const NoTransport = () => (
       </div>
       <div className="absolute inset-0 rounded-3xl border-2 border-dashed border-slate-200 scale-110 opacity-40 pointer-events-none" />
     </div>
-    <h2 className="text-lg font-bold text-slate-700 mb-2">
+    <h2 className="text-lg font-bold text-[rgb(var(--text))] mb-2">
       No transport assigned
     </h2>
-    <p className="text-sm text-slate-400 leading-relaxed max-w-xs">
+    <p className="text-sm text-[rgb(var(--text))] leading-relaxed max-w-xs">
       Your child hasn't been assigned to a transport route yet. Contact school
       admin if this seems incorrect.
     </p>
@@ -241,13 +241,13 @@ const ParentTransport = () => {
   const visible = showAllStops ? stops : stops.slice(0, PREVIEW);
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
+    <div className="min-h-screen p-8">
       {/* ───── HERO ───── */}
-      <div className="bg-white border-b border-slate-100">
+      <div className="bg-[rgb(var(--surface))] rounded-2xl border-b border-slate-100">
         <div className=" mx-auto px-4 pt-5 pb-4">
           {/* Route identity */}
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+            <div className="w-14 h-14 rounded-2xl  border border-indigo-100 flex items-center justify-center shrink-0">
               <svg
                 width="26"
                 height="26"
@@ -267,12 +267,12 @@ const ParentTransport = () => {
 
             <div className="flex-1 min-w-0 pt-0.5">
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h1 className="text-xl font-bold text-slate-800 leading-tight">
+                <h1 className="text-xl font-bold text-[rgb(var(--text))] leading-tight">
                   {route.name}
                 </h1>
                 <StatusPill status={route.status} type="route" />
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 ">
                 {route.routeId && (
                   <span className="text-[11px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
                     {route.routeId}
@@ -369,20 +369,20 @@ const ParentTransport = () => {
             ].map((s, i) => (
               <div
                 key={i}
-                className={`rounded-2xl border p-2.5 flex flex-col items-center text-center gap-1 ${s.color}`}
+                className={`rounded-2xl border p-2.5 flex flex-col items-center text-center gap-1 `}
               >
-                <div className="w-7 h-7 rounded-lg bg-white border border-white/80 flex items-center justify-center">
+                <div className="w-7 h-7 rounded-lg  border border-white/80 flex items-center justify-center">
                   {s.svg}
                 </div>
-                <p className="text-base font-bold text-slate-700 leading-none mt-0.5">
+                <p className="text-base font-bold  leading-none mt-0.5">
                   {s.value}
                 </p>
                 {s.sub && (
-                  <p className="text-xs text-slate-500 leading-tight">
+                  <p className="text-xs  leading-tight">
                     {s.sub}
                   </p>
                 )}
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mt-0.5">
+                <p className="text-xs font-bold uppercase tracking-widest  mt-0.5">
                   {s.label}
                 </p>
               </div>
@@ -392,14 +392,14 @@ const ParentTransport = () => {
       </div>
 
       {/* ───── CARDS ───── */}
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-5">
+      <div className="max-w-6xl mx-auto px-4 py-6 space-y-5 ">
         {/* ── BUS CARD ── */}
         <Card>
           <CardHeader icon="🚌" title="Bus details" accent="#6366f1" />
           {bus ? (
-            <div className="px-5 py-4 space-y-4">
+            <div className="px-5 py-4 space-y-4 bg-[rgb(var(--surface))]">
               <div className="flex items-center justify-between gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-2xl  border border-indigo-100 flex items-center justify-center shrink-0">
                   <svg
                     width="22"
                     height="22"
@@ -417,10 +417,10 @@ const ParentTransport = () => {
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-base font-bold text-slate-800">
+                  <p className="text-base font-bold text-[rgb(var(--text))]">
                     {fmt(bus.busId)}
                   </p>
-                  <p className="text-xs text-slate-400 font-mono">
+                  <p className="text-xs  font-mono">
                     {fmt(bus.regNo)}
                   </p>
                 </div>
@@ -458,7 +458,7 @@ const ParentTransport = () => {
               )}
             </div>
           ) : (
-            <p className="px-5 py-4 text-sm text-slate-400 italic">
+            <p className="px-5 py-4 text-sm text-[rgb(var(--text))] italic">
               No bus assigned to this route.
             </p>
           )}
@@ -484,11 +484,11 @@ const ParentTransport = () => {
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-base font-bold text-slate-800">
+                  <p className="text-base font-bold text-[rgb(var(--text))]">
                     {fmt(driver.name)}
                   </p>
                   {driver.experience && (
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-[rgb(var(--text))]">
                       {driver.experience} experience
                     </p>
                   )}
@@ -515,8 +515,8 @@ const ParentTransport = () => {
                 <a
                   href={`tel:${driver.phone}`}
                   className="mt-2 flex items-center justify-center gap-2.5 w-full py-3 rounded-xl
-                    bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-sm
-                    hover:bg-emerald-100 active:scale-[.98] transition-all"
+                    bg-[rgb(var(--primary))] border border-emerald-200 text-[rgb(var(--text))] font-bold text-sm
+                     active:scale-[.98] transition-all"
                 >
                   <svg
                     width="15"
@@ -549,7 +549,7 @@ const ParentTransport = () => {
               )}
             </div>
           ) : (
-            <p className="px-5 py-4 text-sm text-slate-400 italic">
+            <p className="px-5 py-4 text-sm text-[rgb(var(--text))] italic">
               No driver assigned to this route.
             </p>
           )}
@@ -562,20 +562,20 @@ const ParentTransport = () => {
           {/* Timing banner */}
           {route.startTime && route.endTime && (
             <div className="mx-5 mt-4 flex overflow-hidden rounded-xl border border-slate-100">
-              <div className="flex-1 bg-indigo-50 px-4 py-3 text-center">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-400">
+              <div className="flex-1 bg-[rgb(var(--surface))] px-4 py-3 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-widest ">
                   Departure
                 </p>
-                <p className="text-lg font-bold text-indigo-700 mt-0.5">
+                <p className="text-lg font-bold text-[rgb(var(--primary))] mt-0.5">
                   {route.startTime}
                 </p>
               </div>
-              <div className="w-px bg-slate-200" />
-              <div className="flex-1 bg-emerald-50 px-4 py-3 text-center">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+              <div className="w-px " />
+              <div className="flex-1 bg-[rgb(var(--surface))] px-4 py-3 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-widest ">
                   Back School
                 </p>
-                <p className="text-lg font-bold text-emerald-700 mt-0.5">
+                <p className="text-lg font-bold text-[rgb(var(--primary))] mt-0.5">
                   {route.endTime}
                 </p>
               </div>
@@ -601,19 +601,19 @@ const ParentTransport = () => {
                     >
                       <span
                         className={`absolute -left-7 top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm z-10 shrink-0
-                          ${isFirst ? "bg-indigo-500" : isLast ? "bg-emerald-500" : "bg-slate-300"}`}
+                          ${isFirst ? "bg-[rgb(var(--primary))]" : isLast ? "bg-[rgb(var(--primary))]" : "bg-slate-300"}`}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-700 leading-snug">
+                        <p className="text-sm font-semibold text-[rgb(var(--text))] leading-snug">
                           {stop}
                         </p>
                         {isFirst && (
-                          <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wide">
+                          <span className="text-[10px] font-bold uppercase tracking-wide">
                             Start
                           </span>
                         )}
                         {isLast && stops.length > 1 && (
-                          <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wide">
+                          <span className="text-[10px] font-bold text-[rgb(var(--primary))] uppercase tracking-wide">
                             End
                           </span>
                         )}
@@ -629,8 +629,8 @@ const ParentTransport = () => {
               {hasMore && (
                 <button
                   onClick={() => setShowAllStops((v) => !v)}
-                  className="mt-4 w-full py-2.5 rounded-xl bg-slate-50 border border-slate-100
-                    text-xs font-bold text-slate-500 hover:bg-slate-100 transition-colors
+                  className="mt-4 w-full py-2.5 rounded-xl  border border-slate-100
+                    text-xs font-bold
                     flex items-center justify-center gap-1.5 active:scale-[.98]"
                 >
                   {showAllStops ? (
@@ -666,7 +666,7 @@ const ParentTransport = () => {
               )}
             </div>
           ) : (
-            <p className="px-5 py-4 text-sm text-slate-400 italic">
+            <p className="px-5 py-4 text-sm text-[rgb(var(--text))] italic">
               No stops listed for this route.
             </p>
           )}

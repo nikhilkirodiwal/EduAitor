@@ -273,15 +273,15 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen px-2 sm:px-4 py-4">
+    <div className="min-h-screen p-4 sm:p-8 bg-[rgb(var(--bg))] text-[rgb(var(--text))] ">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
         <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+                  shadow-sm border border-slate-100
+                 text-sm font-bold  active:scale-95 transition-transform mb-2.5"
           >
             <FaArrowLeft size={16} />
             Back
@@ -291,10 +291,10 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
       {/* Page Header */}
       <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-bold  tracking-tight">
             Academic Calendar
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm  mt-0.5">
             Holidays, Exams, Events &amp; Meetings
           </p>
         </div>
@@ -302,7 +302,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
           <button
             onClick={loadAll}
             title="Refresh"
-            className={`p-2.5 rounded-xl border border-gray-200 bg-white text-gray-500 hover:shadow-sm transition ${loading ? "animate-spin" : ""}`}
+            className={`p-2.5 rounded-xl border border-gray-200  hover:shadow-sm transition ${loading ? "animate-spin" : ""}`}
           >
             <FiRefreshCw size={15} />
           </button>
@@ -312,7 +312,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
               setPrefilledDate(null);
               setShowModal(true);
             }}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition shadow-sm"
+            className="flex items-center gap-2 text-[rgb(var(--text))] bg-[rgb(var(--surface))] text-sm font-semibold px-4 py-2.5 rounded-xl transition shadow-sm"
           >
             <FiPlus size={15} /> Add Event
           </button>
@@ -321,29 +321,29 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
 
       <div className="flex flex-col lg:flex-row gap-5 items-start">
         {/* ── Calendar panel ── */}
-        <div className="w-full lg:flex-1 min-w-0 order-1 lg:order-2">
+        <div className="w-full lg:flex-1 min-w-0 order-1 lg:order-2 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
           {/* Controls */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4 mb-4">
+          <div className=" rounded-2xl shadow-sm border border-gray-100 px-5 py-4 mb-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 md:gap-10">
               <div className="flex items-center justify-between sm:justify-start gap-1.5 w-full sm:w-auto">
                 <button
                   onClick={() => changeMonth("prev")}
-                  className="p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition"
+                  className="p-2 rounded-xl  transition"
                 >
                   <FiChevronLeft size={18} />
                 </button>
-                <h2 className="text-sm sm:text-lg font-bold text-gray-900 text-center flex-1 sm:flex-none">
+                <h2 className="text-sm sm:text-lg font-bold  text-center flex-1 sm:flex-none">
                   {MONTHS[month]} {year}
                 </h2>
                 <button
                   onClick={() => changeMonth("next")}
-                  className="p-2 rounded-xl hover:bg-gray-100 text-gray-600 transition"
+                  className="p-2 rounded-xl  transition"
                 >
                   <FiChevronRight size={18} />
                 </button>
                 <button
                   onClick={goToday}
-                  className="text-xs font-semibold px-2 py-1 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition"
+                  className="text-xs font-semibold px-2 py-1 rounded-lg bg-[rgb(var(--primary))]  transition"
                 >
                   Today
                 </button>
@@ -356,7 +356,9 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
                     setMonth(Number(e.target.value));
                     setPopoverDay(null);
                   }}
-                  className="flex-1 sm:flex-none text-xs sm:text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  className="flex-1 sm:flex-none text-xs sm:text-sm border border-gray-200 rounded-lg 
+                    text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+                  px-2 py-1.5  focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 >
                   {MONTHS.map((m, i) => (
                     <option key={i} value={i}>
@@ -370,7 +372,9 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
                     setYear(Number(e.target.value));
                     setPopoverDay(null);
                   }}
-                  className="flex-1 sm:flex-none text-xs sm:text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                  className="flex-1 sm:flex-none text-xs sm:text-sm border 
+                  text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+                  border-gray-200 rounded-lg px-2 py-1.5  focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 >
                   {Array.from({ length: 10 }, (_, i) => year - 4 + i).map(
                     (y) => (
@@ -388,7 +392,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
                 className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition ${
                   activeFilter === "All"
                     ? "bg-gray-800 text-white border-gray-800"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"
+                    : " text-gray-600 border-gray-200 hover:border-gray-300"
                 }`}
               >
                 All ({allEvents.length})
@@ -421,12 +425,12 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
           </div>
 
           {/* Grid */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-visible">
+          <div className=" rounded-2xl shadow-sm border border-gray-100 overflow-visible">
             <div className="grid grid-cols-7 border-b border-gray-100">
               {DAYS.map((d) => (
                 <div
                   key={d}
-                  className="py-2 sm:py-3 text-center text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider"
+                  className="py-2 sm:py-3 text-center text-[10px] sm:text-xs font-bold  uppercase tracking-wider"
                 >
                   {d}
                 </div>
@@ -437,7 +441,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
               {Array.from({ length: firstDay }).map((_, i) => (
                 <div
                   key={`e-${i}`}
-                  className="h-20 sm:h-24 md:h-28 lg:h-32 border-b border-r border-gray-50 bg-gray-50/30"
+                  className="h-20 sm:h-24 md:h-28 lg:h-32 border-b border-r border-gray-50 "
                 />
               ))}
 
@@ -454,8 +458,8 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
                   <div
                     key={day}
                     className={`relative h-20 sm:h-24 md:h-28 lg:h-32 border-b border-r border-gray-100 p-1.5 cursor-pointer transition-colors group
-                      ${isToday ? "bg-indigo-50/60" : isWeekend ? "bg-gray-50/50" : "hover:bg-slate-50"}
-                      ${isPopoverOpen ? "ring-2 ring-inset ring-indigo-400" : ""}
+                      ${isToday ? "bg-[rgb(var(--primary))]" : isWeekend ? "bg-[rgb(var(--bg))]" : ""}
+                      ${isPopoverOpen ? "ring-2 ring-inset ring-bg[rgb(var(--surface))]" : ""}
                     `}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -465,7 +469,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
                   >
                     <div
                       className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-semibold mb-1 transition
-                      ${isToday ? "bg-indigo-600 text-white shadow-sm" : "text-gray-700 group-hover:bg-gray-200"}`}
+                      ${isToday ? "bg-[rgb(var(--surface))] text-[rgb(var(--text))] shadow-sm" : ""}`}
                     >
                       {day}
                     </div>
@@ -549,8 +553,8 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
 
         {/* ── Sidebar ── */}
         <div className="w-full lg:w-72 shrink-0 space-y-4 order-1 lg:order-2">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-2xl shadow-sm border border-gray-100 p-4">
+            <h3 className="text-xs font-bold  uppercase tracking-wide mb-3">
               Summary Events
             </h3>
             <div className="grid grid-cols-2 gap-2">
@@ -593,16 +597,16 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-2xl shadow-sm border border-gray-100 p-4">
+            <h3 className="text-xs font-bold  uppercase tracking-wide mb-3">
               Upcoming
             </h3>
             {loading ? (
-              <div className="py-4 text-center text-xs text-gray-400">
+              <div className="py-4 text-center text-xs ">
                 Loading…
               </div>
             ) : upcoming.length === 0 ? (
-              <div className="py-4 text-center text-xs text-gray-400">
+              <div className="py-4 text-center text-xs ">
                 No upcoming events
               </div>
             ) : (
@@ -613,21 +617,21 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
                   return (
                     <div
                       key={ev._id}
-                      className="flex gap-2.5 items-start p-2 rounded-xl hover:bg-gray-50 transition"
+                      className="flex gap-2.5 items-start p-2 rounded-xl  transition"
                     >
                       <div
                         className={`w-1 shrink-0 rounded-full self-stretch ${cfg.dot}`}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-gray-800 truncate">
+                        <p className="text-xs font-semibold  truncate">
                           {ev.title}
                         </p>
                         <div className="flex items-center gap-1 mt-0.5">
                           <FiCalendar
                             size={9}
-                            className="text-gray-400 shrink-0"
+                            className=" shrink-0"
                           />
-                          <span className="text-[10px] text-gray-400">
+                          <span className="text-[10px] ">
                             {formatDisplayDate(ev.startDate)}
                           </span>
                         </div>
@@ -636,7 +640,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
                           <StatusPill status={status} />
                         </div>
                         {ev.location && (
-                          <p className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+                          <p className="text-[10px]  mt-0.5 flex items-center gap-1">
                             <FiMapPin size={9} /> {ev.location}
                           </p>
                         )}
@@ -654,7 +658,7 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
               setPrefilledDate(null);
               setShowModal(true);
             }}
-            className="w-full py-3 rounded-2xl border-2 border-dashed border-indigo-200 text-indigo-500 hover:border-indigo-400 hover:bg-indigo-50 text-sm font-semibold flex items-center justify-center gap-2 transition"
+            className="w-full py-3 rounded-2xl border-2 border-dashed border-indigo-200  text-[rgb(var(--text))] bg-[rgb(var(--surface))] text-sm font-semibold flex items-center justify-center gap-2 transition"
           >
             <FiPlus size={15} /> Add Calendar Event
           </button>
@@ -678,28 +682,28 @@ export default function Calendar({ schoolId /* academicYearId */ }) {
 
       {deleteId && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-            <div className="h-1.5 bg-red-500 w-full" />
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+            <div className="h-1.5 bg-[rgb(var(--primary))] w-full" />
             <div className="p-6 text-center">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiTrash2 size={22} className="text-red-500" />
               </div>
-              <h3 className="text-base font-bold text-gray-800 mb-1">
+              <h3 className="text-base font-bold  mb-1">
                 Delete Event?
               </h3>
-              <p className="text-sm text-gray-400 mb-6">
+              <p className="text-sm mb-6">
                 This action cannot be undone.
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setDeleteId(null)}
-                  className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
+                  className="flex-1 py-2.5 text-sm font-medium bg-[rgb(var(--primary))] rounded-xl transition"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-red-500 hover:bg-red-600 rounded-xl transition"
+                  className="flex-1 py-2.5 text-sm font-semibold text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-xl transition"
                 >
                   Delete
                 </button>
@@ -746,15 +750,15 @@ function StatusPill({ status }) {
 
 function FormField({ label, required, hint, children }) {
   return (
-    <div>
+    <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
       <div className="flex items-center justify-between mb-1.5">
-        <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+        <label className="text-xs font-semibold  uppercase tracking-wide">
           {label}{" "}
           {required && (
             <span className="text-red-400 normal-case font-normal">*</span>
           )}
         </label>
-        {hint && <span className="text-[10px] text-gray-400">{hint}</span>}
+        {hint && <span className="text-[10px]">{hint}</span>}
       </div>
       {children}
     </div>
@@ -846,7 +850,7 @@ function EventModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+      <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
         {/* Accent bar — reflects selected type color */}
         <div className={`h-1.5 w-full transition-colors duration-300`} />
 
@@ -859,17 +863,17 @@ function EventModal({
               <FiCalendar size={16} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-gray-900 leading-tight">
+              <h2 className="text-base font-bold text-[rgb(var(--text))] leading-tight">
                 {editData ? "Edit Calendar Event" : "New Calendar Event"}
               </h2>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs  mt-0.5">
                 Academic Year Calendar
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition"
+            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[rgb(var(--primary))] transition"
           >
             <FiX size={18} />
           </button>
@@ -892,7 +896,7 @@ function EventModal({
               value={form.title}
               onChange={handle}
               placeholder="e.g., Republic Day, Mid-Term Exams, Staff Meeting…"
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 placeholder-gray-400
+              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-[rgb(var(--text))] placeholder-gray-400
                          focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 transition"
             />
           </FormField>
@@ -951,10 +955,10 @@ function EventModal({
           </div>
 
           {/* All Day toggle */}
-          <div className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+          <div className="flex items-center justify-between text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-xl px-4 py-3">
             <div>
-              <p className="text-sm font-medium text-gray-700">All Day Event</p>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-sm font-medium ">All Day Event</p>
+              <p className="text-xs  mt-0.5">
                 No specific time slot
               </p>
             </div>
@@ -994,7 +998,7 @@ function EventModal({
             <div className="relative">
               <FiFileText
                 size={14}
-                className="absolute left-3.5 top-3 text-gray-400 pointer-events-none"
+                className="absolute left-3.5 top-3 text-[rgb(var(--text))] pointer-events-none"
               />
               <textarea
                 name="description"
@@ -1028,17 +1032,17 @@ function EventModal({
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/60">
+        <div className="flex gap-3 px-6 py-4 border-t border-gray-100 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 rounded-xl transition"
+            className="flex-1 py-2.5 text-sm font-medium  rounded-xl transition border cursor-pointer text-[rgb(var(--text))] bg-[rgb(var(--primary))]"
           >
             Cancel
           </button>
           <button
             onClick={submit}
             disabled={saving}
-            className={`flex-1 py-2.5 text-sm font-semibold text-white rounded-xl transition disabled:opacity-60 hover:opacity-90 ${typeCfg.bg}`}
+            className={`flex-1 py-2.5 text-sm font-semibold text-[rgb(var(--text))] bg-[rgb(var(--primary))] border rounded-xl transition disabled:opacity-60 hover:opacity-90 `}
           >
             {saving ? "Saving…" : editData ? "Update Event" : "Add to Calendar"}
           </button>
@@ -1077,18 +1081,18 @@ function DayPopover({
   return (
     <div
       ref={ref}
-      className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-2 w-[92vw] max-w-sm sm:w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+      className="absolute z-50 top-full left-1/2 -translate-x-1/2 mt-2 w-[92vw] max-w-sm sm:w-72 text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
     >
-      <div className="bg-linear-to-r from-indigo-600 to-indigo-500 px-4 py-3 flex items-center justify-between">
+      <div className="bg-linear-to-r text-[rgb(var(--text))] bg-[rgb(var(--primary))] px-4 py-3 flex items-center justify-between">
         <div>
-          <p className="text-white font-bold text-sm">
+          <p className=" font-bold text-sm">
             {date.toLocaleDateString("en-IN", {
               weekday: "long",
               day: "numeric",
               month: "long",
             })}
           </p>
-          <p className="text-indigo-200 text-xs mt-0.5">
+          <p className=" text-xs mt-0.5">
             {events.length} event{events.length !== 1 ? "s" : ""}
           </p>
         </div>
@@ -1096,13 +1100,13 @@ function DayPopover({
           <button
             onClick={onAdd}
             title="Add event on this day"
-            className="w-7 h-7 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center text-white transition"
+            className="w-7 h-7 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center  transition"
           >
             <FiPlus size={14} />
           </button>
           <button
             onClick={onClose}
-            className="w-7 h-7 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center text-white transition"
+            className="w-7 h-7 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center  transition"
           >
             <FiX size={14} />
           </button>
@@ -1112,17 +1116,17 @@ function DayPopover({
       <div className="max-h-64 overflow-y-auto">
         {events.length === 0 ? (
           <div className="px-4 py-8 text-center">
-            <FiCalendar size={22} className="text-gray-200 mx-auto mb-2" />
-            <p className="text-xs text-gray-400">No events scheduled</p>
+            <FiCalendar size={22} className=" mx-auto mb-2" />
+            <p className="text-xs ">No events scheduled</p>
             <button
               onClick={onAdd}
-              className="mt-2 text-xs text-indigo-500 hover:underline font-medium"
+              className="mt-2 text-xs text-[rgb(var(--primary))] hover:underline font-medium"
             >
               + Add one
             </button>
           </div>
         ) : (
-          <div className="p-2 space-y-1">
+          <div className="p-2 space-y-1 bg-[rgb(var(--surface))] text-[rgb(var(--text))] ">
             {events.map((ev) => {
               const cfg = TYPE_CONFIG[ev.type] || TYPE_CONFIG["Event"];
               const status = getStatus(ev);
@@ -1130,13 +1134,13 @@ function DayPopover({
               return (
                 <div
                   key={ev._id}
-                  className="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-gray-50 transition group"
+                  className="flex items-start gap-2.5 p-2.5 rounded-xl  transition group"
                 >
                   <div
                     className={`w-2.5 h-2.5 rounded-full mt-1 shrink-0 ${cfg.dot}`}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-800 truncate">
+                    <p className="text-xs font-semibold  truncate">
                       {ev.title}
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
@@ -1144,12 +1148,12 @@ function DayPopover({
                       <StatusPill status={status} />
                     </div>
                     {ev.location && (
-                      <p className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1">
+                      <p className="text-[10px] mt-0.5 flex items-center gap-1">
                         <FiMapPin size={9} /> {ev.location}
                       </p>
                     )}
                     {isReadOnly && (
-                      <p className="text-[10px] text-indigo-400 font-medium mt-0.5">
+                      <p className="text-[10px] text-[rgb(var(--primary))] font-medium mt-0.5">
                         via Events module
                       </p>
                     )}

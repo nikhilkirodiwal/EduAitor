@@ -142,7 +142,7 @@ export default function TeacherCalendar({ schoolId }) {
   const firstDay = new Date(year, month, 1).getDay();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-2 sm:p-4 md:p-6 lg:p-8">
+    <div className="min-h-screen  p-2 sm:p-4 md:p-6 lg:p-8">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
         <div className="pt-4">
@@ -160,16 +160,16 @@ export default function TeacherCalendar({ schoolId }) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-xl md:text-2xl font-bold text-[rgb(var(--text))] tracking-tight">
             Academic Calendar
           </h1>
-          <p className="text-sm text-gray-500">Teacher View • Read Only</p>
+          <p className="text-sm text-[rgb(var(--text))]">Teacher View • Read Only</p>
         </div>
         <button
           onClick={loadAll}
-          className={`p-2.5 rounded-xl border bg-white shadow-sm hover:bg-gray-50 ${loading ? "animate-spin" : ""}`}
+          className={`p-2.5 rounded-xl border bg-[rgb(var(--surface))] shadow-sm hover:bg-gray-50 ${loading ? "animate-spin" : ""}`}
         >
-          <FiRefreshCw size={18} className="text-gray-500" />
+          <FiRefreshCw size={18} className="text-[rgb(var(--text))]" />
         </button>
       </div>
 
@@ -177,21 +177,21 @@ export default function TeacherCalendar({ schoolId }) {
         {/* Main Content */}
         <div className="flex-1 order-2 lg:order-1">
           {/* Controls & Filters */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
+          <div className="bg-[rgb(var(--surface))] rounded-2xl shadow-sm border border-gray-100 p-4 mb-4">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setMonth((m) => (m === 0 ? 11 : m - 1))}
-                  className="p-2 rounded-xl hover:bg-gray-100"
+                  className="p-2 rounded-xl cursor-pointer"
                 >
                   <FiChevronLeft />
                 </button>
-                <h2 className="text-lg font-bold text-gray-900 w-36 text-center">
+                <h2 className="text-lg font-bold text-[rgb(var(--text))] w-36 text-center">
                   {MONTHS[month]} {year}
                 </h2>
                 <button
                   onClick={() => setMonth((m) => (m === 11 ? 0 : m + 1))}
-                  className="p-2 rounded-xl hover:bg-gray-100"
+                  className="p-2 rounded-xl cursor-pointer"
                 >
                   <FiChevronRight />
                 </button>
@@ -217,12 +217,12 @@ export default function TeacherCalendar({ schoolId }) {
           </div>
 
           {/* Calendar Grid */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50/50">
+          <div className="bg-[rgb(var(--surface))] rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="grid grid-cols-7 border-b border-gray-100 ">
               {DAYS.map((d) => (
                 <div
                   key={d}
-                  className="py-3 text-center text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider"
+                  className="py-3 text-center text-[10px] md:text-xs font-bold text-[rgb(var(--text))] uppercase tracking-wider"
                 >
                   {d}
                 </div>
@@ -232,7 +232,7 @@ export default function TeacherCalendar({ schoolId }) {
               {Array.from({ length: firstDay }).map((_, i) => (
                 <div
                   key={`pad-${i}`}
-                  className="h-20 sm:h-24 md:h-28 lg:h-32 border-b border-r border-gray-50 bg-gray-50/20"
+                  className="h-20 sm:h-24 md:h-28 lg:h-32 border-b border-r border-gray-50 "
                 />
               ))}
               {Array.from({ length: totalDays }, (_, i) => i + 1).map((day) => {
@@ -243,10 +243,10 @@ export default function TeacherCalendar({ schoolId }) {
                 return (
                   <div
                     key={day}
-                    className={`h-20 sm:h-24 md:h-28 lg:h-32 border-b border-r border-gray-100 p-1 relative hover:bg-gray-50/50 transition-colors ${isToday ? "bg-indigo-50/40" : ""}`}
+                    className={`h-20 sm:h-24 md:h-28 lg:h-32 border-b border-r border-gray-100 p-1 relative  transition-colors ${isToday ? "bg-[rgb(var(--primary))]" : ""}`}
                   >
                     <div
-                      className={`w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full text-xs sm:text-sm font-semibold mb-1 ${isToday ? "bg-indigo-600 text-white shadow-sm" : "text-gray-700"}`}
+                      className={`w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full text-xs sm:text-sm font-semibold mb-1 ${isToday ? "bg-[rgb(var(--bg))]  text-[rgb(var(--text))] shadow-sm" : "text-gray-700"}`}
                     >
                       {day}
                     </div>
@@ -285,8 +285,8 @@ export default function TeacherCalendar({ schoolId }) {
         {/* Sidebar Summary & Details */}
         <div className="w-full lg:w-80 order-1 lg:order-2 space-y-4">
           {/* Stats Grid */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+          <div className="bg-[rgb(var(--surface))] rounded-2xl shadow-sm border border-gray-100 p-4">
+            <h3 className="text-[10px] font-bold text-[rgb(var(--text))] uppercase tracking-widest mb-3">
               Month Summary
             </h3>
             <div className="grid grid-cols-2 gap-2">
@@ -316,10 +316,10 @@ export default function TeacherCalendar({ schoolId }) {
               ].map((s) => (
                 <div
                   key={s.label}
-                  className="bg-gray-50 rounded-xl p-2 text-center"
+                  className="bg-[rgb(var(--surface))] border rounded-xl p-2 text-center"
                 >
                   <p className={`text-xl font-bold ${s.color}`}>{s.val}</p>
-                  <p className="text-[9px] text-gray-400 font-bold uppercase">
+                  <p className="text-[9px] text-[rgb(var(--text))] font-bold uppercase">
                     {s.label}
                   </p>
                 </div>
@@ -328,21 +328,21 @@ export default function TeacherCalendar({ schoolId }) {
           </div>
 
           {/* List View for Mobile and Side View for Desktop */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+          <div className="bg-[rgb(var(--surface))] rounded-2xl shadow-sm border border-gray-100 p-4">
+            <h3 className="text-[10px] font-bold text-[rgb(var(--text))] uppercase tracking-widest mb-3">
               Upcoming
             </h3>
             <div className="space-y-3 max-h-75 lg:max-h-125 overflow-y-auto pr-2">
               {filtered.slice(0, 8).map((ev, idx) => (
                 <div
                   key={idx}
-                  className="flex gap-3 items-start p-2 rounded-xl hover:bg-gray-50 transition-colors group"
+                  className="flex gap-3 items-start p-2 rounded-xl transition-colors group"
                 >
                   <div
                     className={`w-1 shrink-0 rounded-full self-stretch ${TYPE_CONFIG[ev.type]?.bg || "bg-gray-200"}`}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-gray-800 truncate">
+                    <p className="text-xs font-bold text-[rgb(var(--text))] truncate">
                       {ev.title}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
@@ -351,7 +351,7 @@ export default function TeacherCalendar({ schoolId }) {
                       >
                         {ev.type}
                       </span>
-                      <span className="text-[10px] text-gray-400 font-medium">
+                      <span className="text-[10px] text-[rgb(var(--text))] font-medium">
                         {new Date(ev.startDate).toLocaleDateString("en-IN", {
                           day: "numeric",
                           month: "short",
@@ -362,7 +362,7 @@ export default function TeacherCalendar({ schoolId }) {
                 </div>
               ))}
               {filtered.length === 0 && (
-                <p className="text-center text-xs text-gray-400 py-6">
+                <p className="text-center text-xs text-[rgb(var(--text))] py-6">
                   No entries for this view
                 </p>
               )}

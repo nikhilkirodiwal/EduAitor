@@ -301,7 +301,7 @@ function Syllabus() {
   };
 
   return (
-    <div className="min-h-screen ">
+    <div className="min-h-screen text-[rgb(var(--text))]">
       <div className="max-w-6xl mx-auto p-6">
         {/* 🔙 BACK BUTTON */}
         {isMobile && (
@@ -318,8 +318,8 @@ function Syllabus() {
           </div>
         )}
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl py-1 font-bold text-transparent bg-clip-text bg-blue-600 mb-2">
+        <div className="mb-8 text-[rgb(var(--text))] ">
+          <h1 className="text-4xl py-1 font-bold bg-clip-text mb-2">
             Syllabus Management
           </h1>
           <p className="font-bold mt-2">Add chapters and topics.</p>
@@ -336,9 +336,11 @@ function Syllabus() {
               <select
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
-                className="w-full px-4 py-3  border border-slate-700 rounded-lg  focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer"
+                className="w-full px-4 py-3  border border-slate-700 rounded-lg 
+                  text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+                focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer"
               >
-                <option value="">Choose a class...</option>
+                <option value="" className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]" >Choose a class...</option>
                 {classes.map((cls) => (
                   <option key={cls._id} value={cls._id}>
                     {cls.name}
@@ -359,7 +361,9 @@ function Syllabus() {
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
                 disabled={!selectedClass}
-                className="w-full px-4 py-3  border border-slate-700 rounded-lg  focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3  border border-slate-700 rounded-lg 
+                  text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+                focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="">Choose a subject...</option>
                 {subjects.map((sub) => (
@@ -381,7 +385,9 @@ function Syllabus() {
                 value={selectedTerm}
                 onChange={(e) => setSelectedTerm(e.target.value)}
                 disabled={!selectedSubject}
-                className="w-full px-4 py-3  border border-slate-700 rounded-lg  focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3  border border-slate-700 rounded-lg 
+                text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+                focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="">Select Term</option>
                 {terms?.map((t) => (
@@ -395,7 +401,7 @@ function Syllabus() {
           </div>
           <button
             onClick={() => setShowTerm((p) => !p)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r from-cyan-500 to-blue-500 text-white font-medium shadow-md hover:scale-105 transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-linear-to-r text-[rgb(var(--text))] bg-[rgb(var(--primary))] font-medium shadow-md hover:scale-105 transition"
           >
             {showTerm ? "Hide Terms" : "Manage Terms"}
           </button>
@@ -403,11 +409,11 @@ function Syllabus() {
         {showTerm && <TermManagement onDataChange={fetchTerms} />}
         {/* Content Area */}
         {selectedSubject && (
-          <div className="space-y-4">
+          <div className="space-y-4 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
             {/* Add Chapter Button */}
             <button
               onClick={() => openChapterModal()}
-              className="flex items-center gap-2 px-4 py-3 bg-linear-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition transform hover:scale-105"
+              className="flex items-center gap-2 px-4 py-3 text-[rgb(var(--text))] bg-[rgb(var(--primary))]  font-semibold rounded-lg transition transform hover:scale-105"
             >
               <FiPlus className="w-5 h-5" />
               Add Chapter
@@ -435,7 +441,7 @@ function Syllabus() {
                       className="flex items-center gap-3 p-4 cursor-pointer  transition"
                     >
                       <FiChevronDown
-                        className={`w-5 h-5 text-slate-400 transition-transform ${
+                        className={`w-5 h-5 text-[rgb(var(--primary))] transition-transform ${
                           expandedChapters.has(chapter._id) ? "rotate-180" : ""
                         }`}
                       />
@@ -444,7 +450,7 @@ function Syllabus() {
                           Chapter {chapter.order}: {chapter.name}
                         </h3>
                         {chapter.description && (
-                          <p className="text-sm text-slate-400 mt-1">
+                          <p className="text-sm  mt-1">
                             {chapter.description}
                           </p>
                         )}
@@ -455,7 +461,7 @@ function Syllabus() {
                             e.stopPropagation();
                             openChapterModal(chapter);
                           }}
-                          className="p-2 text-slate-400 hover:text-cyan-400 transition cursor-pointer"
+                          className="p-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-2xl transition cursor-pointer"
                         >
                           <FiEdit2 className="w-5 h-5" />
                         </button>
@@ -464,7 +470,7 @@ function Syllabus() {
                             e.stopPropagation();
                             deleteChapter(chapter._id);
                           }}
-                          className="p-2 text-slate-400 hover:text-red-400 transition cursor-pointer "
+                          className="p-2 text-[rgb(var(--text))] bg-[rgb(var(--bg))] rounded-2xl transition cursor-pointer "
                         >
                           <FiTrash2 className="w-5 h-5" />
                         </button>
@@ -476,7 +482,7 @@ function Syllabus() {
                       <div className="border-t border-slate-700  p-4 space-y-3">
                         <button
                           onClick={() => openTopicModal(chapter._id)}
-                          className="flex items-center gap-2 px-3 py-2 text-sm text-cyan-400 hover:bg-slate-800 rounded cursor-pointer transition"
+                          className="flex items-center gap-2 px-3 py-2 text-sm text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded cursor-pointer transition"
                         >
                           <FiPlus className="w-4 h-4" />
                           Add Topic
@@ -499,7 +505,7 @@ function Syllabus() {
                                     </h4>
                                   </div>
                                   {topic.content && (
-                                    <p className="text-sm text-slate-400 mt-1 line-clamp-2">
+                                    <p className="text-sm  mt-1 line-clamp-2">
                                       {topic.content}
                                     </p>
                                   )}
@@ -508,7 +514,7 @@ function Syllabus() {
                                       {topic.keywords.map((kw, idx) => (
                                         <span
                                           key={idx}
-                                          className="text-xs px-2 py-1 bg-slate-700/50 text-slate-300 rounded"
+                                          className="text-xs px-2 py-1 bg-[rgb(var(--primary))]  rounded"
                                         >
                                           {kw}
                                         </span>
@@ -521,13 +527,13 @@ function Syllabus() {
                                     onClick={() =>
                                       openTopicModal(chapter._id, topic)
                                     }
-                                    className="p-1 text-slate-400 hover:text-cyan-400 transition"
+                                    className="p-1 text-[rgb(var(--text))]  transition"
                                   >
                                     <FiEdit2 className="w-4 h-4" />
                                   </button>
                                   <button
                                     onClick={() => deleteTopic(topic._id)}
-                                    className="p-1 text-slate-400 hover:text-red-400 transition"
+                                    className="p-1 text-[rgb(var(--text))]  transition"
                                   >
                                     <FiTrash2 className="w-4 h-4" />
                                   </button>
@@ -536,7 +542,7 @@ function Syllabus() {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-sm text-slate-500 text-center py-4">
+                          <p className="text-sm  text-center py-4">
                             No topics yet
                           </p>
                         )}
@@ -548,7 +554,7 @@ function Syllabus() {
             )}
 
             {!loading && chapters.length === 0 && selectedSubject && (
-              <div className="text-center py-12 text-slate-400">
+              <div className="text-center py-12 ">
                 <p className="text-lg mb-4">No chapters created yet</p>
                 <p className="text-sm">Click "Add Chapter" to get started</p>
               </div>
@@ -557,7 +563,7 @@ function Syllabus() {
         )}
 
         {!selectedSubject && selectedClass && (
-          <div className="text-center py-12 text-slate-400">
+          <div className="text-center py-12 ">
             <p className="text-lg">Select a subject to begin</p>
           </div>
         )}
@@ -565,12 +571,12 @@ function Syllabus() {
       {/* delete modal */}
       {confirmState.open && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-sm p-6">
-            <h2 className="text-lg font-semibold mb-2 text-gray-800">
+          <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]  rounded-2xl shadow-xl w-[90%] max-w-sm p-6">
+            <h2 className="text-lg font-semibold mb-2">
               Delete {confirmState.type === "chapter" ? "Chapter" : "Topic"}
             </h2>
 
-            <p className="text-sm text-gray-600 mb-6">
+            <p className="text-sm  mb-6">
               {confirmState.type === "chapter"
                 ? "This will delete the chapter and all its topics."
                 : "This will delete the topic permanently."}
@@ -581,7 +587,7 @@ function Syllabus() {
                 onClick={() =>
                   setConfirmState({ open: false, type: "", id: null })
                 }
-                className="px-4 py-2 text-sm rounded-md border text-gray-600 hover:bg-gray-100"
+                className="px-4 py-2 text-sm rounded-md border"
               >
                 Cancel
               </button>
@@ -624,14 +630,14 @@ function Syllabus() {
 function ChapterModal({ formData, setFormData, onSubmit, onClose, terms }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-800 rounded-lg shadow-xl max-w-md w-full border border-slate-700">
+      <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]  rounded-lg shadow-xl max-w-md w-full border border-slate-700">
         <div className="flex items-center justify-between p-6 border-b border-slate-700">
-          <h2 className="text-xl font-bold text-white">
+          <h2 className="text-xl font-bold">
             {formData.type === "addChapter" ? "Add Chapter" : "Edit Chapter"}
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition"
+            className="transition"
           >
             <FiX className="w-6 h-6" />
           </button>
@@ -639,7 +645,7 @@ function ChapterModal({ formData, setFormData, onSubmit, onClose, terms }) {
 
         <div className="p-6 space-y-4">
           <div className="relative">
-            <label className="block text-sm font-semibold mb-2 text-white">
+            <label className="block text-sm font-semibold mb-2 ">
               Select Term
             </label>
             <div className="relative">
@@ -648,7 +654,9 @@ function ChapterModal({ formData, setFormData, onSubmit, onClose, terms }) {
                 onChange={(e) =>
                   setFormData({ ...formData, termId: e.target.value })
                 }
-                className="w-full px-4 py-3 border border-slate-700 rounded-lg  focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer"
+                className="w-full px-4 py-3 border border-slate-700 rounded-lg 
+                text-[rgb(var(--text))] bg-[rgb(var(--surface))]
+                focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer"
               >
                 <option value="">All Terms</option>
                 {terms?.map((t) => (
@@ -657,12 +665,12 @@ function ChapterModal({ formData, setFormData, onSubmit, onClose, terms }) {
                   </option>
                 ))}
               </select>
-              <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+              <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 pointer-events-none" />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">
+            <label className="block text-sm font-semibold  mb-2">
               Chapter Name *
             </label>
             <input
@@ -672,12 +680,12 @@ function ChapterModal({ formData, setFormData, onSubmit, onClose, terms }) {
                 setFormData({ ...formData, name: e.target.value })
               }
               placeholder="e.g., Introduction to Biology"
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-cyan-400 outline-none transition"
+              className="w-full px-4 py-2 border border-slate-600 rounded-lg placeholder-slate-400 outline-none transition"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">
+            <label className="block text-sm font-semibold  mb-2">
               Description
             </label>
             <textarea
@@ -687,12 +695,12 @@ function ChapterModal({ formData, setFormData, onSubmit, onClose, terms }) {
               }
               placeholder="Brief description of the chapter"
               rows="3"
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-cyan-400 outline-none transition resize-none"
+              className="w-full px-4 py-2  border border-slate-600 rounded-lg  placeholder-slate-400  outline-none transition resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">
+            <label className="block text-sm font-semibold  mb-2">
               Learning Outcomes (one per line)
             </label>
             <textarea
@@ -702,21 +710,21 @@ function ChapterModal({ formData, setFormData, onSubmit, onClose, terms }) {
               }
               placeholder="Students will be able to...&#10;Understand..."
               rows="3"
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-cyan-400 outline-none transition resize-none"
+              className="w-full px-4 py-2 border border-slate-600 rounded-lg placeholder-slate-400  outline-none transition resize-none"
             />
           </div>
         </div>
 
-        <div className="flex gap-3 p-6 border-t border-slate-700 bg-slate-900/30">
+        <div className="flex gap-3 p-6 border-t border-slate-700 ">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 text-slate-300 border border-slate-600 rounded-lg hover:bg-slate-700 transition"
+            className="flex-1 px-4 py-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] border border-slate-600 rounded-lg  transition"
           >
             Cancel
           </button>
           <button
             onClick={onSubmit}
-            className="flex-1 px-4 py-2 bg-linear-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition"
+            className="flex-1 px-4 py-2 bg-linear-to-r font-semibold rounded-lg text-[rgb(var(--text))] bg-[rgb(var(--primary))] transition"
           >
             {formData.type === "addChapter" ? "Create" : "Update"}
           </button>
@@ -730,14 +738,14 @@ function ChapterModal({ formData, setFormData, onSubmit, onClose, terms }) {
 function TopicModal({ formData, setFormData, onSubmit, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-slate-800 rounded-lg shadow-xl max-w-md w-full border border-slate-700">
+      <div className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-lg shadow-xl max-w-md w-full border border-slate-700">
         <div className="flex items-center justify-between p-6 border-b border-slate-700">
-          <h2 className="text-xl font-bold text-white">
+          <h2 className="text-xl font-bold ">
             {formData.type === "addTopic" ? "Add Topic" : "Edit Topic"}
           </h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition"
+            className=" transition"
           >
             <FiX className="w-6 h-6" />
           </button>
@@ -745,7 +753,7 @@ function TopicModal({ formData, setFormData, onSubmit, onClose }) {
 
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">
+            <label className="block text-sm font-semibold t300 mb-2">
               Topic Name *
             </label>
             <input
@@ -755,12 +763,12 @@ function TopicModal({ formData, setFormData, onSubmit, onClose }) {
                 setFormData({ ...formData, name: e.target.value })
               }
               placeholder="e.g., Cell Structure"
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-cyan-400 outline-none transition"
+              className="w-full px-4 py-2 border border-slate-600 rounded-lg placeholder-slate-400  outline-none transition"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">
+            <label className="block text-sm font-semibold  mb-2">
               Content
             </label>
             <textarea
@@ -770,12 +778,12 @@ function TopicModal({ formData, setFormData, onSubmit, onClose }) {
               }
               placeholder="Topic content/description"
               rows="6"
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-cyan-400 outline-none transition resize-none"
+              className="w-full px-4 py-2 border border-slate-600 rounded-lg  placeholder-slate-400 focus:border-cyan-400 outline-none transition resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">
+            <label className="block text-sm font-semibold  mb-2">
               Difficulty Level
             </label>
             <select
@@ -783,7 +791,7 @@ function TopicModal({ formData, setFormData, onSubmit, onClose }) {
               onChange={(e) =>
                 setFormData({ ...formData, difficultyLevel: e.target.value })
               }
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:border-cyan-400 outline-none transition"
+              className="w-full px-4 py-2 text-[rgb(var(--text))] bg-[rgb(var(--surface))] border-slate-600 rounded-lg outline-none transition"
             >
               <option value="easy">Easy</option>
               <option value="medium">Medium</option>
@@ -792,7 +800,7 @@ function TopicModal({ formData, setFormData, onSubmit, onClose }) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-300 mb-2">
+            <label className="block text-sm font-semibold  mb-2">
               Keywords (comma separated)
             </label>
             <input
@@ -802,21 +810,21 @@ function TopicModal({ formData, setFormData, onSubmit, onClose }) {
                 setFormData({ ...formData, keywords: e.target.value })
               }
               placeholder="e.g., mitochondria, ATP, respiration"
-              className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-cyan-400 outline-none transition"
+              className="w-full px-4 py-2  border border-slate-600 rounded-lg placeholder-slate-400 focus:border-cyan-400 outline-none transition"
             />
           </div>
         </div>
 
-        <div className="flex gap-3 p-6 border-t border-slate-700 bg-slate-900/30">
+        <div className="flex gap-3 p-6 border-t border-slate-700 ">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 text-slate-300 border border-slate-600 rounded-lg hover:bg-slate-700 transition"
+            className="flex-1 px-4 py-2  border border-slate-600 rounded-lg transition"
           >
             Cancel
           </button>
           <button
             onClick={onSubmit}
-            className="flex-1 px-4 py-2 bg-linear-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition"
+            className="flex-1 px-4 py-2 bg-linear-to-r  font-semibold rounded-lg text-[rgb(var(--text))] bg-[rgb(var(--primary))] transition"
           >
             {formData.type === "addTopic" ? "Create" : "Update"}
           </button>

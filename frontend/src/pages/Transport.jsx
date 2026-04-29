@@ -188,7 +188,7 @@ const Transport = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
+    <div className="min-h-screen p-4 sm:p-8">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
           <div className="pt-4">
@@ -203,17 +203,17 @@ const Transport = () => {
           </button>
         </div>
       )}
-      <div className="border-b border-slate-200 bg-white">
+      <div className="border-b text-[rgb(var(--text))] bg-[rgb(var(--surface))] rounded-2xl">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.3em] text-cyan-600">
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-[rgb(var(--primary))]">
                 Fleet Control
               </p>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">
+              <h1 className="mt-2 text-3xl font-black tracking-tight ">
                 Transport Management
               </h1>
-              <p className="mt-2 max-w-2xl text-sm text-slate-500">
+              <p className="mt-2 max-w-2xl text-sm ">
                 Track buses, routes, drivers, and today&apos;s activity from one
                 place.
               </p>
@@ -225,11 +225,11 @@ const Transport = () => {
                 placeholder="Search bus, route, driver, phone..."
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-cyan-400 focus:bg-white sm:w-80"
+                className="w-full rounded-2xl border border-slate-200  px-4 py-3 text-sm outline-none transition focus:border-cyan-400  sm:w-80"
               />
               <button
                 onClick={fetchDashboard}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[rgb(var(--primary))] px-4 py-3 text-sm font-bold  transition hover:bg-slate-800"
               >
                 <FaArrowRotateRight className="text-xs" />
                 Refresh
@@ -240,7 +240,7 @@ const Transport = () => {
       </div>
 
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
           <StatCard
             title="Total Buses"
             value={summary.buses}
@@ -272,16 +272,16 @@ const Transport = () => {
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-          <div className="overflow-hidden rounded-3xl bg-linear-to-br from-slate-200 via-slate-100 to-slate-200 p-6 text-slate-800 shadow-lg border border-slate-200">
+          <div className="overflow-hidden rounded-3xl bg-linear-to-br text-[rgb(var(--text))] bg-[rgb(var(--surface))] p-4 shadow-lg border border-slate-200">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.25em] text-cyan-600">
+                <p className="text-xs font-black uppercase tracking-[0.25em] text-[rgb(var(--primary))]">
                   Operations Snapshot
                 </p>
-                <h2 className="mt-3 text-2xl font-black text-slate-900">
+                <h2 className="mt-3 text-2xl font-black ">
                   Keep the fleet balanced and ready
                 </h2>
-                <p className="mt-2 max-w-xl text-sm text-slate-500">
+                <p className="mt-2 max-w-xl text-sm ">
                   This panel highlights how much of the fleet is actively
                   assigned so gaps stand out quickly.
                 </p>
@@ -302,16 +302,16 @@ const Transport = () => {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-3xl border border-slate-200 text-[rgb(var(--text))] bg-[rgb(var(--surface))] p-5 shadow-sm">
             <div className="mb-4 flex items-center gap-3">
               <div className="rounded-2xl bg-amber-50 p-3 text-amber-600">
                 <FaScrewdriverWrench />
               </div>
               <div>
-                <h2 className="text-lg font-black text-slate-900">
+                <h2 className="text-lg font-black text-[rgb(var(--text))]">
                   Priority Alerts
                 </h2>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-[rgb(var(--text))]">
                   Quick operational issues to review first.
                 </p>
               </div>
@@ -419,29 +419,29 @@ const Transport = () => {
           </Panel>
         </section>
 
-        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <section className="overflow-hidden rounded-3xl border border-slate-200 text-[rgb(var(--text))] bg-[rgb(var(--surface))] shadow-sm">
           <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-lg font-black text-slate-900">
+              <h2 className="text-lg font-black text-[rgb(var(--text))]">
                 Today&apos;s Activity
               </h2>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-[rgb(var(--text))]">
                 Latest transport events recorded for this school.
               </p>
             </div>
-            <span className="w-fit rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold text-cyan-700">
+            <span className="w-fit rounded-full bg-cyan-50 px-3 py-1 text-xs font-bold text-[rgb(var(--primary))]">
               {filteredActivity.length} records
             </span>
           </div>
 
           {filteredActivity.length === 0 ? (
-            <div className="p-8">
+            <div className="p-8 text-[rgb(var(--text))] bg-[rgb(var(--surface))]">
               <EmptyState message="No transport activity found for today." />
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <thead className="text-[rgb(var(--text))] bg-[rgb(var(--surface))] text-xs uppercase tracking-wide ">
                   <tr>
                     <th className="px-5 py-4 text-left font-bold">Event</th>
                     <th className="px-5 py-4 text-left font-bold">Bus</th>
@@ -452,7 +452,7 @@ const Transport = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredActivity.map((row) => (
-                    <tr key={row._id} className="hover:bg-slate-50">
+                    <tr key={row._id} className="">
                       <td className="px-5 py-4">
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${badgeClasses(
@@ -462,16 +462,16 @@ const Transport = () => {
                           {row.status || "Activity Logged"}
                         </span>
                       </td>
-                      <td className="px-5 py-4 font-semibold text-slate-900">
+                      <td className="px-5 py-4 font-semibold text-[rgb(var(--text))]">
                         {row.bus || "-"}
                       </td>
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-[rgb(var(--text))]">
                         {row.route || "-"}
                       </td>
-                      <td className="px-5 py-4 text-slate-600">
+                      <td className="px-5 py-4 text-[rgb(var(--text))]">
                         {row.driver || "-"}
                       </td>
-                      <td className="px-5 py-4 text-slate-500">
+                      <td className="px-5 py-4 text-[rgb(var(--text))]">
                         {row.time || "-"}
                       </td>
                     </tr>
@@ -495,14 +495,14 @@ const StatCard = ({ title, value, note, icon, tone }) => {
   };
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-3xl border border-slate-200 text-[rgb(var(--text))] bg-[rgb(var(--surface))]  p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+          <p className="text-xs font-black uppercase tracking-[0.2em] ">
             {title}
           </p>
-          <p className="mt-3 text-3xl font-black text-slate-900">{value}</p>
-          <p className="mt-2 text-sm text-slate-500">{note}</p>
+          <p className="mt-3 text-3xl font-black ">{value}</p>
+          <p className="mt-2 text-sm ">{note}</p>
         </div>
         <div className={`rounded-2xl p-3 text-xl ${tones[tone]}`}>{icon}</div>
       </div>
@@ -511,22 +511,22 @@ const StatCard = ({ title, value, note, icon, tone }) => {
 };
 
 const HighlightCard = ({ label, value }) => (
-  <div className="rounded-2xl bg-white p-4 border border-slate-200 shadow-sm">
-    <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
+  <div className="rounded-2xl bg-[rgb(var(--surface))] p-4 border border-slate-200 shadow-sm">
+    <p className="text-xs font-bold uppercase tracking-[0.2em]">
       {label}
     </p>
-    <p className="mt-2 text-2xl font-black text-slate-900">{value}</p>
+    <p className="mt-2 text-2xl font-black ">{value}</p>
   </div>
 );
 
 const Panel = ({ title, subtitle, count, children }) => (
-  <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+  <div className="rounded-3xl border border-slate-200  text-[rgb(var(--text))] bg-[rgb(var(--surface))] p-5 shadow-sm">
     <div className="mb-4 flex items-start justify-between gap-3">
       <div>
-        <h2 className="text-lg font-black text-slate-900">{title}</h2>
-        <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+        <h2 className="text-lg font-black ">{title}</h2>
+        <p className="mt-1 text-sm ">{subtitle}</p>
       </div>
-      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
+      <span className="rounded-full  px-3 py-1 text-xs font-bold ">
         {count}
       </span>
     </div>
@@ -535,11 +535,11 @@ const Panel = ({ title, subtitle, count, children }) => (
 );
 
 const InfoCard = ({ title, subtitle, status, tone, details }) => (
-  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+  <div className="rounded-2xl border border-slate-200 text-[rgb(var(--text))] bg-[rgb(var(--surface))] p-4">
     <div className="flex items-start justify-between gap-3">
       <div>
-        <h3 className="text-base font-black text-slate-900">{title}</h3>
-        <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+        <h3 className="text-base font-black text-[rgb(var(--text))]">{title}</h3>
+        <p className="mt-1 text-sm text-[rgb(var(--text))]">{subtitle}</p>
       </div>
       <span className={`rounded-full px-3 py-1 text-xs font-bold ${tone}`}>
         {status || "Unknown"}
@@ -548,7 +548,7 @@ const InfoCard = ({ title, subtitle, status, tone, details }) => (
 
     <div className="mt-4 space-y-2">
       {details.map((detail) => (
-        <p key={detail} className="text-sm text-slate-600">
+        <p key={detail} className="text-sm text-[rgb(var(--text))]">
           {detail}
         </p>
       ))}
@@ -565,10 +565,10 @@ const AlertRow = ({ label, value, helper, tone }) => {
   };
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3">
+    <div className="flex items-center justify-between gap-3 rounded-2xl border p-3">
       <div>
-        <p className="text-sm font-bold text-slate-900">{label}</p>
-        <p className="text-xs text-slate-500">{helper}</p>
+        <p className="text-sm font-bold text-[rgb(var(--text))] ">{label}</p>
+        <p className="text-xs text-[rgb(var(--text))]">{helper}</p>
       </div>
       <span
         className={`rounded-full px-3 py-1 text-xs font-bold ${tones[tone]}`}
@@ -580,7 +580,7 @@ const AlertRow = ({ label, value, helper, tone }) => {
 };
 
 const EmptyState = ({ message }) => (
-  <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm font-medium text-slate-500">
+  <div className="rounded-2xl border border-dashed border-slate-300  p-6 text-center text-sm font-medium ">
     {message}
   </div>
 );
