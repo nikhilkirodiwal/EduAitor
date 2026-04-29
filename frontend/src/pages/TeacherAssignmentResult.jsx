@@ -81,7 +81,7 @@ export default function TeacherAssignmentResult() {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center min-h-screen text-gray-400">
+      <div className="flex items-center justify-center min-h-screen text-[rgb(var(--text))]">
         Loading...
       </div>
     );
@@ -107,16 +107,16 @@ export default function TeacherAssignmentResult() {
 
   /* ── LIST VIEW ── */
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8  min-h-screen text-[rgb(var(--text))]">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Assignment Results</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold">Assignment Results</h1>
+        <p className="text-sm mt-1">
           Click an assignment to see student submissions
         </p>
       </div>
 
       {assignments.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">
+        <div className="text-center py-20 text-[rgb(var(--text))]">
           <p className="text-5xl mb-3">📋</p>
           <p className="font-medium">No assignments yet</p>
         </div>
@@ -126,14 +126,14 @@ export default function TeacherAssignmentResult() {
             <div
               key={a._id}
               onClick={() => openSubmissions(a)}
-              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 cursor-pointer hover:border-indigo-200 hover:shadow-md transition-all"
+              className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm p-5 cursor-pointer hover:border-indigo-200 hover:shadow-md transition-all"
             >
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
-                  <h3 className="font-semibold text-gray-900 leading-snug">
+                  <h3 className="font-semibold text-[rgb(var(--text))] leading-snug">
                     {a.title}
                   </h3>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-[rgb(var(--text))] mt-0.5">
                     {a.classId?.name} · {a.subjectId?.name}
                   </p>
                 </div>
@@ -156,7 +156,7 @@ export default function TeacherAssignmentResult() {
 
               {a.submissionCount > 0 && a.avgScore != null && (
                 <div className="mt-2">
-                  <div className="flex justify-between text-xs text-gray-400 mb-1">
+                  <div className="flex justify-between text-xs text-[rgb(var(--text))] mb-1">
                     <span>Class average</span>
                     <span>{a.avgScore}%</span>
                   </div>
@@ -169,7 +169,7 @@ export default function TeacherAssignmentResult() {
                 </div>
               )}
 
-              <p className="text-xs text-gray-400 mt-3">
+              <p className="text-xs text-[rgb(var(--text))] mt-3">
                 Due: {new Date(a.dueDate).toLocaleDateString("en-IN")}
               </p>
             </div>
@@ -186,18 +186,18 @@ function SubmissionsView({ selected, onBack, onSelectStudent }) {
   const pct = stats.avgScore;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8  min-h-screen">
       <button
         onClick={onBack}
-        className="text-sm text-gray-400 hover:text-gray-600 mb-4 flex items-center gap-1"
+        className="text-sm text-[rgb(var(--text))] mb-4 flex items-center gap-1"
       >
         ← Back to assignments
       </button>
 
       {/* Assignment header */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-5">
-        <h2 className="text-xl font-bold text-gray-900">{assignment.title}</h2>
-        <p className="text-sm text-gray-400 mt-0.5">
+      <div className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm p-5 mb-5">
+        <h2 className="text-xl font-bold text-[rgb(var(--text))]">{assignment.title}</h2>
+        <p className="text-sm text-[rgb(var(--text))] mt-0.5">
           {assignment.classId?.name} · {assignment.subjectId?.name}
         </p>
 
@@ -210,10 +210,10 @@ function SubmissionsView({ selected, onBack, onSelectStudent }) {
           ].map((s, i) => (
             <div
               key={i}
-              className="bg-gray-50 rounded-xl py-3 px-4 text-center"
+              className="border rounded-xl py-3 px-4 text-center"
             >
-              <p className="text-xs text-gray-400">{s.label}</p>
-              <p className="text-lg font-bold text-gray-800 mt-0.5">
+              <p className="text-xs text-[rgb(var(--text))]">{s.label}</p>
+              <p className="text-lg font-bold text-[rgb(var(--text))] mt-0.5">
                 {s.value}
               </p>
             </div>
@@ -222,7 +222,7 @@ function SubmissionsView({ selected, onBack, onSelectStudent }) {
 
         {pct != null && (
           <div className="mt-4">
-            <div className="flex justify-between text-xs text-gray-400 mb-1">
+            <div className="flex justify-between text-xs text-[rgb(var(--text))] mb-1">
               <span>Class average</span>
               <span>{pct}%</span>
             </div>
@@ -238,13 +238,13 @@ function SubmissionsView({ selected, onBack, onSelectStudent }) {
 
       {/* Student list */}
       {submissions.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">
+        <div className="text-center py-20 text-[rgb(var(--text))]">
           <p className="text-4xl mb-3">👥</p>
           <p className="font-medium">No submissions yet</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="grid grid-cols-12 text-xs text-gray-400 font-semibold uppercase tracking-wide px-5 py-3 border-b border-gray-100 bg-gray-50">
+        <div className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="grid grid-cols-12 text-xs text-[rgb(var(--text))] font-semibold uppercase tracking-wide px-5 py-3 border-b border-gray-100 bg-[rgb(var(--surface))]">
             <div className="col-span-4">Student</div>
             <div className="col-span-2 text-center">Score</div>
             <div className="col-span-3 text-center">Progress</div>
@@ -261,22 +261,22 @@ function SubmissionsView({ selected, onBack, onSelectStudent }) {
                 return (
                   <div
                     key={sub._id}
-                    className="grid grid-cols-12 items-center px-5 py-3.5 hover:bg-gray-50 transition"
+                    className="grid grid-cols-12 items-center px-5 py-3.5  transition"
                   >
                     <div className="col-span-4 flex items-center gap-3">
                       <span className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0">
                         {idx + 1}
                       </span>
                       <div>
-                        <p className="text-sm font-medium text-gray-800">
+                        <p className="text-sm font-medium text-[rgb(var(--text))]">
                           {s?.firstName} {s?.lastName}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-[rgb(var(--text))]">
                           Roll {s?.rollNo || "—"}
                         </p>
                       </div>
                     </div>
-                    <div className="col-span-2 text-center text-sm font-semibold text-gray-700">
+                    <div className="col-span-2 text-center text-sm font-semibold text-[rgb(var(--text))]">
                       {sub.totalMarksAwarded}/{sub.totalMarks}
                     </div>
                     <div className="col-span-3 px-2">
@@ -286,7 +286,7 @@ function SubmissionsView({ selected, onBack, onSelectStudent }) {
                           style={{ width: `${p}%` }}
                         />
                       </div>
-                      <p className="text-xs text-gray-400 text-center mt-0.5">
+                      <p className="text-xs text-[rgb(var(--text))] text-center mt-0.5">
                         {p}%
                       </p>
                     </div>
@@ -300,7 +300,7 @@ function SubmissionsView({ selected, onBack, onSelectStudent }) {
                     <div className="col-span-1 text-center">
                       <button
                         onClick={() => onSelectStudent(s?._id)}
-                        className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold hover:underline"
+                        className="text-xs text-[rgb(var(--primary))] hover:text-[rgb(var(--primary-dark))] font-semibold hover:underline cursor-pointer"
                       >
                         View
                       </button>
@@ -322,25 +322,25 @@ function StudentDetailView({ detail, onBack }) {
   const p = submission.percentage;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 min-h-screen bg-[rgb(var(--surface))]">
       <button
         onClick={onBack}
-        className="text-sm text-gray-400 hover:text-gray-600 mb-4 flex items-center gap-1"
+        className="text-sm text-[rgb(var(--text))] mb-4 flex items-center gap-1"
       >
         ← Back to submissions
       </button>
 
       {/* Student header */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-        <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-lg shrink-0">
+      <div className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm p-5 mb-5 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+        <div className="w-12 h-12 rounded-full  flex items-center justify-center text-[rgb(var(--primary))] bg-[rgb(var(--bg))] font-bold text-lg shrink-0">
           {s?.firstName?.[0]}
           {s?.lastName?.[0]}
         </div>
         <div className="flex-1">
-          <h2 className="text-lg font-bold text-gray-900">
+          <h2 className="text-lg font-bold text-[rgb(var(--text))]">
             {s?.firstName} {s?.lastName}
           </h2>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-[rgb(var(--text))]">
             Roll {s?.rollNo || "—"} · {assignment.title}
           </p>
         </div>
@@ -348,7 +348,7 @@ function StudentDetailView({ detail, onBack }) {
           <div className={`text-3xl font-bold ${GRADE_COLOR(p).split(" ")[0]}`}>
             {GRADE(p)}
           </div>
-          <div className="text-sm text-gray-500">{p}%</div>
+          <div className="text-sm text-[rgb(var(--text))]">{p}%</div>
         </div>
       </div>
 
@@ -370,10 +370,10 @@ function StudentDetailView({ detail, onBack }) {
         ].map((s, i) => (
           <div
             key={i}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm py-3 px-4 text-center"
+            className=" rounded-xl border border-gray-100 shadow-sm py-3 px-4 text-center"
           >
-            <p className="text-xs text-gray-400">{s.label}</p>
-            <p className="text-base font-bold text-gray-800 mt-0.5">
+            <p className="text-xs text-[rgb(var(--text))]">{s.label}</p>
+            <p className="text-base font-bold text-[rgb(var(--text))] mt-0.5">
               {s.value}
             </p>
           </div>
@@ -381,8 +381,8 @@ function StudentDetailView({ detail, onBack }) {
       </div>
 
       {/* Progress bar */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-5">
-        <div className="flex justify-between text-sm text-gray-500 mb-2">
+      <div className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm p-4 mb-5">
+        <div className="flex justify-between text-sm text-[rgb(var(--text))] mb-2">
           <span>Overall performance</span>
           <span className="font-semibold">{p}%</span>
         </div>
@@ -395,7 +395,7 @@ function StudentDetailView({ detail, onBack }) {
       </div>
 
       {/* Question breakdown */}
-      <h3 className="font-bold text-gray-800 mb-3">Question Breakdown</h3>
+      <h3 className="font-bold text-[rgb(var(--text))] mb-3">Question Breakdown</h3>
       <div className="space-y-3">
         {submission.answers.map((ans, idx) => {
           const isMCQ = ans.questionType === "mcq";
@@ -403,7 +403,7 @@ function StudentDetailView({ detail, onBack }) {
           return (
             <div
               key={idx}
-              className={`bg-white rounded-2xl border shadow-sm p-5
+              className={`bg-[rgb(var(--surface))] rounded-2xl border shadow-sm p-5
                 ${
                   isMCQ
                     ? correct
@@ -415,12 +415,12 @@ function StudentDetailView({ detail, onBack }) {
               <div className="flex items-start gap-3">
                 <span
                   className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center shrink-0
-                    ${!isMCQ ? "bg-gray-100 text-gray-500" : correct ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}
+                    ${!isMCQ ? "text-[rgb(var(--text))]" : correct ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}
                 >
                   {idx + 1}
                 </span>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800 mb-2">
+                  <p className="text-sm font-medium text-[rgb(var(--text))] mb-2">
                     {ans.questionText}
                   </p>
                   {isMCQ ? (
@@ -437,7 +437,7 @@ function StudentDetailView({ detail, onBack }) {
                                   ? "bg-green-50 text-green-800 font-medium"
                                   : isSelected && !isCorrectOpt
                                     ? "bg-red-50 text-red-700"
-                                    : "bg-gray-50 text-gray-500"
+                                    : " text-[rgb(var(--text))]"
                               }`}
                           >
                             <span>
@@ -459,7 +459,7 @@ function StudentDetailView({ detail, onBack }) {
                       })}
                     </div>
                   ) : (
-                    <div className="bg-gray-50 rounded-xl p-3 text-sm text-gray-700">
+                    <div className="bg-gray-50 rounded-xl p-3 text-sm text-[rgb(var(--text))]">
                       {ans.textAnswer || (
                         <span className="text-gray-300">
                           No answer provided
@@ -476,7 +476,7 @@ function StudentDetailView({ detail, onBack }) {
                         {ans.maxMarks} marks
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                      <span className="text-xs text-[rgb(var(--text))] bg-gray-100 px-2 py-0.5 rounded-full">
                         Pending review · {ans.maxMarks} marks
                       </span>
                     )}
@@ -493,8 +493,8 @@ function StudentDetailView({ detail, onBack }) {
 
 /* ── HELPERS ── */
 const StatPill = ({ label, value }) => (
-  <div className="bg-gray-50 rounded-xl py-2 px-3 text-center">
-    <p className="text-xs text-gray-400">{label}</p>
-    <p className="text-sm font-bold text-gray-800 mt-0.5">{value}</p>
+  <div className="border rounded-xl py-2 px-3 text-center">
+    <p className="text-xs text-[rgb(var(--text))]">{label}</p>
+    <p className="text-sm font-bold text-[rgb(var(--text))] mt-0.5">{value}</p>
   </div>
 );

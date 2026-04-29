@@ -50,7 +50,7 @@ function Field({ label, error, children }) {
   return (
     <div className="flex flex-col gap-1">
       {label && (
-        <label className="text-xs font-medium text-slate-500">{label}</label>
+        <label className="text-xs font-medium ">{label}</label>
       )}
       {children}
       {error && <p className="text-xs text-red-500">{error}</p>}
@@ -60,7 +60,7 @@ function Field({ label, error, children }) {
 
 // ─── Select / Input shared style ───────────────────────────────────────────────
 const fieldCls = (err) =>
-  `w-full text-sm border rounded-xl px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-40 transition ${
+  `w-full text-sm border rounded-xl px-3 py-2.5 bg-[rgb(var(--surface))] text-[rgb(var(--text))] focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:opacity-40 transition ${
     err ? "border-red-300" : "border-slate-200"
   }`;
 
@@ -120,13 +120,13 @@ function EditModal({ entry, classes, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
+      <div className="bg-[rgb(var(--surface))]  w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-          <h2 className="text-sm font-semibold text-slate-800">Edit Diary Entry</h2>
+          <h2 className="text-sm font-semibold text-[rgb(var(--text))]">Edit Diary Entry</h2>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 text-lg"
+            className="w-7 h-7 flex items-center justify-center rounded-lg  cursor-pointer text-[rgb(var(--text))] text-lg"
           >
             ×
           </button>
@@ -198,7 +198,7 @@ function EditModal({ entry, classes, onClose, onSaved }) {
                   className={`py-2 text-xs font-medium rounded-xl border capitalize transition-all ${
                     form.type === t
                       ? TYPE_STYLES[t].badge + " ring-2 ring-offset-1 ring-current/20"
-                      : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                      : "border-slate-200  hover:bg-[rgb(var(--primary))]"
                   }`}
                 >
                   {t}
@@ -236,7 +236,7 @@ function EditModal({ entry, classes, onClose, onSaved }) {
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors"
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-[rgb(var(--primary))] text-[rgb(var(--text))]transition-colors"
           >
             Cancel
           </button>
@@ -244,7 +244,7 @@ function EditModal({ entry, classes, onClose, onSaved }) {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-slate-800 text-white hover:bg-slate-700 disabled:opacity-60 transition-colors"
+            className="flex-1 py-2.5 rounded-xl text-sm font-medium bg-[rgb(var(--primary))]  disabled:opacity-60 transition-colors"
           >
             {saving ? "Saving…" : "Save Changes"}
           </button>
@@ -291,6 +291,7 @@ export default function DiaryTeacher() {
   const fetchDiary = async () => {
     try {
       const res = await axios.get(`${API}/diary`, { withCredentials: true });
+      console.log("Diary entries:", res.data);
       setDiaryList(res.data);
     } catch {
       toast.error("Failed to load diary entries");
@@ -368,7 +369,7 @@ export default function DiaryTeacher() {
     d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "";
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen ">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar closeOnClick pauseOnHover />
 
          {/* 🔙 BACK BUTTON */}
@@ -378,7 +379,7 @@ export default function DiaryTeacher() {
       onClick={() => navigate(-1)}
       className="flex items-center gap-2 px-3 py-1.5 rounded-xl
                  bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+                 text-sm font-bold text-[rgb(var(--text))] active:scale-95 transition-transform mb-2.5"
     >
       <FaArrowLeft size={16} />
       Back
@@ -389,9 +390,9 @@ export default function DiaryTeacher() {
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
 
         {/* ── Add Form ───────────────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-2xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100">
-            <h2 className="text-sm font-semibold text-slate-700">Add new entry</h2>
+            <h2 className="text-sm font-semibold text-[rgb(var(--text))]">Add new entry</h2>
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="px-5 py-4 space-y-4">
@@ -405,7 +406,7 @@ export default function DiaryTeacher() {
                   className={`py-2.5 text-xs font-medium rounded-xl border capitalize transition-all ${
                     form.type === t
                       ? TYPE_STYLES[t].badge + " ring-2 ring-offset-1 ring-current/20"
-                      : "border-slate-200 text-slate-500 hover:bg-slate-50"
+                      : "border-slate-200 text-[rgb(var(--text))] hover:bg-[rgb(var(--primary))]"
                   }`}
                 >
                   {t}
@@ -417,13 +418,13 @@ export default function DiaryTeacher() {
             <div className="grid grid-cols-2 gap-3">
               <Field label="Class" error={errors.classId}>
                 <select
-                  className={fieldCls(errors.classId)}
+                  className={`${fieldCls(errors.classId)} text-[rgb(var(--text))] bg-[rgb(var(--surface))] `}
                   value={form.classId}
                   onChange={(e) => handleClassChange(e.target.value)}
                 >
                   <option value="">Select class</option>
                   {classes.map((c) => (
-                    <option key={c._id} value={c._id}>Class {c.name}</option>
+                    <option key={c._id} value={c._id} className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">Class {c.name}</option>
                   ))}
                 </select>
               </Field>
@@ -494,7 +495,7 @@ export default function DiaryTeacher() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 rounded-xl text-sm font-medium bg-slate-800 text-white hover:bg-slate-700 active:scale-[0.98] disabled:opacity-60 transition-all"
+              className="w-full py-3 rounded-xl text-sm font-medium text-[rgb(var(--text))] bg-[rgb(var(--primary))] active:scale-[0.98] disabled:opacity-60 transition-all"
             >
               {submitting ? "Adding…" : "Add Entry"}
             </button>
@@ -503,13 +504,13 @@ export default function DiaryTeacher() {
 
         {/* ── Diary List ────────────────────────────────────────────────────── */}
         <div>
-          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3 px-1">
+          <h2 className="text-xs font-semibold text-[rgb(var(--text))] uppercase tracking-widest mb-3 px-1">
             All entries
           </h2>
 
           {diaryList.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 py-12 text-center">
-              <p className="text-sm text-slate-400">No diary entries yet</p>
+            <div className="bg-[rgb(var(--surface))] rounded-2xl border border-slate-200 py-12 text-center">
+              <p className="text-sm text-[rgb(var(--text))]">No diary entries yet</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -518,7 +519,7 @@ export default function DiaryTeacher() {
                 return (
                   <div
                     key={d._id}
-                    className={`bg-white rounded-2xl border border-slate-200 border-l-4 ${ts.accent} p-4`}
+                    className={`bg-[rgb(var(--surface))] rounded-2xl border border-slate-200 border-l-4 ${ts.accent} p-4`}
                   >
                     {/* Top row */}
                     <div className="flex items-start justify-between gap-3">
@@ -527,13 +528,13 @@ export default function DiaryTeacher() {
                           {d.type}
                         </span>
                         {d.classId?.name && (
-                          <span className="text-xs text-slate-400">
-                            Class {d.classId.name}
+                          <span className="text-xs text-[rgb(var(--text))]">
+                            Class {d.classId.name} 
                             {d.sectionId?.name ? ` · Sec ${d.sectionId.name}` : ""}
                           </span>
                         )}
                         {d.subjectId?.name && (
-                          <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+                          <span className="text-xs px-2 py-0.5 rounded-full">
                             {d.subjectId.name}
                           </span>
                         )}
@@ -543,7 +544,7 @@ export default function DiaryTeacher() {
                       <div className="flex items-center gap-1 shrink-0">
                         <button
                           onClick={() => setEditEntry(d)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                          className="p-1.5 rounded-lg text-[rgb(var(--text))] hover:text-blue-600 hover:bg-blue-50 transition-colors"
                           title="Edit"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -552,7 +553,7 @@ export default function DiaryTeacher() {
                         </button>
                         <button
                           onClick={() => setDeleteId(d._id)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          className="p-1.5 rounded-lg text-[rgb(var(--text))] hover:text-red-600 hover:bg-red-50 transition-colors"
                           title="Delete"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -563,7 +564,7 @@ export default function DiaryTeacher() {
                     </div>
 
                     {/* Content */}
-                    <p className="text-sm text-slate-600 leading-relaxed">{d.content}</p>
+                    <p className="text-sm text-[rgb(var(--text))] leading-relaxed">{d.content}</p>
 
                     {/* Footer */}
                     {d.type === "homework" &&
@@ -597,21 +598,21 @@ export default function DiaryTeacher() {
       {/* ── Delete Confirm ──────────────────────────────────────────────────── */}
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-xs">
+          <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-2xl shadow-xl p-6 w-full max-w-xs">
             <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center mb-3">
               <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
-            <h3 className="text-sm font-semibold text-slate-800 mb-1">Delete entry?</h3>
-            <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+            <h3 className="text-sm font-semibold text-[rgb(var(--text))] mb-1">Delete entry?</h3>
+            <p className="text-xs text-[rgb(var(--text))] mb-5 leading-relaxed">
               This will permanently remove the diary entry. Students and parents will no longer see it.
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => setDeleteId(null)}
                 disabled={deleting}
-                className="flex-1 py-2.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors disabled:opacity-50"
+                className="flex-1 py-2.5 rounded-xl text-xs font-medium bg-[rgb(var(--bg))] text-[rgb(var(--text))] hover:bg-[rgb(var(--surface))] transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -628,4 +629,5 @@ export default function DiaryTeacher() {
       )}
     </div>
   );
+
 }

@@ -138,7 +138,7 @@ export default function ReadTimetable({
 
   /* ════════════════════════════════════════════════════ */
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-8">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
         <div className="pt-4">
@@ -156,27 +156,27 @@ export default function ReadTimetable({
 
       {/* ── Header ── */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Timetable</h1>
-        <p className="text-sm text-gray-500 mt-0.5">View your class schedule</p>
+        <h1 className="text-2xl font-bold text-[rgb(var(--text))]">Timetable</h1>
+        <p className="text-sm text-[rgb(var(--text))] mt-0.5">View your class schedule</p>
       </div>
 
       {/* ── Class Selector (optional) ── */}
       {showClassSelector && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5">
+        <div className="bg-[rgb(var(--surface))] rounded-2xl border border-gray-100 shadow-sm p-4 sm:p-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg shrink-0">
               <MdOutlineClass />
             </div>
             <div className="flex-1 min-w-0">
-              <label className="block text-xs font-semibold text-gray-400 mb-1">
+              <label className="block text-xs font-semibold text-[rgb(var(--text))] mb-1">
                 Select Class &amp; Section
               </label>
               <select
                 value={selectedEntry?._id || ""}
                 onChange={handleClassChange}
-                className="w-full sm:w-64 border border-gray-200 bg-gray-50 px-3 py-2 rounded-xl text-sm font-semibold text-gray-700 focus:outline-none focus:border-indigo-400"
+                className="w-full sm:w-64 border border-gray-200 bg-[rgb(var(--surface))]  text-[rgb(var(--text))] px-3 py-2 rounded-xl text-sm font-semibold  focus:outline-none focus:border-indigo-400"
               >
-                <option value="">Choose Class</option>
+                <option value="" className="bg-[rgb(var(--bg))]  text-[rgb(var(--text))]">Choose Class</option>
                 {classes.map((c) => (
                   <option key={c._id} value={c._id}>
                     {c.displayName}
@@ -190,14 +190,14 @@ export default function ReadTimetable({
 
       {/* ── Empty state — no class chosen ── */}
       {!classId && showClassSelector && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
+        <div className=" rounded-2xl border border-gray-100 shadow-sm p-16 text-center">
           <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <MdOutlineClass className="text-3xl text-indigo-400" />
           </div>
-          <h2 className="text-base font-semibold text-gray-700 mb-1">
+          <h2 className="text-base font-semibold text-[rgb(var(--text))] mb-1">
             Select a Class to View Timetable
           </h2>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-[rgb(var(--text))]">
             Choose a class or section above to view its schedule
           </p>
         </div>
@@ -212,14 +212,14 @@ export default function ReadTimetable({
 
       {/* ── Timetable Not Set ── */}
       {classId && !loading && !timetableExists && (
-        <div className="bg-white rounded-2xl border border-amber-100 shadow-sm p-16 text-center">
+        <div className="bg-[rgb(var(--surface))]  rounded-2xl border border-amber-100 shadow-sm p-16 text-center">
           <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <FaClock className="text-3xl text-amber-400" />
           </div>
-          <h2 className="text-base font-semibold text-gray-700 mb-1">
+          <h2 className="text-base font-semibold text-[rgb(var(--text))] mb-1">
             Timetable Not Set
           </h2>
-          <p className="text-sm text-gray-400 max-w-xs mx-auto">
+          <p className="text-sm text-[rgb(var(--text))] max-w-xs mx-auto">
             The timetable for this class hasn't been created yet by the school
             admin. Please check back later or contact your school administrator.
           </p>
@@ -228,11 +228,11 @@ export default function ReadTimetable({
 
       {/* ── Timetable View ── */}
       {classId && !loading && timetableExists && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+        <div className=" rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
-              <tr className="bg-gray-800 text-white">
-                <th className="px-5 py-4 text-left font-semibold text-xs uppercase tracking-wider border-r border-gray-700 min-w-[130px]">
+              <tr className="bg-[rgb(var(--surface))]  text-[rgb(var(--text))]">
+                <th className="px-5 py-4 text-left font-semibold text-xs uppercase tracking-wider border-r  min-w-[130px]">
                   Time Slot
                 </th>
                 {DAYS.map((day) => (
@@ -249,16 +249,14 @@ export default function ReadTimetable({
               {periodConfigs.map((p, i) => (
                 <tr
                   key={p.id}
-                  className={`border-b border-gray-100 ${
-                    i % 2 === 0 ? "bg-white" : "bg-gray-50/50"
-                  }`}
+                 className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] border-t"
                 >
                   {/* Time slot */}
                   <td className="px-5 py-4 border-r border-gray-100">
-                    <p className="text-xs font-bold text-indigo-600">
+                    <p className="text-xs font-bold text-[rgb(var(--primary))]">
                       {p.name}
                     </p>
-                    <p className="text-[10px] text-gray-400 font-mono mt-0.5">
+                    <p className="text-[10px] text-[rgb(var(--text))] font-mono mt-0.5">
                       {p.start} – {p.end}
                     </p>
                   </td>
@@ -271,24 +269,24 @@ export default function ReadTimetable({
                         {data?.type === "lecture" ? (
                           <div className="text-left space-y-1">
                             {data.subjectId && (
-                              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800">
+                              <div className="flex items-center gap-1.5 text-xs font-bold text-[rgb(var(--text))]">
                                 <FaBook
                                   size={10}
-                                  className="text-indigo-400 shrink-0"
+                                  className="text-[rgb(var(--primary))] shrink-0"
                                 />
                                 {subjectName(data.subjectId)}
                               </div>
                             )}
                             {data.teacherId ? (
-                              <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
+                              <div className="flex items-center gap-1.5 text-[11px] text-[rgb(var(--text))]">
                                 <FaUserTie
                                   size={10}
-                                  className="text-gray-300 shrink-0"
+                                  className="text-[rgb(var(--text))] shrink-0"
                                 />
                                 {teacherName(data.teacherId)}
                               </div>
                             ) : (
-                              <p className="text-[10px] text-gray-400 italic">
+                              <p className="text-[10px] text-[rgb(var(--text))] italic">
                                 Teacher TBD
                               </p>
                             )}
@@ -302,7 +300,7 @@ export default function ReadTimetable({
                             <FaRunning size={11} /> {data.customName}
                           </div>
                         ) : (
-                          <span className="text-[10px] text-gray-300 italic">
+                          <span className="text-[10px] text-[rgb(var(--text))] italic">
                             Free
                           </span>
                         )}

@@ -489,7 +489,7 @@ export default function Assignment() {
       {topics.length === 0 ? (
         <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-xl">
           <p className="text-3xl mb-2">📌</p>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-[rgb(var(--text))]">
             No topics found for this chapter.
           </p>
         </div>
@@ -502,17 +502,17 @@ export default function Assignment() {
                 key={t._id}
                 onClick={() => toggleTopic(t)}
                 className={`text-left border rounded-xl p-3.5 transition-all group
-                  ${sel ? "border-indigo-400 bg-indigo-50 shadow-sm" : "border-gray-100 hover:border-indigo-300 hover:bg-indigo-50/50"}`}
+                  ${sel ? "border-indigo-400 bg-[rgb(var(--surface))] shadow-sm" : "border-gray-100"}`}
               >
                 <span className="flex items-center gap-2">
                   <span
                     className={`w-4 h-4 rounded flex items-center justify-center border-2 shrink-0 transition-colors
                     ${sel ? "border-indigo-500 bg-indigo-500" : "border-gray-300"}`}
                   >
-                    {sel && <FiCheck className="text-white text-xs" />}
+                    {sel && <FiCheck className=" text-xs" />}
                   </span>
                   <span
-                    className={`text-sm font-bold leading-snug ${sel ? "text-indigo-700" : "text-gray-700"}`}
+                    className={`text-sm font-bold leading-snug ${sel ? "text-[rgb(var(--primary))]" : "text-[rgb(var(--text))]"}`}
                   >
                     {t.name}
                   </span>
@@ -526,14 +526,14 @@ export default function Assignment() {
         {selectedTopics.length > 0 && (
           <button
             onClick={() => setSelectedTopics([])}
-            className="text-xs text-gray-400 hover:text-gray-600 font-medium"
+            className="text-xs text-[rgb(var(--primary))] font-medium"
           >
             Clear selection
           </button>
         )}
         <button
           onClick={() => setStep(STEP_DETAILS)}
-          className="btn-primary flex items-center gap-2 ml-auto"
+          className="bg-[rgb(var(--primary))] text-[rgb(var(--text))] p-3 rounded-xl flex items-center gap-2 ml-auto"
         >
           {selectedTopics.length > 0
             ? `Continue with ${selectedTopics.length} topic${selectedTopics.length > 1 ? "s" : ""}`
@@ -568,10 +568,10 @@ export default function Assignment() {
 
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className="field-label">Questions</label>
+            <label className="text-[rgb(var(--text))]">Questions</label>
             <input
               type="number"
-              className="field-input"
+              className=" "
               min={1}
               max={20}
               value={aiConfig.numberOfQuestions}
@@ -584,9 +584,9 @@ export default function Assignment() {
             />
           </div>
           <div>
-            <label className="field-label">Difficulty</label>
+            <label className="text-[rgb(var(--text))]">Difficulty</label>
             <select
-              className="field-input"
+              className=" "
               value={aiConfig.difficulty}
               onChange={(e) =>
                 setAiConfig((c) => ({ ...c, difficulty: e.target.value }))
@@ -600,7 +600,7 @@ export default function Assignment() {
             </select>
           </div>
           <div>
-            <label className="field-label">Types</label>
+            <label className="text-[rgb(var(--text))]">Types</label>
             <div className="flex gap-1 flex-wrap mt-1">
               {Q_TYPES.map((t) => {
                 const active = aiConfig.questionTypes.includes(t);
@@ -617,7 +617,7 @@ export default function Assignment() {
                       }))
                     }
                     className={`text-xs px-2 py-1 rounded-lg border font-semibold transition-colors
-                      ${active ? "border-violet-400 bg-violet-500 text-white" : "border-gray-200 text-gray-500 hover:border-violet-300"}`}
+                      ${active ? "border-violet-400 bg-violet-500 text-white" : "border-gray-200 text-[rgb(var(--text))] hover:border-violet-300"}`}
                   >
                     {t.toUpperCase()}
                   </button>
@@ -651,7 +651,7 @@ export default function Assignment() {
       {pendingQuestions.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+            <h4 className="text-sm font-bold text-[rgb(var(--text))] flex items-center gap-2">
               <FiSliders className="text-violet-500" />
               Review Generated Questions
               {pendingCount > 0 && (
@@ -692,7 +692,7 @@ export default function Assignment() {
 
           <button
             onClick={() => setPendingQuestions([])}
-            className="text-xs text-gray-400 hover:text-gray-600 font-medium flex items-center gap-1"
+            className="text-xs text-[rgb(var(--text))] hover:text-[rgb(var(--text))] font-medium flex items-center gap-1"
           >
             <FiRefreshCw className="text-xs" /> Clear all & regenerate
           </button>
@@ -701,12 +701,12 @@ export default function Assignment() {
 
       {/* Approved Questions List */}
       <div className="space-y-3">
-        <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+        <h4 className="text-sm font-bold text-[rgb(var(--text))] flex items-center gap-2">
           <FiCheckCircle className="text-emerald-500" />
           Approved Questions
           <span
             className={`text-xs px-2 py-0.5 rounded-full font-bold
-            ${approvedQuestions.length ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-400"}`}
+            ${approvedQuestions.length ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-[rgb(var(--text))]"}`}
           >
             {approvedQuestions.length}
           </span>
@@ -714,8 +714,8 @@ export default function Assignment() {
 
         {approvedQuestions.length === 0 ? (
           <div className="text-center py-8 border-2 border-dashed border-gray-200 rounded-xl">
-            <HiSparkles className="text-3xl text-gray-200 mx-auto mb-2" />
-            <p className="text-sm text-gray-400">
+            <HiSparkles className="text-3xl text-[rgb(var(--text))] mx-auto mb-2" />
+            <p className="text-sm text-[rgb(var(--text))]">
               Generate and approve questions above.
             </p>
           </div>
@@ -730,10 +730,10 @@ export default function Assignment() {
                   {i + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800 truncate">
+                  <p className="text-sm font-medium text-[rgb(var(--text))] truncate">
                     {q.text}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-[rgb(var(--text))] mt-0.5">
                     {q.type.toUpperCase()} • {q.marks} mark
                     {q.marks !== 1 ? "s" : ""}
                     {q.type === "mcq" && ` • ${q.options.length} options`}
@@ -788,7 +788,7 @@ export default function Assignment() {
       return (
         <div className="flex flex-col items-center justify-center h-48 gap-3">
           <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-gray-400">Loading...</p>
+          <p className="text-sm text-[rgb(var(--text))]">Loading...</p>
         </div>
       );
     if (step === STEP_CLASS)
@@ -834,9 +834,9 @@ export default function Assignment() {
           />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <label className="field-label">Title *</label>
+              <label className="text-[rgb(var(--text))] mb-2">Title *</label>
               <input
-                className="field-input"
+                className="border w-full p-2 rounded-xl bg-[rgb(var(--surface))] text-[rgb(var(--text))]"
                 placeholder="e.g. Chapter 3 Homework"
                 value={details.title}
                 onChange={(e) => {
@@ -846,9 +846,9 @@ export default function Assignment() {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="field-label">Description</label>
+              <label className="text-[rgb(var(--text))] mb-1">Description</label>
               <textarea
-                className="field-input resize-none"
+                className="w-full m-1 border rounded-xl bg-[rgb(var(--surface))] text-[rgb(var(--text))] resize-none"
                 rows={3}
                 placeholder="Optional instructions..."
                 value={details.description}
@@ -859,9 +859,9 @@ export default function Assignment() {
               />
             </div>
             <div>
-              <label className="field-label">Type</label>
+              <label className="text-[rgb(var(--text))] mr-2">Type</label>
               <select
-                className="field-input"
+                className="  bg-[rgb(var(--surface))] text-[rgb(var(--text))] border p-1"
                 value={details.type}
                 onChange={(e) => {
                   setDetails({ ...details, type: e.target.value });
@@ -874,10 +874,10 @@ export default function Assignment() {
               </select>
             </div>
             <div>
-              <label className="field-label">Due Date *</label>
+              <label className="text-[rgb(var(--text))]">Due Date *</label>
               <input
                 type="date"
-                className="field-input"
+                className="w-full border rounded-xl bg-[rgb(var(--surface))] text-[rgb(var(--text))]"
                 value={details.dueDate}
                 onChange={(e) => {
                   setDetails({ ...details, dueDate: e.target.value });
@@ -886,10 +886,10 @@ export default function Assignment() {
               />
             </div>
             <div>
-              <label className="field-label">Duration (minutes)</label>
+              <label className="text-[rgb(var(--text))]">Duration (minutes)</label>
               <input
                 type="number"
-                className="field-input"
+                className="bg-[rgb(var(--surface))] w-full mb-2 border p-2 rounded-xl text-[rgb(var(--text))]"
                 placeholder="e.g. 60"
                 min={1}
                 value={details.duration}
@@ -900,10 +900,10 @@ export default function Assignment() {
               />
             </div>
             <div>
-              <label className="field-label">Max Attempts</label>
+              <label className="text-[rgb(var(--text))]">Max Attempts</label>
               <input
                 type="number"
-                className="field-input"
+                className="w-full bg-[rgb(var(--surface))] border p-2 rounded-xl text-[rgb(var(--text))]"
                 min={1}
                 value={details.maxAttempts}
                 onChange={(e) => {
@@ -922,7 +922,7 @@ export default function Assignment() {
               if (!details.dueDate) return toast.warn("Due date is required");
               setStep(STEP_QUESTIONS);
             }}
-            className="btn-primary w-full flex items-center justify-center gap-2 mt-2"
+            className="bg-[rgb(var(--primary))] p-2 rounded-xl text-[rgb(var(--text))] w-full flex items-center justify-center gap-2 mt-2"
           >
             Continue to Questions <FiChevronRight />
           </button>
@@ -949,7 +949,7 @@ export default function Assignment() {
           </button>
         </div>
       )}
-      <div className="bg-slate-50 p-4 sm:p-6">
+      <div className=" p-4 sm:p-6">
         <div className="mx-auto">
           {/* Page header */}
           <div className="mb-6 flex items-center gap-3">
@@ -957,10 +957,10 @@ export default function Assignment() {
               <HiOutlineClipboardList className="text-white text-xl" />
             </span>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-[rgb(var(--text))]">
                 {isEditMode ? "Edit Assignment" : "Assignments"}
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-[rgb(var(--text))]">
                 {isEditMode
                   ? "Editing draft — changes won't save until you confirm"
                   : "Create AI-powered assignments for your classes"}
@@ -975,7 +975,7 @@ export default function Assignment() {
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* LEFT: Wizard */}
-            <div className="lg:col-span-3 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="lg:col-span-3 bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-2xl shadow-sm border border-gray-100 p-6">
               {(!teacherId || !schoolId) && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-mono text-red-700">
                   <strong>⚠ Config:</strong> teacherId={String(teacherId)}{" "}
@@ -1003,7 +1003,7 @@ export default function Assignment() {
                     <div key={i} className="flex items-center flex-1">
                       <div
                         className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all duration-300
-                        ${i < step ? "bg-indigo-600 text-white" : i === step ? "bg-indigo-100 text-indigo-700 ring-2 ring-indigo-400" : "bg-gray-100 text-gray-400"}`}
+                        ${i < step ? "bg-[rgb(var(--primary))]  text-[rgb(var(--text))]" : i === step ? "bg-indigo-100 text-indigo-700 ring-2 ring-indigo-400" : " border text-[rgb(var(--text))]"}`}
                       >
                         {i < step ? "✓" : i + 1}
                       </div>
@@ -1015,7 +1015,7 @@ export default function Assignment() {
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-400 font-semibold tracking-widest uppercase">
+                <p className="text-xs text-[rgb(var(--text))] font-semibold tracking-widest uppercase">
                   {isEditMode
                     ? "Edit Mode"
                     : `Step ${step + 1}/${STEPS.length}`}{" "}
@@ -1027,8 +1027,8 @@ export default function Assignment() {
                 <div className="flex flex-wrap items-center gap-1 mb-5 text-xs">
                   {crumbs.map((c, i) => (
                     <span key={i} className="flex items-center gap-1">
-                      {i > 0 && <FiChevronRight className="text-gray-300" />}
-                      <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-semibold">
+                      {i > 0 && <FiChevronRight className="text-[rgb(var(--text))]" />}
+                      <span className="bg-[rgb(var(--primary))] text-[rgb(var(--text))] px-2 py-0.5 rounded-md font-semibold">
                         {c}
                       </span>
                     </span>
@@ -1039,18 +1039,18 @@ export default function Assignment() {
             </div>
 
             {/* RIGHT: List */}
-            <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <div className="lg:col-span-2 bg-[rgb(var(--surface))] text-[rgb(var(--text))]  rounded-2xl shadow-sm border border-gray-100 p-5">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-bold text-gray-800">My Assignments</h2>
+                <h2 className="font-bold text-[rgb(var(--text))]">My Assignments</h2>
                 <span className="text-xs bg-indigo-100 text-indigo-600 px-2.5 py-1 rounded-full font-bold">
                   {assignments.length}
                 </span>
               </div>
               {assignments.length === 0 ? (
-                <div className="text-center py-16 text-gray-400">
-                  <HiOutlineClipboardList className="text-5xl mx-auto mb-3 text-gray-200" />
+                <div className="text-center py-16 text-[rgb(var(--text))]">
+                  <HiOutlineClipboardList className="text-5xl mx-auto mb-3 text-[rgb(var(--text))]" />
                   <p className="text-sm font-semibold">No assignments yet</p>
-                  <p className="text-xs mt-1 text-gray-300">
+                  <p className="text-xs mt-1 text-[rgb(var(--text))]">
                     Create one using the wizard
                   </p>
                 </div>
@@ -1063,7 +1063,7 @@ export default function Assignment() {
                         ${editingAssignmentId === a._id ? "border-amber-300 bg-amber-50/40" : "border-gray-100 hover:border-indigo-200"}`}
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
-                        <h3 className="font-bold text-sm text-gray-800 leading-snug line-clamp-2">
+                        <h3 className="font-bold text-sm text-[rgb(var(--text))] leading-snug line-clamp-2">
                           {a.title}
                         </h3>
                         <span
@@ -1073,10 +1073,10 @@ export default function Assignment() {
                           {a.isPublished ? "● Live" : "○ Draft"}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400 mb-2">
+                      <p className="text-xs text-[rgb(var(--text))] mb-2">
                         {a.classId?.name} • {a.subjectId?.name}
                       </p>
-                      <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
+                      <div className="flex items-center gap-3 text-xs text-[rgb(var(--text))] mb-3">
                         <span className="flex items-center gap-1">
                           <FiAward className="text-indigo-400" />
                           {a.totalMarks} marks
@@ -1095,7 +1095,7 @@ export default function Assignment() {
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => setViewingAssignment(a)}
-                          className="flex-1 flex items-center justify-center gap-1 text-xs py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-colors font-semibold"
+                          className="flex-1 flex items-center justify-center gap-1 text-xs py-1.5 rounded-lg border border-gray-200 text-[rgb(var(--text))] cursor-pointer transition-colors font-semibold"
                         >
                           <FiEye className="text-xs" /> View
                         </button>
@@ -1104,10 +1104,10 @@ export default function Assignment() {
                           className={`flex-1 flex items-center justify-center gap-1 text-xs py-1.5 rounded-lg border font-semibold transition-colors
                             ${
                               a.isPublished
-                                ? "border-gray-100 text-gray-300 cursor-not-allowed bg-gray-50"
+                                ? "border-gray-100 text-[rgb(var(--text))] cursor-not-allowed "
                                 : editingAssignmentId === a._id
                                   ? "border-amber-400 text-amber-700 bg-amber-50"
-                                  : "border-gray-200 text-gray-600 hover:border-amber-300 hover:text-amber-600 hover:bg-amber-50"
+                                  : "border-gray-200 text-[rgb(var(--text))] hover:border-amber-300 hover:text-[rgb(var(--text))] hover:bg-[rgb(var(--primary))]"
                             }`}
                         >
                           <FiEdit2 className="text-xs" />
@@ -1120,8 +1120,8 @@ export default function Assignment() {
                           className={`flex-1 flex items-center justify-center gap-1 text-xs py-1.5 rounded-lg border font-semibold transition-colors
                             ${
                               a.isPublished
-                                ? "border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
-                                : "border-gray-200 text-gray-600 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50"
+                                ? "border-gray-200 text-[rgb(var(--text))]  hover:bg-[rgb(var(--primary))]"
+                                : "border-gray-200 text-[rgb(var(--text))] hover:bg-[rgb(var(--bg))]"
                             }`}
                         >
                           {a.isPublished ? (
@@ -1136,7 +1136,7 @@ export default function Assignment() {
                         </button>
                         <button
                           onClick={() => setConfirmDelete(a._id)}
-                          className="p-1.5 rounded-lg border border-gray-200 text-gray-400 hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          className="p-1.5 rounded-lg border border-gray-200 text-[rgb(var(--text))] hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-colors"
                         >
                           <FiTrash2 className="text-xs" />
                         </button>
@@ -1224,16 +1224,16 @@ function PendingQuestionCard({
     return (
       <div className="border border-violet-300 rounded-xl p-4 space-y-3 bg-violet-50/30">
         <textarea
-          className="field-input resize-none"
+          className="  resize-none"
           rows={2}
           value={draft.text}
           onChange={(e) => setDraft((d) => ({ ...d, text: e.target.value }))}
         />
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="field-label">Type</label>
+            <label className="text-[rgb(var(--text))]">Type</label>
             <select
-              className="field-input"
+              className=" "
               value={draft.type}
               onChange={(e) =>
                 setDraft((d) => ({ ...d, type: e.target.value, options: [] }))
@@ -1245,10 +1245,10 @@ function PendingQuestionCard({
             </select>
           </div>
           <div>
-            <label className="field-label">Marks</label>
+            <label className="text-[rgb(var(--text))]">Marks</label>
             <input
               type="number"
-              className="field-input"
+              className=" "
               min={0}
               value={draft.marks}
               onChange={(e) =>
@@ -1272,7 +1272,7 @@ function PendingQuestionCard({
                   className="w-4 h-4 accent-emerald-500"
                 />
                 <input
-                  className="field-input flex-1"
+                  className="  flex-1"
                   value={opt.text}
                   onChange={(e) => {
                     const opts = [...draft.options];
@@ -1317,9 +1317,9 @@ function PendingQuestionCard({
           {index + 1}
         </span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-800">{q.text}</p>
+          <p className="text-sm font-medium text-[rgb(var(--text))]">{q.text}</p>
           <div className="flex gap-2 mt-1 flex-wrap">
-            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium uppercase">
+            <span className="text-xs bg-gray-100 text-[rgb(var(--text))] px-2 py-0.5 rounded-full font-medium uppercase">
               {q.type}
             </span>
             <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-medium">
@@ -1340,12 +1340,12 @@ function PendingQuestionCard({
                 <div
                   key={j}
                   className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg
-                  ${o.isCorrect ? "bg-emerald-50 text-emerald-700 font-medium" : "bg-gray-50 text-gray-500"}`}
+                  ${o.isCorrect ? "bg-emerald-50 text-emerald-700 font-medium" : "bg-gray-50 text-[rgb(var(--text))]"}`}
                 >
                   {o.isCorrect ? (
                     <FiCheckCircle className="shrink-0" />
                   ) : (
-                    <FiXCircle className="shrink-0 text-gray-300" />
+                    <FiXCircle className="shrink-0 text-[rgb(var(--text))]" />
                   )}
                   {o.text}
                 </div>
@@ -1399,7 +1399,7 @@ function CardGrid({
       {items.length === 0 ? (
         <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-xl mt-4">
           <p className="text-3xl mb-2">{icon}</p>
-          <p className="text-sm text-gray-400">{emptyText}</p>
+          <p className="text-sm text-[rgb(var(--text))]">{emptyText}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
@@ -1407,16 +1407,16 @@ function CardGrid({
             <button
               key={item._id}
               onClick={() => onPick(item)}
-              className="text-left border border-gray-100 rounded-xl p-3.5 hover:border-indigo-400 hover:bg-indigo-50/60 hover:shadow-sm transition-all group"
+              className="text-left border border-gray-100 rounded-xl p-3.5 hover:border-[rgb(var(--primary))]  transition-all group"
             >
               <span className="block text-xl mb-2">{icon}</span>
 
-              <span className="text-sm font-bold text-gray-700 group-hover:text-indigo-700 block">
+              <span className="text-sm font-bold text-[rgb(var(--text))] group-hover:text-[rgb(var(--primary))] block">
                 {item.name}
               </span>
 
               {renderExtra && (
-                <span className="text-xs text-gray-400 block mt-1">
+                <span className="text-xs text-[rgb(var(--text))] block mt-1">
                   {renderExtra(item)}
                 </span>
               )}
@@ -1434,12 +1434,12 @@ function StepHeader({ label, onBack }) {
       {onBack && (
         <button
           onClick={onBack}
-          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
+          className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-[rgb(var(--text))] hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-colors"
         >
           <FiArrowLeft />
         </button>
       )}
-      <h3 className="font-bold text-gray-800">{label}</h3>
+      <h3 className="font-bold text-[rgb(var(--text))]">{label}</h3>
     </div>
   );
 }
@@ -1464,7 +1464,7 @@ function ConfirmModal({
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onCancel}
       />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-modal">
+      <div className="relative bg-[rgb(var(--surface))]  rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-modal">
         <div
           className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 mx-auto ${confirmColor === "red" ? "bg-red-100" : "bg-indigo-100"}`}
         >
@@ -1472,20 +1472,20 @@ function ConfirmModal({
             className={`text-xl ${confirmColor === "red" ? "text-red-500" : "text-indigo-500"}`}
           />
         </div>
-        <h3 className="text-center font-bold text-gray-800 text-lg mb-2">
+        <h3 className="text-center font-bold text-[rgb(var(--text))] text-lg mb-2">
           {title}
         </h3>
-        <p className="text-center text-gray-500 text-sm mb-6">{message}</p>
+        <p className="text-center text-[rgb(var(--text))] text-sm mb-6">{message}</p>
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 border border-gray-200 rounded-xl py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            className="flex-1 border border-gray-200 rounded-xl py-2.5 text-sm font-medium text-[rgb(var(--text))] hover:bg-[rgb(var(--primary))] transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className={`flex-1 rounded-xl py-2.5 text-sm font-semibold text-white transition-colors ${colors[confirmColor]}`}
+            className={`flex-1 rounded-xl py-2.5 text-sm font-semibold bg-[rgb(var(--primary))] text-[rgb(var(--text))] transition-colors `}
           >
             {confirmLabel}
           </button>
@@ -1503,7 +1503,7 @@ function ViewModal({ assignment, onClose }) {
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-modal">
+      <div className="relative bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-modal">
         <div className="flex items-start justify-between p-6 border-b border-gray-100">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -1516,10 +1516,10 @@ function ViewModal({ assignment, onClose }) {
                 {assignment.type}
               </span>
             </div>
-            <h2 className="text-xl font-bold text-gray-800">
+            <h2 className="text-xl font-bold text-[rgb(var(--text))]">
               {assignment.title}
             </h2>
-            <p className="text-sm text-gray-400 mt-0.5">
+            <p className="text-sm text-[rgb(var(--text))] mt-0.5">
               {assignment.classId?.name} › {assignment.subjectId?.name} ›{" "}
               {assignment.chapterId?.name}
               {assignment.topicId?.name && ` › ${assignment.topicId.name}`}
@@ -1527,7 +1527,7 @@ function ViewModal({ assignment, onClose }) {
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-700 p-1"
+            className="text-[rgb(var(--text))] hover:text-[rgb(var(--text))] p-1"
           >
             <FiX className="text-xl" />
           </button>
@@ -1554,22 +1554,22 @@ function ViewModal({ assignment, onClose }) {
           ].map((s, i) => (
             <div key={i} className="flex flex-col items-center py-4 gap-1">
               <span className="text-indigo-400 text-lg">{s.icon}</span>
-              <span className="text-lg font-bold text-gray-800">{s.value}</span>
-              <span className="text-xs text-gray-400">{s.label}</span>
+              <span className="text-lg font-bold text-[rgb(var(--text))]">{s.value}</span>
+              <span className="text-xs text-[rgb(var(--text))]">{s.label}</span>
             </div>
           ))}
         </div>
         <div className="overflow-y-auto flex-1 p-6 space-y-4">
           {assignment.description && (
-            <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+            <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] border rounded-xl p-4">
+              <p className="text-xs font-semibold text-[rgb(var(--text))] uppercase tracking-wide mb-1">
                 Description
               </p>
-              <p className="text-sm text-gray-700">{assignment.description}</p>
+              <p className="text-sm text-[rgb(var(--text))]">{assignment.description}</p>
             </div>
           )}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            <p className="text-xs font-semibold text-[rgb(var(--text))] uppercase tracking-wide mb-3">
               Questions
             </p>
             <div className="space-y-3">
@@ -1580,11 +1580,11 @@ function ViewModal({ assignment, onClose }) {
                       {i + 1}
                     </span>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-800">
+                      <p className="text-sm font-medium text-[rgb(var(--text))]">
                         {q.text}
                       </p>
                       <div className="flex gap-2 mt-1">
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium uppercase">
+                        <span className="text-xs bg-[rgb(var(--primary))] text-[rgb(var(--text))] px-2 py-0.5 rounded-full font-medium uppercase">
                           {q.type}
                         </span>
                         <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-medium">
@@ -1596,12 +1596,12 @@ function ViewModal({ assignment, onClose }) {
                           {q.options.map((o, j) => (
                             <div
                               key={j}
-                              className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg ${o.isCorrect ? "bg-emerald-50 text-emerald-700 font-medium" : "bg-gray-50 text-gray-600"}`}
+                              className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg ${o.isCorrect ? "bg-[rgb(var(--primary))] text-[rgb(var(--text))] font-medium" : "bg-gray-50 text-[rgb(var(--text))]"}`}
                             >
                               {o.isCorrect ? (
                                 <FiCheckCircle className="shrink-0" />
                               ) : (
-                                <FiXCircle className="shrink-0 text-gray-300" />
+                                <FiXCircle className="shrink-0 text-[rgb(var(--text))]" />
                               )}
                               {o.text}
                             </div>
@@ -1623,9 +1623,9 @@ function ViewModal({ assignment, onClose }) {
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
   body { font-family: 'Plus Jakarta Sans', sans-serif; }
-  .field-label { display: block; font-size: 0.7rem; font-weight: 700; color: #9ca3af; margin-bottom: 5px; letter-spacing: 0.05em; text-transform: uppercase; }
-  .field-input { display: block; width: 100%; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 9px 12px; font-size: 0.875rem; color: #1f2937; background: white; outline: none; transition: border-color 0.15s, box-shadow 0.15s; font-family: 'Plus Jakarta Sans', sans-serif; }
-  .field-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+  .text-[rgb(var(--text))] { display: block; font-size: 0.7rem; font-weight: 700; color: #9ca3af; margin-bottom: 5px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .  { display: block; width: 100%; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 9px 12px; font-size: 0.875rem; color: #1f2937; background: white; outline: none; transition: border-color 0.15s, box-shadow 0.15s; font-family: 'Plus Jakarta Sans', sans-serif; }
+  . :focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
   .btn-primary { background: #4f46e5; color: white; border-radius: 10px; padding: 10px 20px; font-size: 0.875rem; font-weight: 700; border: none; cursor: pointer; transition: background 0.15s, transform 0.1s, box-shadow 0.15s; font-family: 'Plus Jakarta Sans', sans-serif; }
   .btn-primary:hover:not(:disabled) { background: #4338ca; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79,70,229,0.25); }
   .btn-primary:active:not(:disabled) { transform: translateY(0); }

@@ -294,7 +294,7 @@ const TeacherDashboard = () => {
       <div className="flex min-h-screen items-center justify-center bg-slate-50 p-8">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-sky-600" />
-          <p className="text-sm font-semibold text-slate-600">
+          <p className="text-sm font-semibold text-[rgb(var(--text))]">
             Loading teacher dashboard...
           </p>
         </div>
@@ -303,12 +303,12 @@ const TeacherDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-10">
+    <div className="min-h-screen  pb-10">
       {isMobile && (
         <div className="pt-4 px-4">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white shadow-sm border border-slate-100 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl  shadow-sm border border-slate-100 text-sm font-bold text-[rgb(var(--text))] active:scale-95 transition-transform mb-2.5"
           >
             <FaArrowLeft size={16} />
             Back
@@ -317,14 +317,14 @@ const TeacherDashboard = () => {
       )}
 
       {/* Header */}
-      <div className="border-b border-slate-200 bg-white">
+      <div className="border-b border-slate-200  bg-[rgb(var(--surface))] text-[rgb(var(--text))]">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-900">
+              <h1 className="mt-2 text-3xl font-black tracking-tight ">
                 Teacher Dashboard
               </h1>
-              <p className="mt-2 max-w-3xl text-sm text-slate-500">
+              <p className="mt-2 max-w-3xl text-sm text-[rgb(var(--text))]">
                 Manage your classes, assignments, student progress, diary
                 entries and communication from one place.
               </p>
@@ -332,14 +332,14 @@ const TeacherDashboard = () => {
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 onClick={() => setSettingsOpen((v) => !v)}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-[rgb(var(--primary))] px-4 py-3 text-sm font-bold text-[rgb(var(--text))] transition"
               >
                 <FiSettings />
                 Dashboard Settings
               </button>
               <button
                 onClick={() => fetchDashboard({ silent: true })}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl text-[rgb(var(--text))]px-4 py-3 text-sm font-bold  bg-[rgb(var(--primary))] p-2"
               >
                 <FiRefreshCw className={refreshing ? "animate-spin" : ""} />
                 Refresh
@@ -395,8 +395,8 @@ const TeacherDashboard = () => {
 
         {/* Command banner + Alert panel */}
         <section className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
-          <div className="overflow-hidden rounded-3xl bg-linear-to-br from-slate-950 via-sky-950 to-cyan-900 p-6 text-white shadow-xl">
-            <p className="text-xs font-black uppercase tracking-[0.25em] text-sky-200">
+          <div className="overflow-hidden rounded-3xl bg-linear-to-br bg-[rgb(var(--surface))] p-6 text-[rgb(var(--text))] shadow-xl">
+            <p className="text-xs font-black uppercase tracking-[0.25em] text-[rgb(var(--text))]">
               Overview
             </p>
             <h2 className="mt-3 text-2xl font-black">
@@ -404,7 +404,7 @@ const TeacherDashboard = () => {
               {metrics.totalClasses} class
               {metrics.totalClasses !== 1 ? "es" : ""}
             </h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-300">
+            <p className="mt-2 max-w-2xl text-sm text-[rgb(var(--text))]">
               Track pending assignments, diary entries, student submissions, and
               group conversations from this hub.
             </p>
@@ -432,16 +432,16 @@ const TeacherDashboard = () => {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-3xl border border-slate-200 bg-[rgb(var(--surface))] p-5 shadow-sm">
             <div className="mb-4 flex items-center gap-3">
               <div className="rounded-2xl bg-amber-50 p-3 text-amber-600">
                 <FiClock />
               </div>
               <div>
-                <h2 className="text-lg font-black text-slate-900">
+                <h2 className="text-lg font-black text-[rgb(var(--text))]">
                   Attention Needed
                 </h2>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-[rgb(var(--text))]">
                   Items requiring your action
                 </p>
               </div>
@@ -518,11 +518,11 @@ const TeacherDashboard = () => {
                       <div
                         key={a._id}
                         onClick={() => navigate(`/teacher/assignment/result`)}
-                        className="group flex cursor-pointer items-start justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 transition hover:border-slate-200 hover:bg-white hover:shadow-sm"
+                        className="group flex cursor-pointer items-start justify-between gap-3 rounded-2xl border border-slate-100  bg-[rgb(var(--surface))] p-4 transition "
                       >
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <p className="truncate text-sm font-bold text-slate-900">
+                            <p className="truncate text-sm font-bold text-[rgb(var(--text))]">
                               {a.title}
                             </p>
                             <span
@@ -531,7 +531,7 @@ const TeacherDashboard = () => {
                               {a.isPublished ? "Published" : "Draft"}
                             </span>
                           </div>
-                          <div className="mt-1 flex flex-wrap gap-2 text-xs text-slate-500">
+                          <div className="mt-1 flex flex-wrap gap-2 text-xs text-[rgb(var(--text))]">
                             <span>{a.subjectId?.name || "—"}</span>
                             <span>·</span>
                             <span className="capitalize">{a.type}</span>
@@ -551,7 +551,7 @@ const TeacherDashboard = () => {
                               {badge.label}
                             </span>
                           )}
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs text-[rgb(var(--text))]">
                             Due {formatShortDate(a.dueDate)}
                           </span>
                         </div>
@@ -617,17 +617,19 @@ const TeacherDashboard = () => {
                     <div
                       key={cls._id}
                       onClick={() => navigate(`/teacher/class-view/${cls._id}`)}
-                      className="flex cursor-pointer items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 p-4 transition hover:bg-white hover:border-slate-200 hover:shadow-sm"
+                      className="flex cursor-pointer items-center justify-between rounded-2xl border border-slate-100 text-[rgb(var(--text))]
+                        hover:-translate-y-0.5
+                      bg-[rgb(var(--surface))] p-4 transition "
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-100 text-sky-700 font-black text-sm">
                           {cls.name?.slice(0, 2).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-slate-900">
+                          <p className="text-sm font-bold text-[rgb(var(--text))]">
                             {cls.name}
                           </p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-[rgb(var(--text))]">
                             {cls.details?.length || 0} section
                             {(cls.details?.length || 0) !== 1 ? "s" : ""}
                           </p>
@@ -639,7 +641,7 @@ const TeacherDashboard = () => {
                         >
                           {cls.status}
                         </span>
-                        <FiArrowRight className="text-slate-300" />
+                        <FiArrowRight className="text-[rgb(var(--text))]" />
                       </div>
                     </div>
                   ))}
@@ -658,7 +660,7 @@ const TeacherDashboard = () => {
                   <button
                     key={item.label}
                     onClick={() => navigate(item.to)}
-                    className="group rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+                    className="group rounded-2xl border border-slate-200 bg-[rgb(var(--surface))] p-4 text-left transition hover:-translate-y-0.5"
                   >
                     <div
                       className={`mb-4 inline-flex rounded-2xl p-3 text-lg ${iconTones[item.tone]}`}
@@ -667,14 +669,14 @@ const TeacherDashboard = () => {
                     </div>
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <h3 className="text-base font-black text-slate-900">
+                        <h3 className="text-base font-black text-[rgb(var(--text))]">
                           {item.label}
                         </h3>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="mt-1 text-sm text-[rgb(var(--text))]">
                           {item.helper}
                         </p>
                       </div>
-                      <FiArrowRight className="mt-1 text-slate-300 transition group-hover:text-slate-700" />
+                      <FiArrowRight className="mt-1 text-[rgb(var(--text))] transition group-hover:text-[rgb(var(--text))]" />
                     </div>
                   </button>
                 ))}
@@ -700,28 +702,28 @@ const TeacherDashboard = () => {
                     <div
                       key={g._id}
                       onClick={() => navigate(`/teacher/group/`)}
-                      className="flex cursor-pointer items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 p-4 transition hover:bg-white hover:border-slate-200 hover:shadow-sm"
+                      className="flex cursor-pointer items-center justify-between rounded-2xl border border-slate-100 bg-[rgb(var(--surface))] p-4 transition hover:bg-[rgb(var(--surface-hover))] hover:border-slate-200 hover:shadow-sm"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
                           <FiMessageSquare size={16} />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-slate-900">
+                          <p className="text-sm font-bold text-[rgb(var(--text))]">
                             {g.name}
                           </p>
-                          <p className="text-xs text-slate-500 capitalize">
+                          <p className="text-xs text-[rgb(var(--text))] capitalize">
                             {g.type} · {g.members?.length || 0} members
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {g.lastMessage && (
-                          <p className="hidden max-w-30 truncate text-xs text-slate-400 sm:block">
+                          <p className="hidden max-w-30 truncate text-xs text-[rgb(var(--text))] sm:block">
                             {g.lastMessage}
                           </p>
                         )}
-                        <FiArrowRight className="shrink-0 text-slate-300" />
+                        <FiArrowRight className="shrink-0 text-[rgb(var(--text))]" />
                       </div>
                     </div>
                   ))}
@@ -787,19 +789,19 @@ const DashboardSettingsControl = ({ visibility, onToggle, onReset }) => {
     ["groups", "Groups"],
   ];
   return (
-    <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+    <div className="mt-5 rounded-3xl border border-slate-200 bg-[rgb(var(--surface))] p-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-base font-black text-slate-900">
+          <h2 className="text-base font-black text-[rgb(var(--text))]">
             Dashboard Content Control
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-[rgb(var(--text))]">
             Toggle which sections are visible.
           </p>
         </div>
         <button
           onClick={onReset}
-          className="rounded-2xl bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-100"
+          className="rounded-2xl bg-[rgb(var(--primary))] px-4 py-2 text-sm font-bold text-[rgb(var(--text))] shadow-sm transition "
         >
           Reset Defaults
         </button>
@@ -811,16 +813,16 @@ const DashboardSettingsControl = ({ visibility, onToggle, onReset }) => {
             onClick={() => onToggle(key)}
             className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
               visibility[key]
-                ? "border-sky-200 bg-sky-50 text-sky-900"
-                : "border-slate-200 bg-white text-slate-600"
+                ? "border-sky-200 "
+                : "border-slate-200  text-[rgb(var(--text))]"
             }`}
           >
             <span className="text-sm font-bold">{label}</span>
             <span
               className={`rounded-full px-2 py-1 text-[11px] font-black uppercase ${
                 visibility[key]
-                  ? "bg-sky-600 text-white"
-                  : "bg-slate-100 text-slate-500"
+                  ? "bg-[rgb(var(--bg))] text-[rgb(var(--text))]"
+                  : "bg-[rgb(var(--primary))] text-[rgb(var(--text))]"
               }`}
             >
               {visibility[key] ? "On" : "Off"}
@@ -833,16 +835,16 @@ const DashboardSettingsControl = ({ visibility, onToggle, onReset }) => {
 };
 
 const SectionCard = ({ title, subtitle, children, action, onAction }) => (
-  <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+  <section className="rounded-3xl border border-slate-200 bg-[rgb(var(--surface))] p-5 shadow-sm">
     <div className="mb-4 flex items-start justify-between gap-3">
       <div>
-        <h2 className="text-lg font-black text-slate-900">{title}</h2>
-        <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+        <h2 className="text-lg font-black text-[rgb(var(--text))]">{title}</h2>
+        <p className="mt-1 text-sm text-[rgb(var(--text))]">{subtitle}</p>
       </div>
       {action && (
         <button
           onClick={onAction}
-          className="shrink-0 text-sm font-bold text-slate-500 transition hover:text-slate-900 cursor-pointer"
+          className="shrink-0 text-sm font-bold text-[rgb(var(--text))] transition hover:text-[rgb(var(--text-muted))]  cursor-pointer"
         >
           {action.label}
         </button>
@@ -860,14 +862,14 @@ const StatCard = ({ title, value, note, icon, tone }) => {
     violet: "bg-violet-50 text-violet-600",
   };
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-3xl border border-slate-200 bg-[rgb(var(--surface))] p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[rgb(var(--text))]">
             {title}
           </p>
-          <p className="mt-3 text-3xl font-black text-slate-900">{value}</p>
-          <p className="mt-2 text-sm text-slate-500">{note}</p>
+          <p className="mt-3 text-3xl font-black text-[rgb(var(--text))]">{value}</p>
+          <p className="mt-2 text-sm text-[rgb(var(--text))]">{note}</p>
         </div>
         <div className={`rounded-2xl p-3 text-xl ${tones[tone]}`}>{icon}</div>
       </div>
@@ -876,12 +878,12 @@ const StatCard = ({ title, value, note, icon, tone }) => {
 };
 
 const HighlightCard = ({ label, value, subtext }) => (
-  <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-    <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-300">
+  <div className="rounded-2xl bg-[rgb(var(--surface))] border p-4 backdrop-blur-sm">
+    <p className="text-xs font-bold uppercase tracking-[0.2em] text-[rgb(var(--text))]">
       {label}
     </p>
-    <p className="mt-2 text-2xl font-black text-white">{value}</p>
-    <p className="mt-2 text-sm text-slate-300">{subtext}</p>
+    <p className="mt-2 text-2xl font-black text-[rgb(var(--text))]">{value}</p>
+    <p className="mt-2 text-sm text-[rgb(var(--text))]">{subtext}</p>
   </div>
 );
 
@@ -893,10 +895,10 @@ const AlertRow = ({ label, value, helper, tone }) => {
     emerald: "bg-emerald-50 text-emerald-700",
   };
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3">
+    <div className="flex items-center justify-between gap-3 rounded-2xl border p-3">
       <div>
-        <p className="text-sm font-bold text-slate-900">{label}</p>
-        <p className="text-xs text-slate-500">{helper}</p>
+        <p className="text-sm font-bold text-[rgb(var(--text))]">{label}</p>
+        <p className="text-xs text-[rgb(var(--text))]">{helper}</p>
       </div>
       <span
         className={`rounded-full px-3 py-1 text-xs font-bold ${tones[tone]}`}
@@ -914,14 +916,14 @@ const AssignmentTypeCard = ({ label, count, tone, icon }) => {
     red: "bg-red-50 text-red-600",
   };
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-3xl border border-slate-200 bg-[rgb(var(--surface))] text-[rgb(var(--text))] p-5 shadow-sm">
       <div className="flex items-center gap-4">
         <div className={`rounded-2xl p-3 text-xl ${tones[tone]}`}>{icon}</div>
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-[rgb(var(--text))]">
             {label}
           </p>
-          <p className="mt-1 text-3xl font-black text-slate-900">{count}</p>
+          <p className="mt-1 text-3xl font-black text-[rgb(var(--text))]">{count}</p>
         </div>
       </div>
     </div>
@@ -935,18 +937,18 @@ const DiaryRow = ({ diary }) => {
     remark: "bg-violet-50 text-violet-700",
   };
   return (
-    <div className="flex items-start justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3">
+    <div className="flex items-start justify-between gap-3 rounded-2xl border border-slate-100 bg-[rgb(var(--surface))] p-3">
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold text-slate-900">
+        <p className="truncate text-sm font-bold text-[rgb(var(--text))]">
           {diary.content?.slice(0, 60)}
           {diary.content?.length > 60 ? "..." : ""}
         </p>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-[rgb(var(--text))]">
           {formatShortDate(diary.date || diary.createdAt)}
         </p>
       </div>
       <span
-        className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold capitalize ${typeColors[diary.type] || "bg-slate-100 text-slate-600"}`}
+        className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold capitalize ${typeColors[diary.type] || "bg-slate-100 text-[rgb(var(--text))]"}`}
       >
         {diary.type}
       </span>
@@ -984,7 +986,7 @@ const MiniPanel = ({
     ? children.length > 0
     : !!children;
   return (
-    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+    <div className="rounded-2xl border border-slate-200 bg-[rgb(var(--surface))] p-4">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className={`rounded-xl p-2 ${tones[tone]}`}>
@@ -994,11 +996,11 @@ const MiniPanel = ({
               <FiCalendar size={14} />
             )}
           </div>
-          <h3 className="text-sm font-black text-slate-900">{title}</h3>
+          <h3 className="text-sm font-black text-[rgb(var(--text))]">{title}</h3>
         </div>
         <button
           onClick={onAction}
-          className="text-xs font-bold text-slate-500 transition hover:text-slate-900"
+          className="text-xs font-bold text-[rgb(var(--text))] transition hover:text-[rgb(var(--text))]"
         >
           {actionLabel}
         </button>
@@ -1007,7 +1009,7 @@ const MiniPanel = ({
         {hasChildren ? (
           children
         ) : (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm font-medium text-slate-500">
+          <div className="rounded-2xl border border-dashed border-slate-300  p-4 text-sm font-medium text-[rgb(var(--text))]">
             {emptyMessage}
           </div>
         )}
@@ -1017,13 +1019,13 @@ const MiniPanel = ({
 };
 
 const TimelineRow = ({ title, meta, date }) => (
-  <div className="rounded-xl bg-white p-3">
+  <div className="rounded-xl bg-[rgb(var(--surface))] border p-3">
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0">
-        <p className="truncate text-sm font-bold text-slate-900">{title}</p>
-        <p className="mt-0.5 text-xs text-slate-500">{meta}</p>
+        <p className="truncate text-sm font-bold text-[rgb(var(--text))]">{title}</p>
+        <p className="mt-0.5 text-xs text-[rgb(var(--text))]">{meta}</p>
       </div>
-      <div className="flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-600">
+      <div className="flex shrink-0 items-center gap-1 rounded-full bg-[rgb(var(--primary))] px-2 py-0.5 text-[11px] font-bold text-[rgb(var(--text))]">
         <FiClock size={10} />
         {date}
       </div>
@@ -1032,7 +1034,7 @@ const TimelineRow = ({ title, meta, date }) => (
 );
 
 const EmptyState = ({ message }) => (
-  <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm font-medium text-slate-500">
+  <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm font-medium text-[rgb(var(--text))]">
     {message}
   </div>
 );

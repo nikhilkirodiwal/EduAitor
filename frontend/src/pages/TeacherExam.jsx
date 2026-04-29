@@ -38,7 +38,7 @@
 //         <h1 className="text-2xl md:text-3xl font-black text-indigo-900">
 //           All Exams
 //         </h1>
-//         <p className="text-sm text-slate-500">
+//         <p className="text-sm text-[rgb(var(--text))]">
 //           Exams assigned to Me
 //         </p>
 //       </div>
@@ -46,9 +46,9 @@
 //       {/* Content */}
 //       <div className="max-w-6xl mx-auto">
 //         {loading ? (
-//           <p className="text-center text-slate-500">Loading...</p>
+//           <p className="text-center text-[rgb(var(--text))]">Loading...</p>
 //         ) : exams.length === 0 ? (
-//           <p className="text-center text-slate-400">
+//           <p className="text-center text-[rgb(var(--text))]">
 //             No exams assigned
 //           </p>
 //         ) : (
@@ -57,7 +57,7 @@
 //             <div className="hidden md:block bg-white rounded-2xl shadow border overflow-hidden">
 //               <table className="w-full text-left">
 //                 <thead className="bg-slate-50 border-b">
-//                   <tr className="text-xs uppercase text-slate-400">
+//                   <tr className="text-xs uppercase text-[rgb(var(--text))]">
 //                     <th className="p-4">Subject</th>
 //                     <th className="p-4">Class</th>
 //                     <th className="p-4">Date</th>
@@ -68,7 +68,7 @@
 //                 <tbody>
 //                   {exams.map((exam) => (
 //                     <tr key={exam._id} className="border-b hover:bg-slate-50">
-//                       <td className="p-4 font-bold text-slate-800">
+//                       <td className="p-4 font-bold text-[rgb(var(--text))]">
 //                         {exam.subject?.name}
 //                       </td>
 //                       <td className="p-4">
@@ -96,7 +96,7 @@
 //                   key={exam._id}
 //                   className="bg-white p-4 rounded-2xl shadow border"
 //                 >
-//                   <h3 className="font-bold text-lg text-slate-800">
+//                   <h3 className="font-bold text-lg text-[rgb(var(--text))]">
 //                     {exam.subject?.name}
 //                   </h3>
 
@@ -104,11 +104,11 @@
 //                     Class {exam.className?.name}
 //                   </p>
 
-//                   <div className="mt-2 text-sm text-slate-500">
+//                   <div className="mt-2 text-sm text-[rgb(var(--text))]">
 //                     📅 {new Date(exam.examDate).toLocaleDateString("en-GB")}
 //                   </div>
 
-//                   <div className="text-sm text-slate-500">
+//                   <div className="text-sm text-[rgb(var(--text))]">
 //                     ⏰ {formatTime(exam.startTime)} - {formatTime(exam.endTime)}
 //                   </div>
 
@@ -156,7 +156,7 @@ const ATTENDANCE_OPTIONS = [
   {
     value: "Exempted",
     label: "Exempted",
-    color: "text-slate-500 bg-slate-50 border-slate-200",
+    color: "text-[rgb(var(--text))] bg-slate-50 border-slate-200",
   },
 ];
 
@@ -195,7 +195,7 @@ const getExamStatus = (exam) => {
   if (today < examDate)
     return {
       label: "Upcoming",
-      color: "bg-slate-100 text-slate-500",
+      color: "bg-slate-100 text-[rgb(var(--text))]",
       canEnter: false,
     };
 
@@ -223,12 +223,12 @@ const getAttendanceBadge = (status) =>
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 const StatCard = ({ label, value, sub, color = "bg-white" }) => (
-  <div className={`${color} rounded-xl p-3 text-center border`}>
-    <div className="text-xl font-black text-slate-800">{value}</div>
-    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+  <div className={`bg-[rgb(var(--surface))] rounded-xl p-3 text-center border`}>
+    <div className="text-xl font-black text-[rgb(var(--text))]">{value}</div>
+    <div className="text-xs font-semibold text-[rgb(var(--text))] uppercase tracking-wide">
       {label}
     </div>
-    {sub && <div className="text-xs text-slate-400 mt-0.5">{sub}</div>}
+    {sub && <div className="text-xs text-[rgb(var(--text))] mt-0.5">{sub}</div>}
   </div>
 );
 
@@ -252,8 +252,8 @@ const Toast = ({ msg, type, onClose }) => {
 const ExamList = ({ exams, loading, onSelect, onViewResult }) => (
   <div className="max-w-3xl mx-auto">
     <div className="mb-6">
-      <h1 className="text-2xl font-black text-slate-800">My Exams</h1>
-      <p className="text-sm text-slate-400 mt-0.5">
+      <h1 className="text-2xl font-black text-[rgb(var(--text))] ">My Exams</h1>
+      <p className="text-sm text-[rgb(var(--text))] mt-0.5">
         Tap an exam to enter marks
       </p>
     </div>
@@ -263,12 +263,12 @@ const ExamList = ({ exams, loading, onSelect, onViewResult }) => (
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-24 bg-slate-100 rounded-2xl animate-pulse"
+            className="h-24  rounded-2xl animate-pulse"
           />
         ))}
       </div>
     ) : exams.length === 0 ? (
-      <div className="text-center py-16 text-slate-400">
+      <div className="text-center py-16 text-[rgb(var(--text))]">
         <div className="text-4xl mb-2">📋</div>
         <p className="font-semibold">No exams assigned yet</p>
       </div>
@@ -279,15 +279,15 @@ const ExamList = ({ exams, loading, onSelect, onViewResult }) => (
           return (
             <div
               key={exam._id}
-              className="bg-white rounded-2xl border shadow-sm overflow-hidden"
+              className="bg-[rgb(var(--surface))] rounded-2xl border shadow-sm overflow-hidden"
             >
               {/* Top bar */}
               <div className="flex items-center justify-between px-4 pt-4 pb-2">
                 <div>
-                  <h3 className="font-bold text-slate-800 text-base leading-tight">
+                  <h3 className="font-bold text-[rgb(var(--text))] text-base leading-tight">
                     {exam.subject?.name}
                   </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-[rgb(var(--text))] mt-0.5">
                     Class {exam.className?.name}
                     {exam.sectionId?.name
                       ? ` – Sec ${exam.sectionId.name}`
@@ -295,14 +295,14 @@ const ExamList = ({ exams, loading, onSelect, onViewResult }) => (
                   </p>
                 </div>
                 <span
-                  className={`text-xs font-bold px-3 py-1 rounded-full ${status.color}`}
+                  className={`text-xs font-bold px-3 py-1 rounded-full text-[rgb(var(--text))] bg-[rgb(var(--sidebar-text))]`}
                 >
                   {status.label}
                 </span>
               </div>
 
               {/* Meta */}
-              <div className="flex items-center gap-4 px-4 pb-3 text-xs text-slate-500">
+              <div className="flex items-center gap-4 px-4 pb-3 text-xs text-[rgb(var(--text))]">
                 <span>📅 {formatDate(exam.examDate)}</span>
                 <span>
                   ⏰ {formatTime(exam.startTime)} – {formatTime(exam.endTime)}
@@ -310,7 +310,7 @@ const ExamList = ({ exams, loading, onSelect, onViewResult }) => (
                 <span>📝 {exam.totalMarks} marks</span>
               </div>
 
-              <div className="text-xs text-slate-400 px-4 pb-3">
+              <div className="text-xs text-[rgb(var(--text))] px-4 pb-3">
                 {exam.termId?.name}
               </div>
 
@@ -319,14 +319,14 @@ const ExamList = ({ exams, loading, onSelect, onViewResult }) => (
                 {status.canEnter && (
                   <button
                     onClick={() => onSelect(exam)}
-                    className="flex-1 py-3 text-sm font-bold text-indigo-600 hover:bg-indigo-50 transition-colors"
+                    className="flex-1 py-3 text-sm font-bold text-[rgb(var(--primary))] bg-[rgb(var(--surface))] transition-colors"
                   >
                     ✏️ Enter / Edit Marks
                   </button>
                 )}
                 <button
                   onClick={() => onViewResult(exam)}
-                  className={`flex-1 py-3 text-sm font-bold text-slate-500 hover:bg-slate-50 transition-colors ${status.canEnter ? "border-l" : ""}`}
+                  className={`flex-1 py-3 text-sm font-bold text-[rgb(var(--text))]  bg-[rgb(var(--primary))] transition-colors ${status.canEnter ? "border-l" : ""}`}
                 >
                   📊 View Results
                 </button>
@@ -457,15 +457,15 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
       <div className="flex items-center gap-3 mb-4">
         <button
           onClick={onBack}
-          className="w-9 h-9 rounded-xl bg-white border shadow-sm flex items-center justify-center text-slate-500 hover:bg-slate-50"
+          className="w-9 h-9 rounded-xl bg-[rgb(var(--surface))] border shadow-sm flex items-center justify-center text-[rgb(var(--text))] "
         >
           ←
         </button>
         <div>
-          <h1 className="text-lg font-black text-slate-800 leading-tight">
+          <h1 className="text-lg font-black text-[rgb(var(--text))] leading-tight">
             {exam.subject?.name}
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[rgb(var(--text))]">
             Class {exam.className?.name} · {formatDate(exam.examDate)} ·{" "}
             {exam.totalMarks} marks
           </p>
@@ -516,14 +516,14 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
       {/* Quick actions */}
       {canEdit && (
         <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-          <span className="text-xs text-slate-400 self-center shrink-0">
+          <span className="text-xs text-[rgb(var(--text))] self-center shrink-0">
             Mark all:
           </span>
           {["Present", "Absent", "Leave"].map((s) => (
             <button
               key={s}
               onClick={() => markAll(s)}
-              className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg border bg-white hover:bg-slate-50 text-slate-600"
+              className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg border bg-[rgb(var(--surface))] text-[rgb(var(--text))]"
             >
               {s}
             </button>
@@ -541,8 +541,8 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
               className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors
               ${
                 filter === f
-                  ? "bg-indigo-600 text-white"
-                  : "bg-white border text-slate-500 hover:bg-slate-50"
+                  ? "bg-indigo-600 text-[rgb(var(--text))]"
+                  : "bg-[rgb(var(--surface))] border text-[rgb(var(--text))] "
               }`}
             >
               {f === "All" ? `All (${rows.length})` : f}
@@ -567,18 +567,18 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
           return (
             <div
               key={row.studentId}
-              className="bg-white rounded-2xl border shadow-sm overflow-hidden"
+              className="bg-[rgb(var(--surface))] rounded-2xl border shadow-sm overflow-hidden"
             >
               {/* Student info */}
               <div className="flex items-center gap-3 px-4 pt-3 pb-2">
-                <div className="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center text-sm font-black text-indigo-600 shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-[rgb(var(--bg))] flex items-center justify-center text-sm font-black text-[rgb(var(--primary))] shrink-0">
                   {student.rollNo || idx + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-slate-800 text-sm truncate">
+                  <div className="font-bold text-[rgb(var(--text))] text-sm truncate">
                     {student.firstName} {student.lastName}
                   </div>
-                  <div className="text-xs text-slate-400">
+                  <div className="text-xs text-[rgb(var(--text))]">
                     ID: {student.studentId}
                     {hasResult && (
                       <span className="ml-2 text-emerald-500 font-semibold">
@@ -591,7 +591,7 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
 
               {/* Attendance selector */}
               <div className="px-4 pb-2">
-                <div className="text-xs text-slate-400 mb-1.5 font-medium">
+                <div className="text-xs text-[rgb(var(--text))] mb-1.5 font-medium">
                   Attendance
                 </div>
                 <div className="flex gap-1.5 flex-wrap">
@@ -606,7 +606,7 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
                         ${
                           row.attendanceStatus === opt.value
                             ? opt.color + " ring-1 ring-offset-1"
-                            : "bg-white border-slate-200 text-slate-400"
+                            : "bg-[rgb(var(--surface))] border-slate-200 text-[rgb(var(--text))]"
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       {opt.label}
@@ -620,9 +620,9 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
                 <div className="px-4 pb-3">
                   <div className="flex items-center gap-3">
                     <div className="flex-1">
-                      <div className="text-xs text-slate-400 mb-1 font-medium">
+                      <div className="text-xs text-[rgb(var(--text))] mb-1 font-medium">
                         Marks Obtained{" "}
-                        <span className="text-slate-300">
+                        <span className="text-[rgb(var(--text))]">
                           / {exam.totalMarks}
                         </span>
                       </div>
@@ -636,14 +636,14 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
                           updateRow(realIdx, "marksObtained", e.target.value)
                         }
                         placeholder={`0 – ${exam.totalMarks}`}
-                        className="w-full border rounded-xl px-3 py-2 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50 disabled:text-slate-400"
+                        className="w-full border rounded-xl px-3 py-2 text-sm font-bold text-[rgb(var(--text))] focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-slate-50 disabled:text-[rgb(var(--text))]"
                       />
                     </div>
 
                     {/* Live percentage preview */}
                     {perc !== null && (
                       <div className="shrink-0 text-center">
-                        <div className="text-lg font-black text-slate-700">
+                        <div className="text-lg font-black text-[rgb(var(--text))]">
                           {perc}%
                         </div>
                         <div
@@ -668,7 +668,7 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
                     updateRow(realIdx, "remarks", e.target.value)
                   }
                   placeholder="Remarks (optional)"
-                  className="w-full border border-dashed rounded-xl px-3 py-1.5 text-xs text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-200 disabled:bg-transparent disabled:border-transparent"
+                  className="w-full border border-dashed rounded-xl px-3 py-1.5 text-xs text-[rgb(var(--text))] focus:outline-none focus:ring-1 focus:ring-indigo-200 disabled:bg-transparent disabled:border-transparent"
                 />
               </div>
             </div>
@@ -682,7 +682,7 @@ const MarksEntry = ({ examData, onBack, onSaved }) => {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-indigo-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-base"
+            className="w-full text-[rgb(var(--text))] bg-[rgb(var(--primary))] font-black py-4 rounded-2xl shadow-lg  active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-base"
           >
             {saving
               ? "Saving..."
@@ -723,17 +723,17 @@ const ResultsView = ({ exam, onBack }) => {
         <div className="flex items-center gap-3 mb-6">
           <button
             onClick={onBack}
-            className="w-9 h-9 rounded-xl bg-white border shadow-sm flex items-center justify-center text-slate-500"
+            className="w-9 h-9 rounded-xl bg-[rgb(var(--surface))] border shadow-sm flex items-center justify-center text-[rgb(var(--text))]"
           >
             ←
           </button>
-          <div className="h-6 w-40 bg-slate-100 rounded-lg animate-pulse" />
+          <div className="h-6 w-40  rounded-lg animate-pulse" />
         </div>
         <div className="flex flex-col gap-3">
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="h-16 bg-slate-100 rounded-2xl animate-pulse"
+              className="h-16  rounded-2xl animate-pulse"
             />
           ))}
         </div>
@@ -742,7 +742,7 @@ const ResultsView = ({ exam, onBack }) => {
 
   if (!data)
     return (
-      <div className="max-w-3xl mx-auto text-center py-16 text-slate-400">
+      <div className="max-w-3xl mx-auto text-center py-16 text-[rgb(var(--text))]">
         <p>No results found</p>
         <button
           onClick={onBack}
@@ -761,15 +761,15 @@ const ResultsView = ({ exam, onBack }) => {
       <div className="flex items-center gap-3 mb-4">
         <button
           onClick={onBack}
-          className="w-9 h-9 rounded-xl bg-white border shadow-sm flex items-center justify-center text-slate-500"
+          className="w-9 h-9 rounded-xl  border shadow-sm flex items-center justify-center text-[rgb(var(--text))]"
         >
           ←
         </button>
         <div>
-          <h1 className="text-lg font-black text-slate-800 leading-tight">
+          <h1 className="text-lg font-black text-[rgb(var(--text))] leading-tight">
             Results – {exam.subject?.name}
           </h1>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[rgb(var(--text))]">
             Class {exam.className?.name} · {formatDate(exam.examDate)}
           </p>
         </div>
@@ -796,7 +796,7 @@ const ResultsView = ({ exam, onBack }) => {
       {/* Result rows */}
       <div className="flex flex-col gap-2">
         {results.length === 0 ? (
-          <div className="text-center py-12 text-slate-400">
+          <div className="text-center py-12 text-[rgb(var(--text))]">
             <div className="text-3xl mb-2">📭</div>
             <p>No marks entered yet</p>
           </div>
@@ -805,17 +805,17 @@ const ResultsView = ({ exam, onBack }) => {
             const student = r.studentId;
             const badge = getAttendanceBadge(r.attendanceStatus);
             const gradeColor =
-              GRADE_COLORS[r.grade] || "bg-slate-100 text-slate-500";
+              GRADE_COLORS[r.grade] || "bg-[rgb(var(--surface))] text-[rgb(var(--text))]";
             return (
               <div
                 key={r._id}
-                className="bg-white rounded-2xl border shadow-sm px-4 py-3 flex items-center gap-3"
+                className="bg-[rgb(var(--surface))] rounded-2xl border shadow-sm px-4 py-3 flex items-center gap-3"
               >
-                <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-xs font-black text-slate-500 shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-[rgb(var(--primary))] flex items-center justify-center text-xs font-black text-[rgb(var(--text))] shrink-0">
                   {student?.rollNo || "–"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-slate-800 text-sm truncate">
+                  <div className="font-bold text-[rgb(var(--text))] text-sm truncate">
                     {student?.firstName} {student?.lastName}
                   </div>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -827,10 +827,10 @@ const ResultsView = ({ exam, onBack }) => {
                     {r.attendanceStatus === "Present" &&
                       r.marksObtained !== null && (
                         <>
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-[rgb(var(--text))]">
                             {r.marksObtained}/{exam.totalMarks}
                           </span>
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs text-[rgb(var(--text))]">
                             {r.percentage}%
                           </span>
                           <span
@@ -848,7 +848,7 @@ const ResultsView = ({ exam, onBack }) => {
                       )}
                   </div>
                   {r.remarks && (
-                    <div className="text-xs text-slate-400 mt-1 italic">
+                    <div className="text-xs text-[rgb(var(--text))] mt-1 italic">
                       "{r.remarks}"
                     </div>
                   )}
@@ -931,7 +931,7 @@ export default function TeacherExam() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen ">
       {toast && (
         <Toast
           msg={toast.msg}
@@ -941,10 +941,10 @@ export default function TeacherExam() {
       )}
 
       {studentLoading && (
-        <div className="fixed inset-0 bg-white/70 backdrop-blur-sm z-40 flex items-center justify-center">
+        <div className="fixed inset-0 bg-[rgb(var(--surface))] backdrop-blur-sm z-40 flex items-center justify-center">
           <div className="flex flex-col items-center gap-2">
             <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm font-semibold text-slate-600">
+            <p className="text-sm font-semibold text-[rgb(var(--text))]">
               Loading students…
             </p>
           </div>
