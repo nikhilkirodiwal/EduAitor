@@ -58,7 +58,7 @@ const Dashboard = () => {
 
         <div
           onClick={() => navigate("/admin/roles")}
-          className="cursor-pointer bg-white rounded-xl shadow p-6 hover:shadow-lg transition"
+          className="cursor-pointer bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl shadow p-6 hover:shadow-lg transition"
         >
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Roles</h2>
@@ -79,7 +79,7 @@ const Dashboard = () => {
 
         <div
           onClick={() => navigate("/admin/access-control")}
-          className="cursor-pointer bg-white rounded-xl shadow p-6 hover:shadow-lg transition"
+          className="cursor-pointer bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl shadow p-6 hover:shadow-lg transition"
         >
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Users</h2>
@@ -89,7 +89,7 @@ const Dashboard = () => {
 
           <p className="text-3xl font-bold mb-3">{users.length}</p>
 
-          <div className="text-sm text-gray-600 flex gap-6">
+          <div className="text-sm text-[rgb(var(--text))] flex gap-6">
             <span className="text-green-600">Active: {activeUsers}</span>
 
             <span className="text-red-500">Inactive: {inactiveUsers}</span>
@@ -98,7 +98,7 @@ const Dashboard = () => {
 
         <div
           onClick={() => navigate("/admin/platform-analytics")}
-          className="cursor-pointer bg-white rounded-xl shadow p-6 hover:shadow-lg transition"
+          className="cursor-pointer bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl shadow p-6 hover:shadow-lg transition"
         >
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Platform Analytics</h2>
@@ -108,7 +108,7 @@ const Dashboard = () => {
 
           <p className="text-3xl font-bold mb-3">School Health</p>
 
-          <div className="text-sm text-gray-600 flex gap-6">
+          <div className="text-sm text-[rgb(var(--text))] flex gap-6">
             <span className="text-violet-600">KPIs</span>
 
             <span className="text-slate-500">Actions</span>

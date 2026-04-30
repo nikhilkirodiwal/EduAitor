@@ -168,13 +168,13 @@ const RoleManagement = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
 
-        <h1 className="text-2xl font-semibold text-gray-800">
+        <h1 className="text-2xl font-semibold text-[rgb(var(--text))]">
           Role Management
         </h1>
 
         <button
           onClick={openAddModal}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+          className="flex items-center gap-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] px-4 py-2 rounded-lg"
         >
           <FaPlus />
           Add Role
@@ -183,11 +183,11 @@ const RoleManagement = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="bg-[rgb(var(--surface))] rounded-xl shadow overflow-hidden">
 
         <table className="w-full">
 
-          <thead className="bg-gray-100">
+          <thead className="bg-[rgb(var(--surface))]">
             <tr>
               <th className="text-left px-6 py-3 text-sm">Role</th>
               <th className="text-left px-6 py-3 text-sm">Status</th>
@@ -199,7 +199,7 @@ const RoleManagement = () => {
 
             {roles.map((role) => (
 
-              <tr key={role._id} className="border-t hover:bg-gray-50">
+              <tr key={role._id} className="border-t ">
 
                 <td className="px-6 py-3">{role.name}</td>
                 <td className="px-6 py-3">{role.status}</td>
@@ -240,7 +240,7 @@ const RoleManagement = () => {
 
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
 
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+          <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl p-6 w-full max-w-md">
 
             <h2 className="text-lg font-semibold mb-4">
               {editingId ? "Edit Role" : "Add Role"}
@@ -265,7 +265,7 @@ const RoleManagement = () => {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full border px-4 py-2 rounded-lg mb-5"
+              className="w-full border px-4 py-2 rounded-lg mb-5 bg-[rgb(var(--surface))] text-[rgb(var(--text))]"
             >
               <option>Active</option>
               <option>Inactive</option>
@@ -282,7 +282,7 @@ const RoleManagement = () => {
 
               <button
                 onClick={handleSaveClick}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+                className="px-4 py-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded-lg"
               >
                 Save
               </button>
@@ -337,13 +337,13 @@ const ConfirmModal = ({ title, text, confirm, cancel }) => {
 
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
 
-      <div className="bg-white rounded-xl p-6 w-full max-w-sm">
+      <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl p-6 w-full max-w-sm">
 
         <h2 className="text-lg font-semibold mb-2">
           {title}
         </h2>
 
-        <p className="text-gray-600 mb-5 text-sm">
+        <p className="text-[rgb(var(--text))] mb-5 text-sm">
           {text}
         </p>
 
@@ -358,7 +358,7 @@ const ConfirmModal = ({ title, text, confirm, cancel }) => {
 
           <button
             onClick={confirm}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+            className="px-4 py-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded-lg"
           >
             Confirm
           </button>

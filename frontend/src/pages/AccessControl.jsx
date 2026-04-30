@@ -247,11 +247,11 @@ const AccessControl = () => {
       {/* HEADER */}
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Access Control</h1>
+        <h1 className="text-2xl font-semibold text-[rgb(var(--text))]">Access Control</h1>
 
         <button
           onClick={openAddModal}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+          className="flex items-center gap-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] px-4 py-2 rounded-lg"
         >
           <FaPlus />
           Add Access
@@ -260,9 +260,9 @@ const AccessControl = () => {
 
       {/* TABLE */}
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      <div className="bg-[rgb(var(--surface))] rounded-xl shadow overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-100">
+          <thead className="bg-[rgb(var(--surface))]">
             <tr>
               <th className="px-6 py-3 text-left text-sm">Role</th>
               <th className="px-6 py-3 text-left text-sm">Permissions</th>
@@ -272,7 +272,7 @@ const AccessControl = () => {
 
           <tbody>
             {users.map((access) => (
-              <tr key={access._id} className="border-t hover:bg-gray-50">
+              <tr key={access._id} className="border-t ">
                 <td className="px-6 py-3 font-medium">{access.role?.name}</td>
 
                 <td className="px-6 py-3 text-sm text-gray-600">
@@ -315,12 +315,12 @@ const AccessControl = () => {
             <select
               value={form.role}
               onChange={handleRoleChange}
-              className="input w-full"
+              className="input w-full bg-[rgb(var(--surface))] text-[rgb(var(--text))]"
             >
               <option value="">Select Role</option>
 
               {roles.map((role) => (
-                <option key={role._id} value={role._id}>
+                <option key={role._id} value={role._id} className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">
                   {role.name}
                 </option>
               ))}
@@ -335,7 +335,7 @@ const AccessControl = () => {
 
               <div className="border rounded-lg overflow-auto max-h-100">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-100 sticky top-0">
+                  <thead className=" sticky top-0">
                     <tr>
                       <th className="p-3 text-left">Module</th>
 
@@ -381,7 +381,7 @@ const AccessControl = () => {
 
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+              className="px-4 py-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded-lg"
             >
               Save
             </button>
@@ -427,7 +427,7 @@ export default AccessControl;
 
 const Modal = ({ title, children }) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-    <div className="bg-white rounded-xl p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+    <div className="bg-[rgb(var(--surface))] rounded-xl p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto">
       <h2 className="text-lg font-semibold mb-4">{title}</h2>
 
       {children}
@@ -437,10 +437,10 @@ const Modal = ({ title, children }) => (
 
 const ConfirmModal = ({ title, text, confirm, cancel }) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-    <div className="bg-white rounded-xl p-6 w-full max-w-sm">
+    <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl p-6 w-full max-w-sm">
       <h2 className="text-lg font-semibold mb-2">{title}</h2>
 
-      <p className="text-gray-600 mb-5 text-sm">{text}</p>
+      <p className="text-[rgb(var(--text))] mb-5 text-sm">{text}</p>
 
       <div className="flex justify-end gap-3">
         <button onClick={cancel} className="px-4 py-2 border rounded-lg">
@@ -449,7 +449,7 @@ const ConfirmModal = ({ title, text, confirm, cancel }) => (
 
         <button
           onClick={confirm}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+          className="px-4 py-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded-lg"
         >
           Confirm
         </button>

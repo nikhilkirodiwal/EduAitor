@@ -179,7 +179,7 @@ const SchoolSubscription = () => {
   };
 
   return (
-    <div className="p-8 min-h-screen">
+    <div className="p-8 min-h-screen  text-[rgb(var(--text))]">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
           <div className="pt-4">
@@ -196,14 +196,14 @@ const SchoolSubscription = () => {
       )}
       {/* HEADER */}
 
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">
+      <div className="flex justify-between items-center mb-8 ">
+        <h1 className="text-3xl font-bold ">
           School Subscription Plans
         </h1>
 
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2 rounded-lg"
+          className="flex items-center gap-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] px-5 py-2 rounded-lg"
         >
           <FaPlus />
           Add Plan
@@ -216,7 +216,7 @@ const SchoolSubscription = () => {
         {plans.map((plan) => (
           <div
             key={plan._id}
-            className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition"
+            className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl shadow-md p-6 hover:shadow-xl transition"
           >
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-lg font-semibold">{plan.name}</h2>
@@ -234,14 +234,14 @@ const SchoolSubscription = () => {
               </span>
             </div>
 
-            <p className="text-sm text-gray-500 mb-4">{plan.slug}</p>
+            <p className="text-sm  mb-4">{plan.slug}</p>
 
             <div className="mb-4">
-              <p className="text-3xl font-bold text-indigo-600">
+              <p className="text-3xl font-bold text-[rgb(var(--primary))]">
                 {plan.currency} {plan.price}
               </p>
 
-              <span className="text-xs bg-indigo-100 text-indigo-600 px-2 py-1 rounded">
+              <span className="text-xs bg-[rgb(var(--primary))] text-[rgb(var(--text))] px-2 py-1 rounded">
                 {plan.billing_cycle}
               </span>
             </div>
@@ -250,7 +250,7 @@ const SchoolSubscription = () => {
               {plan.roles?.map((role) => (
                 <span
                   key={role._id}
-                  className="text-xs bg-gray-100 px-2 py-1 rounded"
+                  className="text-xs bg-[rgb(var(--surface))] text-[rgb(var(--primary))] border px-2 py-1 rounded"
                 >
                   {role.name}
                 </span>
@@ -277,7 +277,7 @@ const SchoolSubscription = () => {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-lg">
+          <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl p-6 w-full max-w-lg">
             <h2 className="text-xl font-semibold mb-6">
               {editingId ? "Edit Plan" : "Create Plan"}
             </h2>
@@ -319,7 +319,7 @@ const SchoolSubscription = () => {
                   name="currency"
                   value={form.currency}
                   onChange={handleChange}
-                  className="border rounded-lg px-3 py-2 w-full"
+                  className="border rounded-lg px-3 py-2 w-full text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
                 >
                   <option>INR</option>
                   <option>USD</option>
@@ -332,7 +332,7 @@ const SchoolSubscription = () => {
                   name="billing_cycle"
                   value={form.billing_cycle}
                   onChange={handleChange}
-                  className="border rounded-lg px-3 py-2 w-full"
+                  className="border rounded-lg px-3 py-2 w-full text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
                 >
                   <option value="monthly">Monthly</option>
                   <option value="quarterly">Quarterly</option>
@@ -346,7 +346,7 @@ const SchoolSubscription = () => {
                   name="status"
                   value={form.status}
                   onChange={handleChange}
-                  className="border rounded-lg px-3 py-2 w-full"
+                  className="border rounded-lg px-3 py-2 w-full text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
                 >
                   <option>Active</option>
                   <option>Inactive</option>
@@ -366,6 +366,7 @@ const SchoolSubscription = () => {
                       type="checkbox"
                       checked={form.roles.includes(role._id)}
                       onChange={() => toggleRole(role._id)}
+                      className="bg-[rgb(var(--surface))]"
                     />
 
                     {role.name}
@@ -384,7 +385,7 @@ const SchoolSubscription = () => {
 
               <button
                 onClick={handleSave}
-                className="px-5 py-2 bg-indigo-600 text-white rounded-lg"
+                className="px-5 py-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded-lg"
               >
                 Save
               </button>
@@ -397,7 +398,7 @@ const SchoolSubscription = () => {
 
       {confirmModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-100">
+          <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-lg p-6 w-100">
             <p className="text-lg mb-6">{confirmMessage}</p>
 
             <div className="flex justify-end gap-3">

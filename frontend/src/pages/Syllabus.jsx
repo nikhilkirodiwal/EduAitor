@@ -132,6 +132,7 @@ function Syllabus() {
   const openChapterModal = (chapter = null) => {
     if (chapter) {
       setFormData({
+        termId: chapter.termId || "",
         type: "editChapter",
         id: chapter._id,
         name: chapter.name,
@@ -340,7 +341,12 @@ function Syllabus() {
                   text-[rgb(var(--text))] bg-[rgb(var(--surface))]
                 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 outline-none transition appearance-none cursor-pointer"
               >
-                <option value="" className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]" >Choose a class...</option>
+                <option
+                  value=""
+                  className="text-[rgb(var(--text))] bg-[rgb(var(--surface))]"
+                >
+                  Choose a class...
+                </option>
                 {classes.map((cls) => (
                   <option key={cls._id} value={cls._id}>
                     {cls.name}
@@ -450,9 +456,7 @@ function Syllabus() {
                           Chapter {chapter.order}: {chapter.name}
                         </h3>
                         {chapter.description && (
-                          <p className="text-sm  mt-1">
-                            {chapter.description}
-                          </p>
+                          <p className="text-sm  mt-1">{chapter.description}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
@@ -635,10 +639,7 @@ function ChapterModal({ formData, setFormData, onSubmit, onClose, terms }) {
           <h2 className="text-xl font-bold">
             {formData.type === "addChapter" ? "Add Chapter" : "Edit Chapter"}
           </h2>
-          <button
-            onClick={onClose}
-            className="transition"
-          >
+          <button onClick={onClose} className="transition">
             <FiX className="w-6 h-6" />
           </button>
         </div>
@@ -743,10 +744,7 @@ function TopicModal({ formData, setFormData, onSubmit, onClose }) {
           <h2 className="text-xl font-bold ">
             {formData.type === "addTopic" ? "Add Topic" : "Edit Topic"}
           </h2>
-          <button
-            onClick={onClose}
-            className=" transition"
-          >
+          <button onClick={onClose} className=" transition">
             <FiX className="w-6 h-6" />
           </button>
         </div>
@@ -768,9 +766,7 @@ function TopicModal({ formData, setFormData, onSubmit, onClose }) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold  mb-2">
-              Content
-            </label>
+            <label className="block text-sm font-semibold  mb-2">Content</label>
             <textarea
               value={formData.content || ""}
               onChange={(e) =>

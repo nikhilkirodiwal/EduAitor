@@ -47,6 +47,7 @@ export const loginUser = async (req, res) => {
         school_id: teacher.schoolId,
         teacher_id: teacher._id,
         name: teacher.fullName,
+        _id: teacher._id,
       });
       res.cookie("token", token, cookieOptions);
       return res.json({
@@ -73,6 +74,7 @@ export const loginUser = async (req, res) => {
         school_id: student.schoolId,
         student_id: student._id,
         name: `${student.firstName} ${student.lastName}`,
+        _id: student._id,
       });
       res.cookie("token", token, cookieOptions);
       return res.json({
@@ -104,6 +106,7 @@ export const loginUser = async (req, res) => {
       email: school.admin_email,
       school_id: school._id,
       name: school.school_name,
+      id: school._id,
     });
     res.cookie("token", token, cookieOptions);
     return res.json({

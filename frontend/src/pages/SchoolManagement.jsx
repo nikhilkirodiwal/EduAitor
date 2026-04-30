@@ -184,11 +184,11 @@ const SchoolManagement = () => {
       {/* HEADER */}
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">School Management</h1>
+        <h1 className="text-3xl font-bold ">School Management</h1>
 
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg shadow"
+          className="flex items-center gap-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] px-5 py-2 rounded-lg shadow"
         >
           <FaPlus />
           Add School
@@ -197,9 +197,9 @@ const SchoolManagement = () => {
 
       {/* TABLE */}
 
-      <div className="bg-white shadow-lg rounded-xl overflow-hidden">
+      <div className="shadow-lg rounded-xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-100 text-gray-600">
+          <thead className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]">
             <tr>
               <th className="p-4 text-left">School</th>
               <th className="p-4 text-left">Subscription</th>
@@ -215,7 +215,7 @@ const SchoolManagement = () => {
             {schools.map((school) => (
               <tr
                 key={school._id}
-                className="border-t hover:bg-gray-50 transition"
+                className="border-t bg-[rgb(var(--surface))] text-[rgb(var(--text))] transition"
               >
                 <td className="p-4 font-medium">{school.school_name}</td>
 
@@ -229,7 +229,7 @@ const SchoolManagement = () => {
 
                 <td className="p-4">{school.end_date?.slice(0, 10)}</td>
 
-                <td className="p-4 text-gray-600">{school.contact_email}</td>
+                <td className="p-4">{school.contact_email}</td>
 
                 <td className="p-4">
                   <span
@@ -277,7 +277,7 @@ const SchoolManagement = () => {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-xl max-h-[90vh] flex flex-col">
+          <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl shadow-lg w-full max-w-xl max-h-[90vh] flex flex-col">
             {/* HEADER */}
             <div className="p-6 border-b">
               <h2 className="text-xl font-semibold">
@@ -320,7 +320,7 @@ const SchoolManagement = () => {
                     name="subscription_plan"
                     value={form.subscription_plan}
                     onChange={handleChange}
-                    className="border px-3 py-2 rounded-lg w-full"
+                    className="border px-3 py-2 rounded-lg w-full bg-[rgb(var(--surface))] text-[rgb(var(--text))]"
                   >
                     <option value="">Select Plan</option>
 
@@ -397,7 +397,7 @@ const SchoolManagement = () => {
 
                 {/* Admin Credentials */}
                 <div className="col-span-2 mt-4">
-                  <h3 className="font-semibold text-gray-700 border-b pb-2 mb-3">
+                  <h3 className="font-semibold border-b pb-2 mb-3">
                     School Admin Login
                   </h3>
                 </div>
@@ -440,7 +440,7 @@ const SchoolManagement = () => {
                     name="status"
                     value={form.status}
                     onChange={handleChange}
-                    className="border px-3 py-2 rounded-lg w-full"
+                    className="border px-3 py-2 rounded-lg w-full bg-[rgb(var(--surface))] text-[rgb(var(--text))]"
                   >
                     <option>Active</option>
                     <option>Inactive</option>
@@ -460,7 +460,7 @@ const SchoolManagement = () => {
 
               <button
                 onClick={handleSave}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+                className="px-4 py-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded-lg"
               >
                 Save
               </button>
@@ -473,7 +473,7 @@ const SchoolManagement = () => {
 
       {confirmModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-87.5 shadow-lg">
+          <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-lg p-6 w-87.5 shadow-lg">
             <p className="text-lg mb-6">{confirmMessage}</p>
 
             <div className="flex justify-end gap-3">

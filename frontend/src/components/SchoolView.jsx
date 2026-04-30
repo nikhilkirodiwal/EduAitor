@@ -35,10 +35,10 @@ const SchoolView = () => {
 
       {/* HEADER */}
 
-      <div className="bg-white rounded-xl shadow p-6 mb-6">
+      <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl shadow p-6 mb-6">
         <h1 className="text-3xl font-bold mb-2">{school.school_name}</h1>
 
-        <p className="text-gray-500 text-sm">{school.address}</p>
+        <p className="text-[rgb(var(--text))] text-sm">{school.address}</p>
       </div>
 
       {/* SCHOOL DETAILS */}
@@ -54,12 +54,12 @@ const SchoolView = () => {
 
       {/* SUBSCRIPTION */}
 
-      <div className="mt-8 bg-white shadow rounded-xl p-6">
+      <div className="mt-8 bg-[rgb(var(--surface))] text-[rgb(var(--text))] shadow rounded-xl p-6">
         <h2 className="text-xl font-semibold mb-6">Subscription Plan</h2>
 
         <p className="font-medium">{school.subscription_plan?.name}</p>
 
-        <p className="text-gray-600 text-sm">
+        <p className="text-[rgb(var(--text))] text-sm">
           {school.subscription_plan?.currency} {school.subscription_plan?.price}{" "}
           / {school.subscription_plan?.billing_cycle}
         </p>
@@ -67,7 +67,7 @@ const SchoolView = () => {
 
       {/* ADMIN LOGIN */}
 
-      <div className="mt-8 bg-white shadow rounded-xl p-6">
+      <div className="mt-8 bg-[rgb(var(--surface))] text-[rgb(var(--text))] shadow rounded-xl p-6">
         <h2 className="text-xl font-semibold mb-6">School Admin Login</h2>
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -85,9 +85,9 @@ export default SchoolView;
 /* INFO CARD */
 
 const Info = ({ label, value }) => (
-  <div className="bg-white rounded-xl shadow p-5">
-    <p className="text-sm text-gray-500 mb-1">{label}</p>
+  <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl shadow p-5">
+    <p className="text-sm text-[rgb(var(--text))] mb-1">{label}</p>
 
-    <p className="font-medium text-gray-800">{value}</p>
+    <p className="font-medium text-[rgb(var(--text))]">{value}</p>
   </div>
 );

@@ -111,18 +111,18 @@ const AddSchool = () => {
           </button>
         </div>
       )}
-      <div className="min-h-screen bg-gray-50 p-6 flex justify-center">
+      <div className="min-h-screen  p-6 flex justify-center">
         <div className="w-full max-w-5xl">
           {/* HEADER */}
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Create School</h1>
-            <p className="text-gray-500 text-sm">
+            <h1 className="text-2xl font-bold text-[rgb(var(--text))]">Create School</h1>
+            <p className="text-[rgb(var(--text))] text-sm">
               Fill the details below to onboard a new school
             </p>
           </div>
 
           {/* CARD */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200">
+          <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-2xl shadow-sm border border-[rgb(var(--border))]">
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
                 label="School Name"
@@ -143,14 +143,16 @@ const AddSchool = () => {
               />
 
               <div className="md:col-span-2">
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                <label className="text-sm font-medium mb-1 block">
                   Subscription Plan <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="subscription_plan"
                   value={form.subscription_plan}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm 
+                    bg-[rgb(var(--surface))] text-[rgb(var(--text))]
+                  focus:outline-none focus:ring-2  transition"
                 >
                   <option value="">Select Plan</option>
                   {subscriptions.map((plan) => (
@@ -196,7 +198,7 @@ const AddSchool = () => {
               />
 
               <div className="md:col-span-2">
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                <label className="text-sm font-medium text-[rgb(var(--text))] mb-1 block">
                   Address
                 </label>
                 <textarea
@@ -204,12 +206,12 @@ const AddSchool = () => {
                   placeholder="123 Education Lane, Learning City, 10001"
                   value={form.address}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-22.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-22.5 focus:outline-none focus:ring-2  transition"
                 />
               </div>
 
               <div className="md:col-span-2 mt-6">
-                <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
+                <h3 className="text-lg font-semibold text-[rgb(var(--text))] border-b pb-2">
                   School Admin Login
                 </h3>
               </div>
@@ -241,14 +243,16 @@ const AddSchool = () => {
               />
 
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-1 block">
+                <label className="text-sm font-medium text-[rgb(var(--text))] mb-1 block">
                   Status
                 </label>
                 <select
                   name="status"
                   value={form.status}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                  className="w-full border border-gray-300 rounded-lg px-3 
+                  bg-[rgb(var(--surface))] text-[rgb(var(--text))]
+                  py-2 text-sm focus:outline-none focus:ring-2  transition"
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
@@ -256,10 +260,10 @@ const AddSchool = () => {
               </div>
             </div>
 
-            <div className="flex justify-between items-center px-8 py-6 border-t bg-gray-50 rounded-b-2xl">
+            <div className="flex justify-between items-center px-8 py-6 border-t bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-b-2xl">
               <button
                 onClick={() => navigate("/admin/schools")}
-                className="px-5 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition"
+                className="px-5 py-2 border border-gray-300 rounded-lg transition"
               >
                 Cancel
               </button>
@@ -267,7 +271,7 @@ const AddSchool = () => {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-sm transition disabled:opacity-50"
+                className="px-6 py-2 bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded-lg shadow-sm transition disabled:opacity-50"
               >
                 {loading ? "Saving..." : "Create School"}
               </button>
@@ -287,14 +291,14 @@ const Input = ({
   ...props
 }) => (
   <div>
-    <label className="text-sm font-medium text-gray-700 mb-1 block">
+    <label className="text-sm font-medium text-[rgb(var(--text))] mb-1 block">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     <input
       type={type}
       placeholder={placeholder}
       {...props}
-      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2  transition"
     />
   </div>
 );

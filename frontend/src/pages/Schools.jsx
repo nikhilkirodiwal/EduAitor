@@ -60,11 +60,11 @@ const Schools = () => {
       {/* HEADER */}
 
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[rgb(var(--text))]">
           Schools Dashboard
         </h1>
 
-        <p className="text-gray-500 text-sm">
+        <p className="text-[rgb(var(--text))] text-sm">
           Manage all schools and their subscriptions
         </p>
       </div>
@@ -110,7 +110,7 @@ const Schools = () => {
         {schools.map((school) => (
           <div
             key={school._id}
-            className="bg-white rounded-xl shadow hover:shadow-lg transition p-5 flex flex-col justify-between"
+            className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl shadow hover:shadow-lg transition p-5 flex flex-col justify-between"
           >
 
             {/* HEADER */}
@@ -118,11 +118,11 @@ const Schools = () => {
             <div className="flex justify-between items-start mb-4">
 
               <div>
-                <h2 className="text-lg font-semibold text-gray-800">
+                <h2 className="text-lg font-semibold text-[rgb(var(--text))]">
                   {school.school_name}
                 </h2>
 
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[rgb(var(--text))]">
                   {school.slug}
                 </p>
               </div>
@@ -143,13 +143,13 @@ const Schools = () => {
             {/* SUBSCRIPTION */}
 
             {school.subscription_plan && (
-              <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 mb-4">
+              <div className=" border border-indigo-100 rounded-lg p-3 mb-4">
 
-                <p className="text-sm font-medium text-indigo-700">
+                <p className="text-sm font-medium text-[rgb(var(--primary))]">
                   {school.subscription_plan?.name}
                 </p>
 
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[rgb(var(--text))]">
                   {school.subscription_plan?.currency}{" "}
                   {school.subscription_plan?.price}
                   {" / "}
@@ -161,25 +161,25 @@ const Schools = () => {
 
             {/* DETAILS */}
 
-            <div className="text-sm text-gray-600 space-y-1">
+            <div className="text-sm text-[rgb(var(--text))] space-y-1">
 
               <p>
-                <span className="text-gray-500">Start:</span>{" "}
+                <span className="text-[rgb(var(--text))]">Start:</span>{" "}
                 {school.start_date?.slice(0, 10)}
               </p>
 
               <p>
-                <span className="text-gray-500">End:</span>{" "}
+                <span className="text-[rgb(var(--text))]">End:</span>{" "}
                 {school.end_date?.slice(0, 10)}
               </p>
 
               <p>
-                <span className="text-gray-500">Email:</span>{" "}
+                <span className="text-[rgb(var(--text))]">Email:</span>{" "}
                 {school.contact_email}
               </p>
 
               <p>
-                <span className="text-gray-500">Phone:</span>{" "}
+                <span className="text-[rgb(var(--text))]">Phone:</span>{" "}
                 {school.contact_phone}
               </p>
 
@@ -187,7 +187,7 @@ const Schools = () => {
 
             {/* ADDRESS */}
 
-            <p className="text-xs text-gray-400 mt-3 line-clamp-2">
+            <p className="text-xs text-[rgb(var(--text))] mt-3 line-clamp-2">
               {school.address}
             </p>
 
@@ -197,7 +197,7 @@ const Schools = () => {
 
               <button
                 onClick={() => navigate(`/admin/school-view/${school._id}`)}
-                className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                className="flex items-center gap-2 text-[rgb(var(--primary))] hover:text-[rgb(var(--primary-dark))] text-sm font-medium"
               >
                 <FaEye />
                 View Info
@@ -220,14 +220,14 @@ export default Schools;
 /* ---------------- STAT CARD ---------------- */
 
 const StatCard = ({ icon, title, value, color }) => (
-  <div className="bg-white rounded-xl shadow p-5 flex items-center justify-between">
+  <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-xl shadow p-5 flex items-center justify-between">
 
     <div>
-      <p className="text-sm text-gray-500 mb-1">
+      <p className="text-sm text-[rgb(var(--text))] mb-1">
         {title}
       </p>
 
-      <h2 className="text-2xl font-bold text-gray-800">
+      <h2 className="text-2xl font-bold text-[rgb(var(--text))]">
         {value}
       </h2>
     </div>
