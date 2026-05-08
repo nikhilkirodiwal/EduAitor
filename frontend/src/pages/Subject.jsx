@@ -150,30 +150,30 @@ export default function Subject() {
 
   /* ════════════════════════════════════════════════════ */
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-8 bg-[rgb(var(--surface))] text-[rgb(var(--text))]">
       {/* ── Header ── */}
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
           <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl
-                 bg-white shadow-sm border border-slate-100
-                 text-sm font-bold text-slate-600 active:scale-95 transition-transform mb-2.5"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[rgb(var(--text))] bg-[rgb(var(--primary))]
+                  shadow-sm border border-slate-100
+                 text-sm font-bold  active:scale-95 transition-transform mb-2.5"
           >
             <FaArrowLeft size={16} />
             Back
           </button>
         </div>
       )}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 ">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Subjects</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manage school subjects</p>
+          <h1 className="text-2xl font-bold ">Subjects</h1>
+          <p className="text-sm  mt-0.5">Manage school subjects</p>
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition shrink-0"
+          className="flex items-center gap-2 text-[rgb(var(--text))] bg-[rgb(var(--primary))] text-sm font-semibold px-5 py-2.5 rounded-xl transition shrink-0"
         >
           <FaPlus size={12} /> Add Subject
         </button>
@@ -209,7 +209,7 @@ export default function Subject() {
         ].map((s, i) => (
           <div
             key={i}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm px-5 py-4 flex items-center gap-4"
+            className=" rounded-xl border border-gray-100 shadow-sm px-5 py-4 flex items-center gap-4"
           >
             <div
               className={`w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0 ${s.bg}`}
@@ -217,10 +217,10 @@ export default function Subject() {
               {s.icon}
             </div>
             <div>
-              <p className="text-xs text-gray-400 font-medium tracking-wide">
+              <p className="text-xs text-[rgb(var(--text))] font-medium tracking-wide">
                 {s.label}
               </p>
-              <p className="text-2xl font-bold text-gray-800 leading-tight">
+              <p className="text-2xl font-bold text-[rgb(var(--text))] leading-tight">
                 {s.value}
               </p>
             </div>
@@ -234,7 +234,7 @@ export default function Subject() {
           <div className="w-8 h-8 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : subjects.length === 0 ? (
-        <div className="text-center py-20 text-gray-400 text-sm">
+        <div className="text-center py-20 text-[rgb(var(--text))] text-sm">
           No subjects found. Add your first subject!
         </div>
       ) : (
@@ -242,16 +242,16 @@ export default function Subject() {
           {subjects.map((sub) => (
             <div
               key={sub._id}
-              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition flex flex-col gap-4"
+              className="bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition flex flex-col gap-4"
             >
               {/* top row */}
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-base shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-[rgb(var(--primary))] text-[rgb(var(--text))] flex items-center justify-center text-base shrink-0">
                     <FaBook />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-800 text-sm leading-tight">
+                    <h3 className="font-bold text-sm leading-tight">
                       {sub.name}
                     </h3>
                     <span
@@ -285,9 +285,9 @@ export default function Subject() {
 
               {/* class usage */}
               <div className="border-t border-gray-100 pt-3">
-                <p className="text-xs text-gray-400 font-medium mb-2">
+                <p className="text-xs  font-medium mb-2">
                   Used in{" "}
-                  <span className="text-gray-700 font-semibold">
+                  <span className=" font-semibold">
                     {sub.classCount || 0}
                   </span>{" "}
                   class{sub.classCount !== 1 ? "es" : ""}
@@ -297,13 +297,13 @@ export default function Subject() {
                     sub.classes.map((cls) => (
                       <span
                         key={cls._id}
-                        className="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100"
+                        className="text-[11px] font-medium px-2.5 py-0.5 rounded-full   border border-indigo-100"
                       >
                         {cls.label}
                       </span>
                     ))
                   ) : (
-                    <span className="text-xs text-gray-400 italic">
+                    <span className="text-xs  italic">
                       Not assigned to any class
                     </span>
                   )}
@@ -316,23 +316,23 @@ export default function Subject() {
 
       {/* ════════ Add / Edit Modal ════════ */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
+        <div className="fixed inset-0 z-50  flex items-center justify-center p-4">
+          <div className="bg-[rgb(var(--surface))] rounded-2xl w-full max-w-md shadow-xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800">
+              <h2 className="text-lg font-bold text-[rgb(var(--text))]">
                 {editing ? "Edit Subject" : "Add Subject"}
               </h2>
               <button
                 onClick={tryClose}
-                className="text-gray-400 hover:text-gray-600"
+                className=""
               >
                 <FiX size={20} />
               </button>
             </div>
 
-            <div className="px-6 py-5 space-y-4">
+            <div className="px-6 py-5 space-y-4 text-[rgb(var(--text))]">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium  mb-1">
                   Subject Name <span className="text-pink-500">*</span>
                 </label>
                 <input
@@ -346,7 +346,7 @@ export default function Subject() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium  mb-1">
                   Status
                 </label>
                 <select
@@ -354,7 +354,7 @@ export default function Subject() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, status: e.target.value }))
                   }
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
+                  className="w-full border bg-[rgb(var(--surface))] text-[rgb(var(--text))] border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-400"
                 >
                   <option>Active</option>
                   <option>Inactive</option>
@@ -365,14 +365,14 @@ export default function Subject() {
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100">
               <button
                 onClick={tryClose}
-                className="px-5 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition"
+                className="px-5 py-2 text-sm font-medium text-[rgb(var(--text))] bg-[rgb(var(--primary))] rounded-lg transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="px-5 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition disabled:opacity-60"
+                className="px-5 py-2 text-sm font-semibold  bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded-lg transition disabled:opacity-60"
               >
                 {editing ? "Update Subject" : "Save Subject"}
               </button>
@@ -384,13 +384,13 @@ export default function Subject() {
       {/* ════════ Save Confirm ════════ */}
       {confirmSave && (
         <ConfirmPopup
-          icon={<FiCheckCircle size={22} className="text-indigo-500" />}
-          iconBg="bg-indigo-100"
-          strip="bg-indigo-500"
+          icon={<FiCheckCircle size={22} className="text-[rgb(var(--text))]" />}
+          iconBg="bg-[rgb(var(--primary))]"
+          strip="bg-[rgb(var(--primary))]"
           title={editing ? "Update this subject?" : "Create this subject?"}
           message={`"${form.name}" will be marked as ${form.status}`}
           confirmLabel={submitting ? "Saving…" : "Yes, Save"}
-          confirmCls="bg-indigo-500 hover:bg-indigo-600"
+          confirmCls="bg-[rgb(var(--primary))]"
           onConfirm={confirmAndSave}
           onCancel={() => setConfirmSave(false)}
           disabled={submitting}
@@ -439,15 +439,15 @@ function ConfirmPopup({
   title,
   message,
   confirmLabel = "Confirm",
-  confirmCls = "bg-indigo-500 hover:bg-indigo-600",
+  confirmCls = "bg-[rgb(var(--primary))]",
   cancelLabel = "Go Back",
   onConfirm,
   onCancel,
   disabled = false,
 }) {
   return (
-    <div className="fixed inset-0 z-60 bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
+    <div className="fixed inset-0 z-60  flex items-center justify-center p-4">
+      <div className="bg-[rgb(var(--surface))] rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
         <div className={`h-1.5 w-full ${strip}`} />
         <div className="p-6 text-center">
           <div
@@ -455,19 +455,19 @@ function ConfirmPopup({
           >
             {icon}
           </div>
-          <h3 className="text-base font-bold text-gray-800 mb-1">{title}</h3>
-          <p className="text-sm text-gray-500 mb-6">{message}</p>
+          <h3 className="text-base font-bold text-[rgb(var(--text))] mb-1">{title}</h3>
+          <p className="text-sm text-[rgb(var(--text))] mb-6">{message}</p>
           <div className="flex gap-3">
             <button
               onClick={onCancel}
-              className="flex-1 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition"
+              className="flex-1 py-2.5 text-sm font-medium text-[rgb(var(--text))] bg-[rgb(var(--primary))]  rounded-xl transition"
             >
               {cancelLabel}
             </button>
             <button
               onClick={onConfirm}
               disabled={disabled}
-              className={`flex-1 py-2.5 text-sm font-semibold text-white rounded-xl transition disabled:opacity-60 ${confirmCls}`}
+              className={`flex-1 py-2.5 text-sm font-semibold bg-[rgb(var(--primary))] text-[rgb(var(--text))] rounded-xl transition disabled:opacity-60 ${confirmCls}`}
             >
               {confirmLabel}
             </button>

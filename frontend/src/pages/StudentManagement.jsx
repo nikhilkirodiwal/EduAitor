@@ -75,6 +75,7 @@ const emptyForm = {
   parentPassword: "",
 };
 
+
 const StudentManagement = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -82,6 +83,8 @@ const StudentManagement = () => {
 
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(emptyForm);
+  const [errors, setErrors] = useState({});
+
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
@@ -114,6 +117,40 @@ const StudentManagement = () => {
 
     return Number(value).toFixed(2);
   };
+  const getFinalAnnualTotal = () =>
+  feeStructure.reduce((sum, fee) => {
+    // If it's mandatory, add it. 
+    // If it's optional, only add it if isOptionalFeeSelected returns true.
+    if (!fee.isOptional || isOptionalFeeSelected(fee)) {
+      return sum + (Number(fee.amount) || 0);
+    }
+    return sum;
+  }, 0);
+
+  useEffect(() => {
+  const annualTotal = getFinalAnnualTotal();
+  let discountedTotal = annualTotal;
+
+  // Calculate Discount
+  const discountVal = Number(form.discountValue) || 0;
+  if (form.discountType === "Percentage") {
+    discountedTotal = annualTotal - (annualTotal * (discountVal / 100));
+  } else if (form.discountType === "Rupees") {
+    discountedTotal = annualTotal - discountVal;
+  }
+
+  setForm(prev => ({
+    ...prev,
+    totalFee: annualTotal.toFixed(2),
+    finalFee: Math.max(0, discountedTotal).toFixed(2) // Max 0 to prevent negative fees
+  }));
+}, [
+    form.selectedOptionalFees, 
+    form.useTransport, 
+    form.discountType, 
+    form.discountValue, 
+    feeStructure
+]);
 
   const calcBusFeeAmount = (amount) =>
     Number(form.busFeeFrequency === "quarterly" ? amount / 3 : amount).toFixed(
@@ -340,6 +377,13 @@ const StudentManagement = () => {
         busFeeQuarter: value === "quarterly" ? form.busFeeQuarter : "",
       }),
     }));
+    if (errors[name]) {
+    setErrors((prevErrors) => {
+      const updatedErrors = { ...prevErrors };
+      delete updatedErrors[name]; // Remove only this field's error
+      return updatedErrors;
+    });
+  }
   };
 
   /* FILE */
@@ -353,6 +397,13 @@ const StudentManagement = () => {
       toast.error("File must be less than 2MB");
       return;
     }
+    if (errors[name]) {
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[name];
+      return newErrors;
+    });
+  }
 
     setForm((prev) => ({
       ...prev,
@@ -406,10 +457,27 @@ const StudentManagement = () => {
     if (step === 2) {
       if (!form.fatherName.trim()) errors.push("Father name required");
       if (!form.fatherMobile.trim()) errors.push("Father mobile required");
+      if (!form.motherName?.trim()) errors.push("Mother name required"); 
+    if (!form.motherMobile?.trim()) errors.push("Mother mobile required"); 
       if (!form.address.trim()) errors.push("Address required");
       if (form.fatherMobile && !/^\d{10}$/.test(form.fatherMobile))
         errors.push("Invalid Father Mobile Number");
     }
+
+    if (step === 3) {
+    // Check Student Photo
+    if (!form.studentPhoto && !form?.documents?.studentPhoto?.url) {
+      errors.push("Student Photo is required");
+    }
+    // Check Father Aadhar
+    if (!form.fatherAadhar && !form?.documents?.fatherAadhar?.url) {
+      errors.push("Father Aadhar is required");
+    }
+    // Check Mother Aadhar
+    if (!form.motherAadhar && !form?.documents?.motherAadhar?.url) {
+      errors.push("Mother Aadhar is required");
+    }
+  }
 
     if (step === 4) {
       if (!form.classId) errors.push("Class required");
@@ -450,11 +518,62 @@ const StudentManagement = () => {
     return errors;
   };
 
-  const next = () => {
-    const errors = validateStep();
-    if (errors.length) return errors.forEach((e) => toast.error(e));
-    setStep((s) => s + 1);
-  };
+const next = () => {
+  const stepErrorsArray = validateStep();
+
+  if (stepErrorsArray.length > 0) {
+    const errorMap = {};
+
+    stepErrorsArray.forEach((err) => {
+      // Create a lowercase version for matching
+      const lowerErr = err.toLowerCase();
+
+      // Step 1 & 2
+      if (lowerErr.includes("first name")) errorMap.firstName = err;
+      if (lowerErr.includes("last name")) errorMap.lastName = err;
+      if (lowerErr.includes("date of birth")) errorMap.dob = err;
+      if (lowerErr.includes("gender")) errorMap.gender = err;
+      if (lowerErr.includes("admission date")) errorMap.admissionDate = err;
+      if (lowerErr.includes("father name")) errorMap.fatherName = err;
+      if (lowerErr.includes("father mobile") || lowerErr.includes("invalid father mobile")) errorMap.fatherMobile = err;
+      if (lowerErr.includes("mother name")) errorMap.motherName = err;
+      if (lowerErr.includes("mother mobile")) errorMap.motherMobile = err;
+      if (lowerErr.includes("address")) errorMap.address = err;
+
+      // Step 3 - FIXED CASE SENSITIVITY
+      if (lowerErr.includes("student photo")) errorMap.studentPhoto = err;
+      if (lowerErr.includes("father aadhar")) errorMap.fatherAadhar = err;
+      if (lowerErr.includes("mother aadhar")) errorMap.motherAadhar = err;
+
+      // Step 4, 5, 6
+      if (lowerErr.includes("class")) errorMap.classId = err;
+      if (lowerErr.includes("section")) errorMap.sectionId = err;
+      if (lowerErr.includes("roll number")) errorMap.rollNo = err;
+      if (lowerErr.includes("total fee")) errorMap.totalFee = err;
+      if (lowerErr.includes("transport route")) errorMap.transport = err;
+      if (lowerErr.includes("bus fee quarter")) errorMap.busFeeQuarter = err;
+      if (lowerErr.includes("username")) errorMap.username = err;
+      if (lowerErr.includes("password")) errorMap.password = err;
+    });
+
+    setErrors(errorMap);
+    toast.error("Please fill in the required fields.");
+    return;
+  }
+
+  // Handle Parent Login Auto-generation logic here (Step 5 to 6 transition)
+  if (step === 5) {
+    setForm(prev => ({
+      ...prev,
+      username: prev.username || prev.fatherMobile,
+      password: prev.password || "123456"
+    }));
+  }
+
+  setErrors({});
+  setStep((s) => s + 1);
+};
+
 
   const prev = () => {
     if (step > 1) setStep((s) => s - 1);
@@ -471,6 +590,7 @@ const StudentManagement = () => {
     setConfirmAction(() => () => {
       setForm(emptyForm);
       setStep(1);
+        setErrors({})
     });
 
     setConfirmOpen(true);
@@ -553,7 +673,7 @@ const StudentManagement = () => {
   }, [form]);
 
   return (
-    <div className="p-4 lg:p-8 bg-gray-50 min-h-screen">
+    <div className="p-4 lg:p-8  min-h-screen">
       {/* BACK BUTTON */}
       {isMobile && (
         <div className="pt-4">
@@ -586,7 +706,7 @@ const StudentManagement = () => {
         {/* STEP SIDEBAR */}
 
         <div className="col-span-12 lg:col-span-3">
-          <div className="bg-white rounded-xl shadow p-4 sticky top-6">
+          <div className="bg-[rgb(var(--surface))] rounded-xl  border border-[rgb(var(--border))] shadow p-4 sticky top-6">
             {steps.map((s, i) => {
               const index = i + 1;
               const status =
@@ -610,8 +730,8 @@ const StudentManagement = () => {
                   className={`flex items-center gap-3 p-3 rounded-lg mb-2 cursor-pointer
                     ${
                       status === "active"
-                        ? "bg-indigo-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-200"
+                        ? "bg-[rgb(var(--primary))] text-[rgb(var(--text))]"
+                        : ""
                     }`}
                 >
                   <div
@@ -621,7 +741,7 @@ const StudentManagement = () => {
                           ? "bg-green-500 text-white"
                           : status === "active"
                             ? "bg-white text-indigo-600"
-                            : "bg-gray-300"
+                            : "bg-[rgb(var(--primary))]"
                       }`}
                   >
                     {status === "complete" ? "✓" : index}
@@ -637,7 +757,7 @@ const StudentManagement = () => {
         {/* FORM AREA */}
 
         <div className="col-span-12 lg:col-span-9">
-          <div className="bg-white rounded-xl shadow p-6 lg:p-8">
+          <div className="bg-[rgb(var(--surface))] text-[rgb(var(--text))]  border border-[rgb(var(--border))] rounded-xl shadow p-6 lg:p-8">
             {/* PROGRESS */}
 
             <div className="mb-6">
@@ -666,6 +786,7 @@ const StudentManagement = () => {
                   name="firstName"
                   value={form.firstName}
                   onChange={handleChange}
+                  error={errors.firstName}
                 />
                 <Input
                   label="Last Name *"
@@ -673,6 +794,7 @@ const StudentManagement = () => {
                   name="lastName"
                   value={form.lastName}
                   onChange={handleChange}
+                  error={errors.lastName}
                 />
                 <Input
                   type="date"
@@ -680,6 +802,7 @@ const StudentManagement = () => {
                   name="dob"
                   value={form.dob}
                   onChange={handleChange}
+                  error={errors.dob}
                 />
                 <Select
                   label="Gender *"
@@ -687,6 +810,7 @@ const StudentManagement = () => {
                   value={form.gender}
                   options={["Male", "Female"]}
                   onChange={handleChange}
+                  error={errors.gender}
                 />
                 <Input
                   label="Blood Group *"
@@ -694,6 +818,7 @@ const StudentManagement = () => {
                   name="bloodGroup"
                   value={form.bloodGroup}
                   onChange={handleChange}
+                  error={errors.bloodGroup}
                 />
                 <Input
                   type="date"
@@ -701,6 +826,7 @@ const StudentManagement = () => {
                   name="admissionDate"
                   value={form.admissionDate}
                   onChange={handleChange}
+                  error={errors.admissionDate}
                 />
               </div>
             )}
@@ -714,13 +840,16 @@ const StudentManagement = () => {
                   name="fatherName"
                   value={form.fatherName}
                   onChange={handleChange}
+                    error={errors.fatherName}
                 />
                 <Input
                   label="Father Mobile *"
                   placeholder="Enter mobile number"
                   name="fatherMobile"
+                  type="number"
                   value={form.fatherMobile}
                   onChange={handleChange}
+                    error={errors.fatherMobile}
                 />
                 <Input
                   label="Father Email *"
@@ -728,6 +857,7 @@ const StudentManagement = () => {
                   name="fatherEmail"
                   value={form.fatherEmail}
                   onChange={handleChange}
+                    error={errors.fatherEmail}
                 />
 
                 <Input
@@ -736,13 +866,16 @@ const StudentManagement = () => {
                   name="motherName"
                   value={form.motherName}
                   onChange={handleChange}
+                    error={errors.motherName}
                 />
                 <Input
                   label="Mother Mobile *"
                   placeholder="Enter mobile number"
                   name="motherMobile"
+                  type="number"
                   value={form.motherMobile}
                   onChange={handleChange}
+                    error={errors.motherMobile}
                 />
                 <Input
                   label="Mother Email *"
@@ -750,6 +883,7 @@ const StudentManagement = () => {
                   name="motherEmail"
                   value={form.motherEmail}
                   onChange={handleChange}
+                    error={errors.motherEmail}
                 />
 
                 <Input
@@ -780,6 +914,7 @@ const StudentManagement = () => {
                   name="address"
                   value={form.address}
                   onChange={handleChange}
+                    error={errors.address}
                 />
               </div>
             )}
@@ -793,6 +928,7 @@ const StudentManagement = () => {
                   name="studentPhoto"
                   existingUrl={form?.documents?.studentPhoto?.url}
                   onChange={handleFileChange}
+                    error={errors.studentPhoto}
                 />
 
                 <File
@@ -800,6 +936,7 @@ const StudentManagement = () => {
                   name="fatherPhoto"
                   existingUrl={form?.documents?.fatherPhoto?.url}
                   onChange={handleFileChange}
+                  error={errors.fatherPhoto}
                 />
 
                 <File
@@ -807,6 +944,7 @@ const StudentManagement = () => {
                   name="motherPhoto"
                   existingUrl={form?.documents?.motherPhoto?.url}
                   onChange={handleFileChange}
+                  error={errors.motherPhoto}
                 />
 
                 <File
@@ -842,6 +980,7 @@ const StudentManagement = () => {
                   name="fatherAadhar"
                   existingUrl={form?.documents?.fatherAadhar?.url}
                   onChange={handleFileChange}
+                  error={errors.fatherAadhar}
                 />
 
                 <File
@@ -849,6 +988,7 @@ const StudentManagement = () => {
                   name="motherAadhar"
                   existingUrl={form?.documents?.motherAadhar?.url}
                   onChange={handleFileChange}
+                  error={errors.motherAadhar}
                 />
               </div>
             )}
@@ -866,6 +1006,7 @@ const StudentManagement = () => {
                     value: c._id,
                   }))}
                   onChange={handleChange}
+                    error={errors.classId}
                 />
 
                 {form.classId && sections.length > 0 && (
@@ -875,6 +1016,7 @@ const StudentManagement = () => {
                     value={form.sectionId}
                     options={sections}
                     onChange={handleChange}
+                      error={errors.sectionId}
                   />
                 )}
 
@@ -883,6 +1025,7 @@ const StudentManagement = () => {
                   name="rollNo"
                   value={form.rollNo}
                   onChange={handleChange}
+                    error={errors.rollNo}
                 />
 
                 <Select
@@ -900,7 +1043,7 @@ const StudentManagement = () => {
             {step === 5 && (
               <div className="grid gap-4">
                 {feeStructure.length === 0 && form.classId && (
-                  <div className="text-sm text-gray-400">
+                  <div className="text-sm text-[rgb(var(--text))] ">
                     No fee structure found for this class
                   </div>
                 )}
@@ -913,7 +1056,7 @@ const StudentManagement = () => {
                   <select
                     value={freqFilter}
                     onChange={(e) => setFreqFilter(e.target.value)}
-                    className="w-full border px-3 py-2 rounded-lg"
+                    className="w-full border px-3 py-2 rounded-lg text-[rgb(var(--text))] bg-[rgb(var(--surface))] "
                   >
                     <option value="monthly">Monthly</option>
                     <option value="quarterly">Quarterly</option>
@@ -928,7 +1071,7 @@ const StudentManagement = () => {
                       isBusFeeComponent(fee) ? (
                         <div
                           key={fee._id}
-                          className="rounded-lg border border-gray-200 bg-gray-50 p-4"
+                          className="rounded-lg  text-[rgb(var(--text))]  border border-[rgb(var(--border))] p-4"
                         >
                           <label className="flex items-center gap-3">
                             <input
@@ -954,10 +1097,10 @@ const StudentManagement = () => {
                               className="h-4 w-4"
                             />
                             <div>
-                              <div className="text-sm font-medium text-gray-800">
+                              <div className="text-sm font-medium text-[rgb(var(--text))]">
                                 Add {fee.name}
                               </div>
-                              <div className="text-xs text-gray-500">
+                              <div className="text-xs text-[rgb(var(--text))]">
                                 Include this fee only when the student uses
                                 transport.
                               </div>
@@ -1019,18 +1162,18 @@ const StudentManagement = () => {
                 )}
 
                 {feeStructure.length > 0 && (
-                  <div className="bg-gray-50 border rounded-lg p-4 mb-4">
+                  <div className=" border rounded-lg p-4 mb-4">
                     <h3 className="font-semibold mb-2">Fee Breakdown</h3>
 
                     {feeStructure.map((f, i) => (
                       <div
                         key={i}
-                        className="flex justify-between text-sm py-1"
+                        className="flex justify-between text-sm py-1 text-[rgb(var(--text))]"
                       >
                         <span>
                           {f.name}
                           {f.isOptional && (
-                            <span className="text-xs text-gray-400 ml-2">
+                            <span className="text-xs ml-2">
                               {isOptionalFeeSelected(f)
                                 ? "(Selected)"
                                 : "(Optional)"}
@@ -1044,9 +1187,10 @@ const StudentManagement = () => {
 
                     <div className="flex justify-between font-bold border-t mt-2 pt-2">
                       <span>Annual Total</span>
-                      <span>
-                        ₹{Number(getMandatoryAnnualTotal()).toFixed(2)}
-                      </span>
+                     <span>
+    {/* Use the final total here instead of mandatory only */}
+    ₹{Number(getFinalAnnualTotal()).toFixed(2)}
+  </span>
                     </div>
 
                     {/* {freqFilter === "quarterly" && (
@@ -1139,7 +1283,7 @@ const StudentManagement = () => {
               {step > 1 && (
                 <button
                   onClick={prev}
-                  className="px-6 py-2 bg-gray-200 rounded-lg"
+                  className="px-6 py-2 bg-[rgb(var(--surface))] text-[rgb(var(--text))] rounded-lg cursor-pointer border border-[rgb(var(--border))]"
                 >
                   Back
                 </button>
@@ -1148,12 +1292,12 @@ const StudentManagement = () => {
               {step < steps.length ? (
                 <button
                   onClick={next}
-                  disabled={validateStep().length > 0}
-                  className={`px-6 py-2 rounded-lg text-white
+                 
+                  className={`px-6 py-2 rounded-lg text-[rgb(var(--text))]
                     ${
                       validateStep().length > 0
-                        ? "bg-gray-400"
-                        : "bg-indigo-600 hover:bg-indigo-700"
+                        ? "bg-[rgb(var(--primary))]"
+                        : "bg-[rgb(var(--primary))]  border border-[rgb(var(--border))] cursor-pointer"
                     }`}
                 >
                   Next
@@ -1175,15 +1319,15 @@ const StudentManagement = () => {
 
       {confirmOpen && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+          <div className="bg-[rgb(var(--surface))]  border border-[rgb(var(--border))] text-[rgb(var(--text))] rounded-xl p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-2">Confirmation</h3>
 
-            <p className="text-gray-600 mb-6">{confirmMessage}</p>
+            <p className=" mb-6">{confirmMessage}</p>
 
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setConfirmOpen(false)}
-                className="px-4 py-2 bg-gray-200 rounded-lg"
+                className="px-4 py-2  rounded-lg"
               >
                 Cancel
               </button>
@@ -1193,7 +1337,7 @@ const StudentManagement = () => {
                   confirmAction?.();
                   setConfirmOpen(false);
                 }}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg"
+                className="px-4 py-2 bg-[rgb(var(--primary))]  border border-[rgb(var(--border))] text-[rgb(var(--text))] rounded-lg"
               >
                 Confirm
               </button>
@@ -1209,30 +1353,35 @@ export default StudentManagement;
 
 /* INPUT */
 
-const Input = ({ label, ...props }) => (
+const Input = ({ label,error, ...props }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">
+    <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
       {label}
     </label>
 
     <input
       {...props}
-      className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500"
+      className="w-full border px-3 py-2 rounded-lg  bg-[rgb(var(--surface))]"
     />
+    {error && (
+        <span className="text-xs text-red-500 font-medium">
+          {error}
+        </span>
+      )}
   </div>
 );
 
 /* SELECT */
 
-const Select = ({ label, options, ...props }) => (
+const Select = ({ label, error,options, ...props }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">
+    <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
       {label}
     </label>
 
     <select
       {...props}
-      className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500"
+      className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 text-[rgb(var(--text))] bg-[rgb(var(--surface))] "
     >
       <option value="">Select</option>
 
@@ -1252,11 +1401,17 @@ const Select = ({ label, options, ...props }) => (
         );
       })}
     </select>
+    {error && (
+        <span className="text-xs text-red-500 font-medium">
+          {error}
+        </span>
+      )}
   </div>
 );
 /* FILE */
 
-const File = ({ label, name, onChange, existingUrl }) => {
+const File = ({ label,  name, onChange, existingUrl ,error }) => {
+  console.log(error)
   const [preview, setPreview] = useState(existingUrl || null);
 
   const handlePreview = (e) => {
@@ -1281,8 +1436,8 @@ const File = ({ label, name, onChange, existingUrl }) => {
   }, [preview]);
 
   return (
-    <div className="border rounded-xl p-4 bg-gray-50">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+    <div className="border rounded-xl p-4 text-[rgb(var(--text))]">
+      <label className={`block text-sm font-medium mb-2 ${error ? 'text-red-600' : 'text-[rgb(var(--text))]'}`}>
         {label}
       </label>
 
@@ -1292,6 +1447,12 @@ const File = ({ label, name, onChange, existingUrl }) => {
         onChange={handlePreview}
         className="w-full border px-3 py-2 rounded-lg"
       />
+
+     {error && (
+        <span className="text-xs text-red-500 font-medium">
+          {error}
+        </span>
+      )}
 
       {preview && (
         <img
@@ -1315,28 +1476,30 @@ const ParentLoginStep = ({ form, handleChange, isEdit }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
           Username *
         </label>
         <input
           name="username"
-          value={form.username || ""}
+          value={form.fatherMobile || ""}
           onChange={handleChange}
+          disabled
           placeholder="e.g. john.doe2024"
           className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-[rgb(var(--text))] mb-1">
           {isEdit ? "New Password (leave blank to keep current)" : "Password *"}
         </label>
         <div className="relative">
           <input
             name="password"
             type={showPassword ? "text" : "password"}
-            value={form.password || ""}
+              defaultValue={"123456"}
             onChange={handleChange}
+
             placeholder="Min. 5 characters"
             className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-indigo-500 pr-10"
           />
@@ -1396,9 +1559,9 @@ const ReviewStep = ({
     `${form.firstName?.[0] || ""}${form.lastName?.[0] || ""}`.toUpperCase();
 
   const Section = ({ title, headerClass, children }) => (
-    <div className="border border-gray-200 rounded-xl overflow-hidden mb-3">
+    <div className="border border-gray-200 rounded-xl overflow-hidden mb-3 bg-[rgb(var(--surface))]">
       <div className={`px-4 py-2.5 border-b border-gray-200 ${headerClass}`}>
-        <span className="text-sm font-medium text-gray-800">{title}</span>
+        <span className="text-sm font-medium ">{title}</span>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 bg-white">{children}</div>
     </div>
@@ -1407,19 +1570,19 @@ const ReviewStep = ({
   const Field = ({ label, value }) => {
     if (!value && value !== 0) return null;
     return (
-      <div className="px-4 py-2.5 border-b border-r border-gray-100">
-        <div className="text-[11px] uppercase tracking-wide text-gray-400 mb-0.5">
+      <div className="px-4 py-2.5 border-b border-r text-[rgb(var(--text))] bg-[rgb(var(--surface))] border border-[rgb(var(--border))]">
+        <div className="text-[11px] uppercase tracking-wide  mb-0.5">
           {label}
         </div>
-        <div className="text-sm font-medium text-gray-800">{value}</div>
+        <div className="text-sm font-medium ">{value}</div>
       </div>
     );
   };
 
   return (
-    <div>
+    <div className=" border border-[rgb(var(--border))] text-[rgb(var(--text))] bg-[rgb(var(--surface))]" >
       {/* Header card */}
-      <div className="flex items-center gap-4 p-4 mb-4 bg-gray-50 rounded-xl border border-gray-200">
+      <div className="flex items-center gap-4 p-4 mb-4  rounded-xl  text-[rgb(var(--text))]  border border-[rgb(var(--border))]">
         <div
           className="w-13 h-13 rounded-full bg-blue-100 flex items-center justify-center text-lg font-medium text-blue-800 shrink-0 overflow-hidden"
           style={{ width: 52, height: 52 }}
@@ -1434,10 +1597,10 @@ const ReviewStep = ({
           )}
         </div>
         <div>
-          <div className="text-base font-medium text-gray-900">
+          <div className="text-base font-medium ">
             {form.firstName} {form.lastName}
           </div>
-          <div className="text-sm text-gray-500 mt-0.5">
+          <div className="text-sm mt-0.5">
             {className}
             {sectionName ? ` • ${sectionName}` : ""}
             {form.rollNo ? ` • Roll ${form.rollNo}` : ""}
@@ -1450,7 +1613,7 @@ const ReviewStep = ({
         )}
       </div>
 
-      <Section title="Student details" headerClass="bg-gray-100">
+      <Section title="Student details" headerClass="">
         <Field label="First name" value={form.firstName} />
         <Field label="Last name" value={form.lastName} />
         <Field label="Date of birth" value={form.dob} />
@@ -1459,7 +1622,7 @@ const ReviewStep = ({
         <Field label="Admission date" value={form.admissionDate} />
       </Section>
 
-      <Section title="Parent / guardian" headerClass="bg-blue-50">
+      <Section title="Parent / guardian" headerClass="">
         <Field label="Father name" value={form.fatherName} />
         <Field label="Father mobile" value={form.fatherMobile} />
         <Field label="Father email" value={form.fatherEmail} />
@@ -1472,7 +1635,7 @@ const ReviewStep = ({
         <Field label="Address" value={form.address} />
       </Section>
 
-      <Section title="Class details" headerClass="bg-green-50">
+      <Section title="Class details" headerClass="">
         <Field label="Class" value={className} />
         <Field label="Section" value={sectionName} />
         <Field label="Roll number" value={form.rollNo} />
@@ -1480,7 +1643,7 @@ const ReviewStep = ({
         <Field label="Transport route" value={transportName} />
       </Section>
 
-      <Section title="Fee structure" headerClass="bg-amber-50">
+      <Section title="Fee structure" headerClass="">
         <Field
           label="Bus service"
           value={form.useTransport ? "Included" : "Not selected"}
@@ -1531,7 +1694,7 @@ const ReviewStep = ({
         />
       </Section>
 
-      <Section title="Parent login" headerClass="bg-purple-50">
+      <Section title="Parent login" headerClass="">
         <Field label="Username" value={form.username} />
         <Field label="Password" value={form.password ? "••••••••" : null} />
       </Section>
