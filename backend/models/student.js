@@ -32,6 +32,11 @@ const studentSchema = new mongoose.Schema(
     guardianMobile: String,
     guardianRelation: String,
 
+    firstTimeLogin: {
+      type: Boolean,
+      default: true
+    },
+
     address: String,
 
     classId: {
@@ -44,7 +49,7 @@ const studentSchema = new mongoose.Schema(
     },
     rollNo: String,
     studentType: String,
-    
+
     transport: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "TransportRoute",
@@ -94,7 +99,7 @@ const studentSchema = new mongoose.Schema(
     temp_password: {
       type: String,
     },
-    
+
   },
   { timestamps: true },
 );

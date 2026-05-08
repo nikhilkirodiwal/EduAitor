@@ -55,9 +55,10 @@ export default function Login() {
       await fetchUser();
 
       const role = res.data.data.role;
+      const isFirstTime = res.data.data.firstTimeLogin;
 
       if (role === "super_admin") {
-         if (isMobile) {
+        if (isMobile) {
           navigate("/admin/menu"); // mobile page
         } else {
           navigate("/admin/dashboard"); // desktop page
@@ -78,10 +79,15 @@ export default function Login() {
         }
         toast.success("Login successful! Welcome back.");
       } else if (role === "student_admin") {
+        if (isFirstTime) {
+          toast.info("Please change your default password to continue.");
+          navigate("/change-password");
+          return; // ✅ stop here, don't fall through
+        }
         if (isMobile) {
-          navigate("/parent/menu"); // mobile page
+          navigate("/parent/menu");
         } else {
-          navigate("/parent/dashboard"); // desktop page
+          navigate("/parent/dashboard");
         }
         toast.success("Login successful! Welcome back.");
       }
@@ -131,9 +137,8 @@ export default function Login() {
               <FaUserShield className="absolute left-4 top-4 text-gray-400" />
 
               <input
-                type="email"
                 name="email"
-                placeholder="Admin Email"
+                placeholder="Enter UserName"
                 value={form.email}
                 onChange={handleChange}
                 required

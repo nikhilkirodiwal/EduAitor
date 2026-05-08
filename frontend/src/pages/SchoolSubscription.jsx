@@ -3,7 +3,7 @@ import axios from "axios";
 import { FaPlus, FaEdit, FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import {FaArrowLeft} from "react-icons/fa";
+import { FaArrowLeft } from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -182,7 +182,7 @@ const SchoolSubscription = () => {
     <div className="p-8 min-h-screen  text-[rgb(var(--text))]">
       {/* 🔙 BACK BUTTON */}
       {isMobile && (
-          <div className="pt-4">
+        <div className="pt-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 px-3 py-1.5 rounded-xl
@@ -197,9 +197,7 @@ const SchoolSubscription = () => {
       {/* HEADER */}
 
       <div className="flex justify-between items-center mb-8 ">
-        <h1 className="text-3xl font-bold ">
-          School Subscription Plans
-        </h1>
+        <h1 className="text-3xl font-bold ">School Subscription Plans</h1>
 
         <button
           onClick={() => setShowModal(true)}

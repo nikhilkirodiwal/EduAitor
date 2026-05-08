@@ -71,6 +71,7 @@ import AttendanceParent from "./pages/AttendanceParent";
 import MyChild from "./pages/MyChild";
 import ParentLibrary from "./pages/ParentLibrary";
 import ParentTransport from "./pages/ParentTransport";
+import ChangePassword from "./components/ChangePassword";
 
 const App = () => {
   return (
@@ -81,6 +82,16 @@ const App = () => {
 
         {/* Login */}
         <Route path="/admin/login" element={<Login />} />
+
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute allowedRoles={["student_admin"]}>
+              {" "}
+              <ChangePassword />{" "}
+            </ProtectedRoute>
+          }
+        />
 
         {/* Protected Routes */}
         <Route
