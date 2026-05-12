@@ -198,7 +198,7 @@ export default function EventsPage() {
       setSubmitting(true);
 
       if (editingId) {
-        await axios.put(`${API}/events/${editingId}`, form);
+        await axios.put(`${API}/events/${editingId}`, form,{withCredentials:true});
         toast.success("Event updated successfully!");
       } else {
         await axios.post(`${API}/events/create`, form, {

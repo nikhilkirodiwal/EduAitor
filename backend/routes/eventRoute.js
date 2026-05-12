@@ -18,7 +18,7 @@ router.get("/all/admin",authMiddleware, getAllAdminEvents);
 router.get("/", authMiddleware, getAllEvents);
 router.post("/create", authMiddleware, createEvent);
 router.get("/detail/:id", getEventById);
-router.put("/:id", updateEvent);
+router.put("/:id", authMiddleware,updateEvent);
 router.delete("/:id", deleteEvent);
 
 export default router;

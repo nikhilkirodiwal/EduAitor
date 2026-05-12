@@ -261,7 +261,7 @@ export default function Notice() {
     try {
       setSubmitting(true);
       if (editingId) {
-        await axios.put(`${API}/notices/${editingId}`, { ...form, createdBy });
+        await axios.put(`${API}/notices/${editingId}`, { ...form, createdBy },{withCredentials:true});
         toast.success("Notice updated successfully!");
       } else {
         await axios.post(
@@ -283,7 +283,7 @@ export default function Notice() {
   /* ── delete ── */
   const handleDelete = async () => {
     try {
-      await axios.delete(`${API}/notices/${deleteId}`);
+      await axios.delete(`${API}/notices/${deleteId}`,{withCredentials:true});
       toast.success("Notice deleted successfully!");
       setDeleteId(null);
       loadNotices();

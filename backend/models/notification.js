@@ -31,6 +31,8 @@ const notificationSchema = new mongoose.Schema({
   },
   readBy:    [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   clearedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  startingDate:Date,
+  endingDate:Date,
 }, { timestamps: true });
 
 export default mongoose.model('Notification', notificationSchema);

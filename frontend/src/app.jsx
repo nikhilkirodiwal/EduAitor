@@ -72,7 +72,7 @@ import MyChild from "./pages/MyChild";
 import ParentLibrary from "./pages/ParentLibrary";
 import ParentTransport from "./pages/ParentTransport";
 import ChangePassword from "./components/ChangePassword";
-
+import NotificationPage from "./pages/NotificationPage";
 const App = () => {
   return (
     <div className="bg-[rgb(var(--bg))] text-[rgb(var(--text))] min-h-screen">
@@ -127,6 +127,7 @@ const App = () => {
         >
           <Route path="menu" element={<SchoolMenu />} />
           <Route path="dashboard" element={<SchoolDashboard />} />
+          <Route path="notification" element={<NotificationPage />} />
           <Route path="students" element={<Students />} />
           <Route path="student-manage" element={<StudentManagement />} />
           <Route path="student-manage/:id" element={<StudentManagement />} />
@@ -173,6 +174,7 @@ const App = () => {
         >
           <Route path="menu" element={<TeacherMenu />} />
           <Route path="dashboard" element={<TeacherDashboard />} />
+          <Route path="notification" element={<NotificationPage />} />
           <Route path="students" element={<TeacherStudents />} />
           <Route path="student-view/:id" element={<StudentView />} />
           <Route path="class" element={<Class />} />
@@ -210,6 +212,7 @@ const App = () => {
         >
           <Route path="menu" element={<ParentMenu />} />
           <Route path="dashboard" element={<ParentDashboard />} />
+          <Route path="notification" element={<NotificationPage />} />
           <Route path="student" element={<MyChild />} />
           <Route path="assignment" element={<ParentAssignment />} />
           <Route

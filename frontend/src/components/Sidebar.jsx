@@ -109,6 +109,11 @@ const Sidebar = ({ closeSidebar }) => {
       ? [{ name: "Menu", icon: <FaTachometerAlt />, path: "/school/menu" }]
       : []),
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/school/dashboard" },
+    {
+      name: "Notifications",
+      icon: <FaTachometerAlt />,
+      path: "/school/notification",
+    },
 
     {
       name: "Students",
@@ -186,6 +191,11 @@ const Sidebar = ({ closeSidebar }) => {
       icon: <FaTachometerAlt />,
       path: "/teacher/dashboard",
     },
+    {
+      name: "Notifications",
+      icon: <FaTachometerAlt />,
+      path: "/teacher/notification",
+    },
 
     {
       name: "Students",
@@ -246,6 +256,11 @@ const Sidebar = ({ closeSidebar }) => {
       ? [{ name: "Menu", icon: <FaTachometerAlt />, path: "/parent/menu" }]
       : []),
     { name: "Dashboard", icon: <FaTachometerAlt />, path: "/parent/dashboard" },
+    {
+      name: "Notifications",
+      icon: <FaTachometerAlt />,
+      path: "/parent/notification",
+    },
     { name: "My Child", icon: <FaUserGraduate />, path: "/parent/student" },
     { name: "Fee Details", icon: <FaWallet />, path: "/parent/fees" },
     { name: "Attendance", icon: <FaUsers />, path: "/parent/attendance" },
@@ -289,114 +304,112 @@ const Sidebar = ({ closeSidebar }) => {
   };
 
   return (
-<aside className="h-full w-56 bg-[rgb(var(--sidebar))] border-r border-[rgb(var(--border))] flex flex-col">
+    <aside className="h-full w-56 bg-[rgb(var(--sidebar))] border-r border-[rgb(var(--border))] flex flex-col">
+      {/* MOBILE HEADER */}
+      <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-[rgb(var(--border))]">
+        <h2 className="font-semibold text-[rgb(var(--sidebar-text))]">Menu</h2>
+        <button
+          onClick={closeSidebar}
+          className="text-[rgb(var(--sidebar-text))] hover:text-red-400 transition"
+        >
+          <FaTimes />
+        </button>
+      </div>
 
-  {/* MOBILE HEADER */}
-  <div className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-[rgb(var(--border))]">
-    <h2 className="font-semibold text-[rgb(var(--sidebar-text))]">Menu</h2>
-    <button
-      onClick={closeSidebar}
-      className="text-[rgb(var(--sidebar-text))] hover:text-red-400 transition"
-    >
-      <FaTimes />
-    </button>
-  </div>
+      {/* MENU */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden py-2">
+        {menu.map((item, index) => {
+          const isParentActive =
+            item.children &&
+            item.children.some((c) => location.pathname === c.path);
 
-  {/* MENU */}
-  <div className="flex-1 overflow-y-auto overflow-x-hidden py-2">
-    {menu.map((item, index) => {
-      const isParentActive =
-        item.children &&
-        item.children.some((c) => location.pathname === c.path);
+          if (item.children) {
+            const isOpen = openMenu === item.name;
 
-      if (item.children) {
-        const isOpen = openMenu === item.name;
-
-        return (
-          <div key={index}>
-            <div
-              onClick={() => toggleMenu(item.name)}
-              className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition text-sm border-l-4
+            return (
+              <div key={index}>
+                <div
+                  onClick={() => toggleMenu(item.name)}
+                  className={`flex items-center justify-between px-4 py-2.5 cursor-pointer transition text-sm border-l-4
               ${
                 isParentActive
                   ? "bg-[rgba(var(--primary),0.15)] text-[rgb(var(--sidebar-active))] border-[rgb(var(--primary))]"
                   : "text-[rgb(var(--sidebar-text))] border-transparent hover:bg-[rgba(var(--primary),0.08)] hover:text-[rgb(var(--sidebar-active))]"
               }`}
-            >
-              <div className="flex items-center gap-3">
-                <span>{item.icon}</span>
-                <span className="font-medium">{item.name}</span>
-              </div>
-              {isOpen ? (
-                <FaChevronDown size={10} />
-              ) : (
-                <FaChevronRight size={10} />
-              )}
-            </div>
+                >
+                  <div className="flex items-center gap-3">
+                    <span>{item.icon}</span>
+                    <span className="font-medium">{item.name}</span>
+                  </div>
+                  {isOpen ? (
+                    <FaChevronDown size={10} />
+                  ) : (
+                    <FaChevronRight size={10} />
+                  )}
+                </div>
 
-            {isOpen && (
-              <div className="bg-black/10">
-                {item.children.map((child, i) => {
-                  const isActive = location.pathname === child.path;
-                  return (
-                    <div
-                      key={i}
-                      onClick={() => {
-                        navigate(child.path);
-                        closeSidebar && closeSidebar();
-                      }}
-                      className={`pl-11 pr-4 py-2 text-sm cursor-pointer transition
+                {isOpen && (
+                  <div className="bg-black/10">
+                    {item.children.map((child, i) => {
+                      const isActive = location.pathname === child.path;
+                      return (
+                        <div
+                          key={i}
+                          onClick={() => {
+                            navigate(child.path);
+                            closeSidebar && closeSidebar();
+                          }}
+                          className={`pl-11 pr-4 py-2 text-sm cursor-pointer transition
                       ${
                         isActive
                           ? "text-[rgb(var(--sidebar-active))] font-semibold"
                           : "text-[rgb(var(--sidebar-text))] hover:text-[rgb(var(--sidebar-active))]"
                       }`}
-                    >
-                      {child.name}
-                    </div>
-                  );
-                })}
+                        >
+                          {child.name}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        );
-      }
+            );
+          }
 
-      const isActive = location.pathname === item.path;
+          const isActive = location.pathname === item.path;
 
-      return (
-        <div
-          key={index}
-          onClick={() => {
-            navigate(item.path);
-            closeSidebar && closeSidebar();
-          }}
-          className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer text-sm border-l-4 transition
+          return (
+            <div
+              key={index}
+              onClick={() => {
+                navigate(item.path);
+                closeSidebar && closeSidebar();
+              }}
+              className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer text-sm border-l-4 transition
           ${
             isActive
               ? "bg-[rgba(var(--primary),0.15)] text-[rgb(var(--sidebar-active))] border-[rgb(var(--primary))]"
               : "text-[rgb(var(--sidebar-text))] border-transparent hover:bg-[rgba(var(--primary),0.08)] hover:text-[rgb(var(--sidebar-active))]"
           }`}
+            >
+              {item.icon}
+              <span className="font-medium">{item.name}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* LOGOUT */}
+      <div className="p-3 border-t border-[rgb(var(--border))]">
+        <button
+          onClick={logout}
+          className="flex items-center gap-3 w-full px-4 py-2 rounded-lg text-[rgb(var(--sidebar-text))] hover:bg-red-500/10 hover:text-red-400 transition text-sm"
         >
-          {item.icon}
-          <span className="font-medium">{item.name}</span>
-        </div>
-      );
-    })}
-  </div>
-
-  {/* LOGOUT */}
-  <div className="p-3 border-t border-[rgb(var(--border))]">
-    <button
-      onClick={logout}
-      className="flex items-center gap-3 w-full px-4 py-2 rounded-lg text-[rgb(var(--sidebar-text))] hover:bg-red-500/10 hover:text-red-400 transition text-sm"
-    >
-      <FaSignOutAlt />
-      <span className="font-medium">Logout</span>
-    </button>
-  </div>
-</aside>
-
+          <FaSignOutAlt />
+          <span className="font-medium">Logout</span>
+        </button>
+      </div>
+    </aside>
   );
 };
 

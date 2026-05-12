@@ -7,7 +7,7 @@ import Student from "../models/student.js"; // adjust import paths to your proje
 export const createNotificationHelper = async ({
   title, message, notificationType = 'general',
   targetType = 'all', roles = [], classId = null, schoolId = null, createdBy = null,
-  studentId = null, teacherId= null , sectionId =null
+  studentId = null, teacherId= null , sectionId =null,startingDate =null,endingDate=null
   ,targets=[]
 }) => { 
   const resolvedTargets = targets.map(t => ({ ...t, schoolId }));
@@ -15,6 +15,7 @@ export const createNotificationHelper = async ({
     title, message, notificationType,
     createdBy,
    targets: resolvedTargets,
+   startingDate,endingDate,
   });
   await notification.save();
   return notification;
@@ -23,16 +24,18 @@ export const createNotificationHelper = async ({
 // ─── CREATE: Admin manually sends a notification ───────────────────────────────
 export const createNotification = async (req, res) => {
   try {
-    const { title, message, notificationType, target } = req.body;
+    const { title, message, notificationType, target ,startingDate,endingDate} = req.body;
     // target looks like: { type: 'class', classId: '...', schoolId: '...' }
     // or:                { type: 'role', roles: ['teacher_admin'] }
     // or:                { type: 'all' }
-    console.log("Creating notification with target:", target , notificationType);
+    console.log("Creating notification with target:", startingDate,endingDate);
 
     const notification = new Notification({
       title,
       message,
       notificationType: notificationType || 'general',
+      startingDate,
+      endingDate,
       createdBy: req.user._id,
       targets: target || { type: 'all' },
       schoolId:req.user.school_id, 
@@ -75,7 +78,7 @@ export const getAllNotifications = async (req, res) => {
             $or: [
               { 'targets.type': 'all' },
               { 'targets.roles': 'teacher_admin' },
-              { 'targets.teacherId': user._id },
+              { 'targets.teacherId': user.teacher_id },
             ]
           },
           {
@@ -162,6 +165,7 @@ export const markAllAsRead = async (req, res) => {
 };
 
 export const clearAllNotifications = async (req, res) => {
+  console.log("Clearing notifications for user:", req.user);
   try {
     const userId = req.user._id;
 

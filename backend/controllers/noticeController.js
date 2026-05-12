@@ -154,7 +154,7 @@ export const updateNotice = async (req, res) => {
       notificationType: "general",
       targets,
       schoolId,
-      createdBy: req.user._id,
+      createdBy: req.user.school_id,
     });
 
     res

@@ -1,6 +1,7 @@
 import Event from "../models/event.js";
 import Student from "../models/student.js";
 import Class from "../models/class.js";
+import {createNotificationHelper}  from "../controllers/notificationController.js"
 
 const buildEventTargets = async (assignClass, schoolId) => {
   if (!assignClass || assignClass === 'All Classes') {
@@ -110,14 +111,17 @@ export const createEvent = async (req, res) => {
   try {
     const schoolId = req.user?.school_id;
     const event = await Event.create({ ...req.body, schoolId });
+    console.log(event)
     const targets = await buildEventTargets(event.assignClass, schoolId);
      await createNotificationHelper({
       title: `New Event: ${event.title}`,
-      message: `${event.title} on ${event.startDate} at ${event.location}. Organized by ${event.organizer}.`,
+      message: `${event.description}`,
       notificationType: "general",
       targets,
       schoolId,
       createdBy: req.user._id,
+      startingDate:event.startDate || date.now,
+      endingDate:event.endDate || "",
     });
     res
       .status(201)
@@ -130,6 +134,8 @@ export const createEvent = async (req, res) => {
 // PUT update event
 export const updateEvent = async (req, res) => {
   try {
+    const schoolId = req.user.school_id;
+    console.log(`schoolId- ${schoolId} \n ${req.params.id}`)
     const event = await Event.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
@@ -138,16 +144,17 @@ export const updateEvent = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Event not found" });
-
          const targets = await buildEventTargets(event.assignClass, schoolId);
 
     await createNotificationHelper({
       title: `Event Updated: ${event.title}`,
-      message: `${event.title} has been updated. Date: ${event.startDate} at ${event.location}.`,
+      message: `${event.description}.`,
       notificationType: "general",
       targets,
       schoolId,
       createdBy: req.user._id,
+      startingDate:event.startDate || date.now,
+      endingDate:event.endDate || "",
     });
     res
       .status(200)

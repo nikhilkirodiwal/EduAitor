@@ -60,6 +60,8 @@ const CreateNotification = () => {
   const [form, setForm] = useState({
     title: "",
     message: "",
+    startingDate:"",
+    endingDate:"",
     notificationType: "general",
     targetType: "all",
     selectedRoles: [],
@@ -99,6 +101,8 @@ const CreateNotification = () => {
           title: form.title,
           message: form.message,
           notificationType: form.notificationType,
+          startingDate:form.startingDate,
+          endingDate:form.endingDate,
           target,
         },
         { withCredentials: true },
@@ -106,7 +110,7 @@ const CreateNotification = () => {
       toast.success("Notification sent!");
       setForm({
         title: "", message: "", notificationType: "general",
-        targetType: "all", selectedRoles: [], classId: "",
+        targetType: "all", selectedRoles: [], classId: "", startingDate:"",endingDate:"",
       });
     } catch {
       toast.error("Failed to send notification");
@@ -143,6 +147,7 @@ const CreateNotification = () => {
           required
         />
 
+
         {/* Message */}
         <textarea
           rows={3}
@@ -152,6 +157,32 @@ const CreateNotification = () => {
           onChange={(e) => setForm({ ...form, message: e.target.value })}
           required
         />
+        {/* Date*/}
+        <div className="flex flex-col">
+       <label className="mb-2 block text-xs font-semibold text-[rgb(var(--text-muted))]">
+           Starting Date
+          </label>
+         <input
+          className={inputCls}
+          type="date"
+          placeholder="starting date"
+          value={form.startingDate}
+          onChange={(e) => setForm({ ...form, startingDate: e.target.value })}
+          required
+        />
+<label className="mb-2 block text-xs font-semibold text-[rgb(var(--text-muted))]">
+            ending Date
+          </label>
+         <input
+          className={inputCls}
+          type="date"
+          placeholder="ending date"
+          value={form.endingDate}
+          onChange={(e) => setForm({ ...form, endingDate: e.target.value })}
+          required
+        />
+</div>
+
 
         {/* Notification Type */}
         <div>

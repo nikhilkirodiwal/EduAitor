@@ -1,4 +1,5 @@
 import { FaBell, FaBars } from "react-icons/fa";
+import { AiOutlineLogout } from "react-icons/ai";
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -19,6 +20,11 @@ const Topbar = ({ toggleSidebar }) => {
 
   const name = user?.name || user?.school_name || "User";
   const role = user?.role || "User";
+  let path =  undefined;
+  // console.log(role)
+  if(role == "school_admin") path="/school";
+  else if(role=="teacher_admin") path="/teacher";
+  else path="/parent"
   const userId = user?._id || null;
 
   // --- FETCH NOTIFICATIONS ---
@@ -28,7 +34,7 @@ const Topbar = ({ toggleSidebar }) => {
         withCredentials: true,
       });
 
-      res.data.length > 0 ? setNotifications(res.data) : "";
+      setNotifications(res.data);
     } catch (err) {
       console.error("Notification fetch error");
     }
@@ -141,13 +147,13 @@ const Topbar = ({ toggleSidebar }) => {
   //  fetch color them function
   const [theme, setTheme] = useState("");
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.className = savedTheme;
-    }
-  }, []);
+useEffect(() => {
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme) {
+    setTheme(savedTheme);
+    document.documentElement.className = savedTheme;
+  }
+}, []);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -155,9 +161,11 @@ const Topbar = ({ toggleSidebar }) => {
       document.documentElement.className = savedTheme;
     }
   }, []);
+
+  
 
   return (
-    <header className="h-16 bg-[rgb(var(--bg))] backdrop-blur border-b flex items-center justify-between px-5 sticky top-0 z-30 shadow-md">
+    <header className="h-16 bg-[rgb(var(--bg))] backdrop-blur border-b border-[rgb(var(--border-strong))] flex items-center justify-between px-5 sticky top-0 z-30 shadow-md">
       {/* LEFT */}
       <div className="flex items-center gap-3">
         <button
@@ -276,7 +284,9 @@ const Topbar = ({ toggleSidebar }) => {
               </div>
 
               {/* ── FOOTER ── */}
-              <button className="w-full py-2.5 text-xs text-indigo-600 font-semibold bg-gray-50 hover:bg-gray-100 border-t">
+              <button className="w-full py-2.5 text-xs bg-[rgb(var(--surface))] text-[rgb(var(--text))]  border-t"
+            onClick={() => { setOpenNotifications(!openNotifications); navigate(`${path}/notification`);  }}
+              >
                 View All Notifications
               </button>
             </div>
@@ -284,27 +294,27 @@ const Topbar = ({ toggleSidebar }) => {
         </div>
 
         {/* ROLE DROPDOWN */}
-        <select className="hidden md:block bg-gray-100 px-3 py-2 rounded-lg text-sm text-gray-700 focus:outline-none capitalize">
+        {/* <select className="hidden md:block bg-gray-100 px-3 py-2 rounded-lg text-sm text-gray-700 focus:outline-none capitalize">
           <option>{role.replace("_", " ")}</option>
-        </select>
+        </select> */}
 
         {/* theme changer */}
-        <select
-          value={theme}
-          onChange={(e) => {
-            const selectedTheme = e.target.value;
-            setTheme(selectedTheme);
-            document.documentElement.className = selectedTheme;
-            localStorage.setItem("theme", selectedTheme);
-          }}
-          className="hidden md:block bg-[rgb(var(--bg))] px-3 py-2 rounded-lg text-sm text-[rgb(var(--text))] focus:outline-none"
-        >
-          <option value="">Select Theme</option>
-          <option value="theme-light">Light</option>
-          <option value="theme-dark">Dark</option>
-          <option value="theme-blue">Blue</option>
-          <option value="theme-green">Green</option>
-        </select>
+       {/* <select
+  value={theme}
+  onChange={(e) => {
+    const selectedTheme = e.target.value;
+    setTheme(selectedTheme);
+    document.documentElement.className = selectedTheme;
+    localStorage.setItem("theme", selectedTheme);
+  }}
+  className="hidden md:block bg-[rgb(var(--bg))] px-3 py-2 rounded-lg text-sm text-[rgb(var(--text))] focus:outline-none"
+>
+  <option value="">Select Theme</option>
+  <option value="theme-light">Light</option>
+  <option value="theme-dark">Dark</option>
+  <option value="theme-blue">Blue</option>
+  <option value="theme-green">Green</option>
+</select> */}
 
         {/* USER DROPDOWN */}
         <div className="relative">
@@ -329,26 +339,74 @@ const Topbar = ({ toggleSidebar }) => {
           </div>
 
           {openDropdown && (
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="absolute right-0 mt-3 w-48 bg-[rgb(var(--bg))] border border-gray-100 rounded-xl shadow-xl overflow-hidden animate-fadeIn"
-            >
-              <div className="px-4 py-3 border-b">
-                <p className="text-sm font-semibold text-[rgb(var(--text))]">
-                  {name}
-                </p>
-                <p className="text-xs text-[rgb(var(--text))] capitalize">
-                  {role.replace("_", " ")}
-                </p>
-              </div>
-              <button
-                onClick={logout}
-                className="w-full text-left px-4 py-2 text-sm text-[rgb(var(--text))]  hover:text-red-500 transition"
-              >
-                ➡️ Logout
-              </button>
-            </div>
-          )}
+  <div
+    onClick={(e) => e.stopPropagation()}
+    className="absolute right-0 mt-3 w-56 bg-[rgb(var(--bg))] backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl overflow-hidden animate-fadeIn"
+  >
+    {/* User Header */}
+    <div className="px-5 py-4 bg-gradient-to-b from-black/5 to-transparent">
+      <p className="text-sm font-bold tracking-tight text-[rgb(var(--text))]">
+        {name}
+      </p>
+      <p className="text-[10px] font-medium opacity-60 uppercase tracking-widest">
+        {role.replace("_", " ")}
+      </p>
+    </div>
+
+    {/* Modern Theme Section */}
+    <div className="px-5 py-4">
+      <div className="flex justify-between items-center mb-3">
+        <span className="text-[11px] font-bold text-[rgb(var(--text))] opacity-40 uppercase">Appearance</span>
+        <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-500 font-bold capitalize">
+          {theme.replace("theme-", "")}
+        </span>
+      </div>
+      
+      <div className="flex items-center justify-between bg-black/5 p-2 rounded-xl">
+        {[
+          { id: "theme-light", color: "bg-white", border: "border-gray-200" },
+          { id: "theme-dark", color: "bg-slate-800", border: "border-slate-700" },
+          { id: "theme-blue", color: "bg-blue-500", border: "border-blue-400" },
+          { id: "theme-green", color: "bg-emerald-500", border: "border-emerald-400" },
+        ].map((t) => (
+          <button
+            key={t.id}
+            onClick={() => {
+              setTheme(t.id);
+              document.documentElement.className = t.id;
+              localStorage.setItem("theme", t.id);
+            }}
+            className={`relative group w-8 h-8 flex items-center justify-center transition-all duration-300`}
+          >
+            {/* The Outer Glow/Ring for Active Theme */}
+            {theme === t.id && (
+              <span className="absolute inset-0 rounded-full bg-orange-500/20 animate-pulse scale-125" />
+            )}
+            
+            {/* The Main Color Ball */}
+            <div className={`
+              w-6 h-6 rounded-full ${t.color} ${t.border} border shadow-sm
+              transition-all duration-300 transform 
+              group-hover:scale-110 group-active:scale-90
+              ${theme === t.id ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-[rgb(var(--bg))]" : "opacity-80 hover:opacity-100"}
+            `} />
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {/* Logout Button */}
+    <div className="p-2">
+      <button
+        onClick={logout}
+        className="group w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-[rgb(var(--text))] hover:bg-red-500 hover:text-white rounded-xl transition-all duration-200"
+      >
+        <span className="transition-transform "><AiOutlineLogout /></span>
+        Logout
+      </button>
+    </div>
+  </div>
+)}
         </div>
       </div>
 
