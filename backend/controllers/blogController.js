@@ -1,4 +1,4 @@
-import Blog from "../models/Blog.js";
+import Blog from "../models/blog.js";
 import cloudinary from "cloudinary";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import { deleteFromCloudinary } from "../utils/deleteFromCloudinary.js";
