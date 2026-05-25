@@ -73,6 +73,8 @@ import ParentLibrary from "./pages/ParentLibrary";
 import ParentTransport from "./pages/ParentTransport";
 import ChangePassword from "./components/ChangePassword";
 import NotificationPage from "./pages/NotificationPage";
+import Blogs from "./pages/Blogs";
+
 const App = () => {
   return (
     <div className="bg-[rgb(var(--bg))] text-[rgb(var(--text))] min-h-screen">
@@ -160,6 +162,7 @@ const App = () => {
           <Route path="exam-structure" element={<ExamCreate />} />
           <Route path="exam-marks" element={<PrincipalResultView />} />
           <Route path="library" element={<LibraryManagement />} />
+          <Route path="blogs" element={<Blogs />} />
 
           <Route path="*" element={<Navigate to="/school/dashboard" />} />
         </Route>

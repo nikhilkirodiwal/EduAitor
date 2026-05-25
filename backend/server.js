@@ -78,6 +78,7 @@ import diaryRoute from "./routes/diaryRoute.js";
 import messageRoute from "./routes/messageRoute.js";
 import groupRoute from "./routes/groupRoute.js";
 import notificationRoute from "./routes/notificationRoute.js";
+import blogRoute from "./routes/blogRoute.js";
 
 import { authMiddleware } from "./auth/auth.js";
 
@@ -175,6 +176,7 @@ app.use("/api/diary", diaryRoute);
 app.use("/api/messages", messageRoute);
 app.use("/api/groups", groupRoute);
 app.use("/api/notifications", notificationRoute)
+app.use("/api/blogs", blogRoute);
 
 // Server
 const PORT = process.env.PORT || 5000;

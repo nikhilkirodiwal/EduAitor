@@ -178,6 +178,7 @@ const Sidebar = ({ closeSidebar }) => {
       ],
     },
     { name: "Library", icon: <FaBookJournalWhills />, path: "/school/library" },
+    { name: "Blogs", icon: <FaBookJournalWhills />, path: "/school/blogs" },
   ];
 
   /* ---------------- TEACHER ADMIN MENU ---------------- */
