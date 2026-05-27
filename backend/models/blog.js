@@ -5,7 +5,7 @@ const imageSchema = new mongoose.Schema(
     url: { type: String, required: true },
     public_id: { type: String, required: true },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const blogSchema = new mongoose.Schema(
@@ -38,8 +38,15 @@ const blogSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // tracks which users already liked — prevents duplicate likes
+    likedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("Blog", blogSchema);

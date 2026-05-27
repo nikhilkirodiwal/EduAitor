@@ -114,7 +114,7 @@ const App = () => {
           <Route path="school-manage" element={<SchoolManagement />} />
           <Route path="school-detail" element={<SchoolDetail />} />
           <Route path="subscription-plan" element={<SchoolSubscription />} />
-          <Route path="school-view/:id" element={<SchoolView />} />
+          <Route path="/admin/school-view/:id" element={<SchoolDetail />} />
 
           <Route path="*" element={<Navigate to="/admin/dashboard" />} />
         </Route>
@@ -201,6 +201,7 @@ const App = () => {
           <Route path="calendar" element={<TeacherCalendar />} />
           <Route path="group" element={<Group />} />
           <Route path="timetable" element={<ReadTimetable />} />
+          <Route path="blogs" element={<Blogs />} />
 
           <Route path="*" element={<Navigate to="/teacher/dashboard" />} />
         </Route>
@@ -234,6 +235,7 @@ const App = () => {
           <Route path="fees" element={<ParentFee />} />
           <Route path="library" element={<ParentLibrary />} />
           <Route path="transport" element={<ParentTransport />} />
+          <Route path="blogs" element={<Blogs />} />
           {/* <Route
           path="timetable"
           element={

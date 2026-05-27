@@ -1,10 +1,11 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { toast } from "react-toastify";
 import { useEffect, useRef } from "react";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
   const hasShownToast = useRef(false);
 
   useEffect(() => {
@@ -27,7 +28,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
   if (loading) return <div>Loading...</div>;
 
-  if (!user) return <Navigate to="/admin/login" replace />;
+  if (!user)
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     if (user.role === "super_admin") {

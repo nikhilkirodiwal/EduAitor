@@ -25,7 +25,7 @@ import {
 } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { FaStudiovinari } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FaArrowLeft } from "react-icons/fa";
 
 const API = import.meta.env.VITE_API_URL;
@@ -71,6 +71,8 @@ const TABS = [
 ];
 
 export default function SchoolDetail() {
+  const { id } = useParams();
+
   const [schools, setSchools] = useState([]);
   const [selId, setSelId] = useState("");
   const [tab, setTab] = useState("overview");
@@ -83,10 +85,20 @@ export default function SchoolDetail() {
   useEffect(() => {
     axios
       .get(`${API}/schools`)
-      .then((r) => setSchools(r.data.data || []))
+      .then((r) => {
+        const allSchools = r.data.data || [];
+
+        setSchools(allSchools);
+
+        // auto select school from URL
+        if (id) {
+          setSelId(id);
+          load(id);
+        }
+      })
       .catch(() => toast.error("Failed to load schools"))
       .finally(() => setLoadingList(false));
-  }, []);
+  }, [id]);
 
   const load = async (id) => {
     if (!id) return;

@@ -1,6 +1,6 @@
 import { useAuth } from "../context/AuthContext";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaUserShield,
   FaArrowLeft,
@@ -20,6 +20,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/dashboard";
   const { fetchUser } = useAuth();
 
   useEffect(() => {
@@ -59,6 +61,7 @@ export default function Login() {
 
       if (role === "super_admin") {
         if (isMobile) {
+          navigate(from, { replace: true });
           navigate("/admin/menu"); // mobile page
         } else {
           navigate("/admin/dashboard"); // desktop page
@@ -66,6 +69,7 @@ export default function Login() {
         toast.success("Login successful! Welcome back.");
       } else if (role === "school_admin") {
         if (isMobile) {
+          navigate(from, { replace: true });
           navigate("/school/menu"); // mobile page
         } else {
           navigate("/school/dashboard"); // desktop page
@@ -73,6 +77,7 @@ export default function Login() {
         toast.success("Login successful! Welcome back.");
       } else if (role === "teacher_admin") {
         if (isMobile) {
+          navigate(from, { replace: true });
           navigate("/teacher/menu"); // mobile page
         } else {
           navigate("/teacher/dashboard"); // desktop page
@@ -85,6 +90,7 @@ export default function Login() {
           return; // ✅ stop here, don't fall through
         }
         if (isMobile) {
+          navigate(from, { replace: true });
           navigate("/parent/menu");
         } else {
           navigate("/parent/dashboard");

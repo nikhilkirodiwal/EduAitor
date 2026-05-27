@@ -13,9 +13,111 @@ import {
   ChevronRight,
   ImageIcon,
   Loader2,
+  Copy,
+  Check,
 } from "lucide-react";
 
 const API = `${import.meta.env.VITE_API_URL}/blogs`; // ← change to your base URL if needed
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SHARE BOTTOM SHEET
+// ─────────────────────────────────────────────────────────────────────────────
+function ShareSheet({ shareUrl, onClose }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleWhatsApp = () => {
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(shareUrl)}`,
+      "_blank",
+    );
+    onClose();
+  };
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+      onClose();
+    }, 1500);
+  };
+
+  return (
+    <div
+      className="fixed top-0 left-0 w-screen h-screen inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <p className="font-bold text-gray-800 text-base">Share this post</p>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-gray-100 transition"
+          >
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+
+        {/* URL preview box */}
+        <div className="mx-5 mt-4 px-3 py-2.5 bg-gray-50 rounded-xl border border-gray-200">
+          <p className="text-xs text-gray-400 mb-0.5">Link</p>
+          <p className="text-xs text-gray-600 truncate">{shareUrl}</p>
+        </div>
+
+        {/* Share options */}
+        <div className="p-5 flex flex-col gap-2.5">
+          {/* WhatsApp */}
+          <button
+            onClick={handleWhatsApp}
+            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl bg-green-50 hover:bg-green-100 transition text-left"
+          >
+            <div className="w-9 h-9 bg-green-500 rounded-full flex items-center justify-center shrink-0">
+              <svg
+                className="w-4.5 h-4.5 text-white"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-800 text-sm">WhatsApp</p>
+              <p className="text-xs text-gray-400">Send as clickable link</p>
+            </div>
+          </button>
+
+          {/* Copy Link */}
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-4 w-full px-4 py-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition text-left"
+          >
+            <div
+              className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-colors ${copied ? "bg-green-500" : "bg-gray-200"}`}
+            >
+              {copied ? (
+                <Check className="w-4 h-4 text-white" />
+              ) : (
+                <Copy className="w-4 h-4 text-gray-600" />
+              )}
+            </div>
+            <div>
+              <p className="font-semibold text-gray-800 text-sm">
+                {copied ? "Copied!" : "Copy Link"}
+              </p>
+              <p className="text-xs text-gray-400">
+                {copied ? "Link copied to clipboard" : "Copy to clipboard"}
+              </p>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // IMAGE SLIDER
@@ -27,7 +129,8 @@ function ImageSlider({ images }) {
   useEffect(() => {
     if (images.length <= 1) return;
     timerRef.current = setInterval(
-      () => setCurrent((p) => (p + 1) % images.length), 3000
+      () => setCurrent((p) => (p + 1) % images.length),
+      3000,
     );
     return () => clearInterval(timerRef.current);
   }, [images.length]);
@@ -46,7 +149,6 @@ function ImageSlider({ images }) {
 
   return (
     <div className="relative w-full rounded-t-xl overflow-hidden bg-gray-50 group">
-
       {/* ✅ Full width, natural height, no crop */}
       <img
         src={images[current].url}
@@ -92,9 +194,17 @@ function ImageSlider({ images }) {
 // BLOG CARD
 // ─────────────────────────────────────────────────────────────────────────────
 function BlogCard({ blog, onEdit, onDelete, onTogglePublic, onLike }) {
-  const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(blog.likes);
+  const [liked, setLiked] = useState(blog.hasLiked ?? false);
+  const [likesCount, setLikesCount] = useState(blog.likes ?? 0);
   const [expanded, setExpanded] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+
+  const shareUrl = `${API}/${blog._id}`;
+
+  useEffect(() => {
+    setLiked(blog.hasLiked ?? false);
+    setLikesCount(blog.likes ?? 0);
+  }, [blog.hasLiked, blog.likes]);
 
   const handleLike = async () => {
     if (liked) return;
@@ -103,119 +213,115 @@ function BlogCard({ blog, onEdit, onDelete, onTogglePublic, onLike }) {
     await onLike(blog._id);
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({ title: blog.title, text: blog.content.slice(0, 100) });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert("Link copied!");
-    }
-  };
-
   const isLong = blog.content.length > 120;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <ImageSlider images={blog.images} />
+    <>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <ImageSlider images={blog.images} />
 
-      <div className="p-4">
-        {/* Title row + admin controls */}
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex-1 min-w-0">
-            {/* Category badge */}
-            <span className="inline-block text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full mb-1">
-              {blog.category}
-            </span>
-            <h3 className="text-base font-bold text-gray-800 leading-tight truncate">
-              {blog.title}
-            </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {new Date(blog.createdAt).toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-              })}
-            </p>
+        <div className="p-4">
+          {/* Title row + admin controls */}
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div className="flex-1 min-w-0">
+              {/* Category badge */}
+              <span className="inline-block text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full mb-1">
+                {blog.category}
+              </span>
+              <h3 className="text-base font-bold text-gray-800 leading-tight truncate">
+                {blog.title}
+              </h3>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {new Date(blog.createdAt).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </p>
+            </div>
+
+            {/* Admin action buttons */}
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => onTogglePublic(blog._id)}
+                title={blog.isPublic ? "Make Private" : "Make Public"}
+                className={`p-1.5 rounded-lg transition ${
+                  blog.isPublic
+                    ? "bg-green-50 text-green-600 hover:bg-green-100"
+                    : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                }`}
+              >
+                {blog.isPublic ? (
+                  <Eye className="w-3.5 h-3.5" />
+                ) : (
+                  <EyeOff className="w-3.5 h-3.5" />
+                )}
+              </button>
+              <button
+                onClick={() => onEdit(blog)}
+                className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => onDelete(blog._id)}
+                className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
 
-          {/* Admin action buttons */}
-          <div className="flex items-center gap-1 shrink-0">
+          {/* Content */}
+          <p className="text-sm text-gray-600 leading-relaxed">
+            {expanded || !isLong ? blog.content : blog.content.slice(0, 120)}
+            {isLong && (
+              <button
+                onClick={() => setExpanded(!expanded)}
+                className="text-blue-500 text-xs font-medium ml-1"
+              >
+                {expanded ? " show less" : "...read more"}
+              </button>
+            )}
+          </p>
+
+          {/* Like / Share bar */}
+          <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-50">
             <button
-              onClick={() => onTogglePublic(blog._id)}
-              title={blog.isPublic ? "Make Private" : "Make Public"}
-              className={`p-1.5 rounded-lg transition ${
-                blog.isPublic
-                  ? "bg-green-50 text-green-600 hover:bg-green-100"
-                  : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+              onClick={handleLike}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                liked ? "text-red-500" : "text-gray-400 hover:text-red-400"
               }`}
             >
-              {blog.isPublic ? (
-                <Eye className="w-3.5 h-3.5" />
-              ) : (
-                <EyeOff className="w-3.5 h-3.5" />
-              )}
+              <Heart
+                className={`w-4 h-4 transition-transform active:scale-125 ${
+                  liked ? "fill-red-500 stroke-red-500" : ""
+                }`}
+              />
+              <span>{likesCount > 0 ? likesCount : ""} Like</span>
             </button>
+
             <button
-              onClick={() => onEdit(blog)}
-              className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition"
+              onClick={() => setShowShare(true)}
+              className="flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-blue-500 transition-colors"
             >
-              <Edit2 className="w-3.5 h-3.5" />
+              <Share2 className="w-4 h-4" />
+              <span>Share</span>
             </button>
-            <button
-              onClick={() => onDelete(blog._id)}
-              className="p-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+
+            {/* Private badge */}
+            {!blog.isPublic && (
+              <span className="ml-auto flex items-center gap-1 text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">
+                <EyeOff className="w-3 h-3" /> Private
+              </span>
+            )}
           </div>
-        </div>
-
-        {/* Content */}
-        <p className="text-sm text-gray-600 leading-relaxed">
-          {expanded || !isLong ? blog.content : blog.content.slice(0, 120)}
-          {isLong && (
-            <button
-              onClick={() => setExpanded(!expanded)}
-              className="text-blue-500 text-xs font-medium ml-1"
-            >
-              {expanded ? " show less" : "...read more"}
-            </button>
-          )}
-        </p>
-
-        {/* Like / Share bar */}
-        <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-50">
-          <button
-            onClick={handleLike}
-            className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
-              liked ? "text-red-500" : "text-gray-400 hover:text-red-400"
-            }`}
-          >
-            <Heart
-              className={`w-4 h-4 transition-transform active:scale-125 ${
-                liked ? "fill-red-500 stroke-red-500" : ""
-              }`}
-            />
-            <span>{likesCount > 0 ? likesCount : ""} Like</span>
-          </button>
-
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-blue-500 transition-colors"
-          >
-            <Share2 className="w-4 h-4" />
-            <span>Share</span>
-          </button>
-
-          {/* Private badge */}
-          {!blog.isPublic && (
-            <span className="ml-auto flex items-center gap-1 text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">
-              <EyeOff className="w-3 h-3" /> Private
-            </span>
-          )}
         </div>
       </div>
-    </div>
+      {showShare && (
+        <ShareSheet shareUrl={shareUrl} onClose={() => setShowShare(false)} />
+      )}
+    </>
   );
 }
 
@@ -240,7 +346,7 @@ function BlogFormModal({ blog, onClose, onSave }) {
   });
   const [files, setFiles] = useState([]);
   const [previews, setPreviews] = useState(
-    blog?.images?.map((i) => i.url) || []
+    blog?.images?.map((i) => i.url) || [],
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -272,14 +378,14 @@ function BlogFormModal({ blog, onClose, onSave }) {
       files.forEach((f) => fd.append("images", f));
 
       if (blog?._id) {
-        await axios.put(`${API}/${blog._id}`, fd,{withCredentials: true});
+        await axios.put(`${API}/${blog._id}`, fd, { withCredentials: true });
       } else {
         console.log("Submitting new blog with data:", form);
-        await axios.post(API, fd,{withCredentials: true});
+        await axios.post(API, fd, { withCredentials: true });
       }
       onSave();
     } catch (err) {
-      console.log(err)
+      console.log(err);
       setError(err.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
@@ -401,7 +507,7 @@ function BlogFormModal({ blog, onClose, onSave }) {
             >
               <span
                 className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${
-                  form.isPublic ? "left-[22px]" : "left-0.5"
+                  form.isPublic ? "left-5.5" : "left-0.5"
                 }`}
               />
             </button>
@@ -479,7 +585,7 @@ export default function Blogs() {
   const fetchBlogs = async () => {
     setLoading(true);
     try {
-      const {data} = await axios.get(API,{withCredentials: true});
+      const { data } = await axios.get(API, { withCredentials: true });
       console.log("Fetched blogs:", data);
       setBlogs(data.data);
     } catch (err) {
@@ -495,7 +601,10 @@ export default function Blogs() {
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`${API}/${deleteId}`,{},{withCredentials: true});
+      const res = await axios.delete(`${API}/${deleteId}`, {
+        withCredentials: true,
+      });
+      console.log("Delete response:", res);
       setBlogs((prev) => prev.filter((b) => b._id !== deleteId));
     } catch (err) {
       console.error(err);
@@ -506,7 +615,11 @@ export default function Blogs() {
 
   const handleTogglePublic = async (id) => {
     try {
-      const { data } = await axios.patch(`${API}/${id}/toggle-public`,{},{withCredentials: true});
+      const { data } = await axios.patch(
+        `${API}/${id}/toggle-public`,
+        {},
+        { withCredentials: true },
+      );
       setBlogs((prev) => prev.map((b) => (b._id === id ? data.data : b)));
     } catch (err) {
       console.error(err);
@@ -515,7 +628,7 @@ export default function Blogs() {
 
   const handleLike = async (id) => {
     try {
-      await axios.patch(`${API}/${id}/like`,{},{withCredentials: true});
+      await axios.patch(`${API}/${id}/like`, {}, { withCredentials: true });
     } catch (err) {
       console.error(err);
     }

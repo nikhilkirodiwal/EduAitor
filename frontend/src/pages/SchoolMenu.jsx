@@ -20,6 +20,7 @@ import { HiAcademicCap } from "react-icons/hi2";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
+import BlogFeed from "../components/BlogFeed";
 
 /* ─── Color map ─────────────────────────────────────────────── */
 const COLOR_MAP = {
@@ -420,6 +421,7 @@ export default function SchoolMenu() {
         })}
       </div>
 
+      <BlogFeed />
       {showExit && (
         <ExitPopup
           onConfirm={handleLogout}

@@ -6,12 +6,15 @@ import { BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { HelmetProvider } from "react-helmet-async";
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <StrictMode>
       <AuthProvider>
-        <App />
+        <HelmetProvider>
+          <App />
+        </HelmetProvider>
       </AuthProvider>
       <ToastContainer position="top-right" autoClose={2000} />
     </StrictMode>

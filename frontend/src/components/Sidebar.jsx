@@ -248,6 +248,7 @@ const Sidebar = ({ closeSidebar }) => {
     { name: "Events", icon: <FaCalendar />, path: "/teacher/event" },
 
     { name: "Calendar", icon: <FaCalendarAlt />, path: "/teacher/calendar" },
+    // { name: "Blogs", icon: <FaBookJournalWhills />, path: "/teacher/blogs" },
   ];
 
   /* ---------------- STUDENT / PARENT ADMIN MENU ---------------- */
@@ -286,6 +287,7 @@ const Sidebar = ({ closeSidebar }) => {
     { name: "Events", icon: <FaCalendar />, path: "/parent/event" },
     { name: "Group", icon: <FaUserGroup />, path: "/parent/group" },
     { name: "Library", icon: <FaBookJournalWhills />, path: "/parent/library" },
+    // { name: "Blogs", icon: <FaBookJournalWhills />, path: "/parent/blogs" },
   ];
 
   let menu = [];

@@ -1,4 +1,5 @@
 import Blog from "../models/blog.js";
+import mongoose from "mongoose";
 import cloudinary from "cloudinary";
 import { uploadToCloudinary } from "../utils/uploadToCloudinary.js";
 import { deleteFromCloudinary } from "../utils/deleteFromCloudinary.js";
@@ -7,23 +8,57 @@ import { deleteFromCloudinary } from "../utils/deleteFromCloudinary.js";
 export const getBlogs = async (req, res) => {
   try {
     const schoolId = req.user.school_id;
-    const blogs = await Blog.find({ schoolId }).sort({ createdAt: -1 });
-    res.json({ success: true, data: blogs });
+    const userId = (req.user._id || req.user.id)?.toString();
+
+    // ✅ fetch likedBy in same query, no second query needed
+    const blogs = await Blog.find({ schoolId }).sort({ createdAt: -1 }).lean();
+
+    const blogsWithLike = blogs.map((blog) => {
+      const { likedBy, ...rest } = blog; // strip likedBy before sending
+      return {
+        ...rest,
+        hasLiked: userId
+          ? (likedBy || [])
+              .filter(Boolean)
+              .some((id) => id.toString() === userId)
+          : false,
+      };
+    });
+
+    res.json({ success: true, data: blogsWithLike });
   } catch (err) {
+    console.error("getBlogs error:", err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
-// ─── GET public blogs by schoolId (no auth, for public feed) ─────────────────
+// ─── GET public blogs by schoolId (no auth) ───────────────────────────────────
 export const getPublicBlogs = async (req, res) => {
   try {
-    console.log("Fetching public blogs for schoolId");
-    // const { schoolId } = req.params;
-    const schoolId  = req.user.school_id;
-    const blogs = await Blog.find({ schoolId, isPublic: true }).sort({
-      createdAt: -1,
-    });
-    res.json({ success: true, data: blogs });
+    const schoolId = req.user.school_id || req.params.schoolId;
+
+    // optional: pass userId via query ?userId=xxx so public users can also see hasLiked
+    const userId = req.user._id || req.query.userId;
+
+    const blogs = await Blog.find({ schoolId, isPublic: true })
+      .select("-likedBy")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    let blogsWithLike = blogs;
+    if (userId) {
+      blogsWithLike = await Promise.all(
+        blogs.map(async (blog) => {
+          const full = await Blog.findById(blog._id).select("likedBy");
+          return {
+            ...blog,
+            hasLiked: full.likedBy.some((id) => id.toString() === userId),
+          };
+        }),
+      );
+    }
+
+    res.json({ success: true, data: blogsWithLike });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -40,7 +75,7 @@ export const createBlog = async (req, res) => {
     let images = [];
     if (req.files && req.files.length > 0) {
       const uploads = await Promise.all(
-        req.files.map((file) => uploadToCloudinary(file, "blogs"))
+        req.files.map((file) => uploadToCloudinary(file, "blogs")),
       );
       images = uploads.map((u) => ({ url: u.url, public_id: u.public_id }));
     }
@@ -53,11 +88,10 @@ export const createBlog = async (req, res) => {
       images,
       schoolId,
     });
-console.log("Created blog:", blog);
+    console.log("Created blog:", blog);
     res.status(201).json({ success: true, data: blog });
-
   } catch (err) {
-console.log("Error creating blog:", err);
+    console.log("Error creating blog:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
@@ -81,11 +115,11 @@ export const updateBlog = async (req, res) => {
     if (req.files && req.files.length > 0) {
       if (blog.images.length > 0) {
         await Promise.all(
-          blog.images.map((img) => cloudinary.uploader.destroy(img.public_id))
+          blog.images.map((img) => cloudinary.uploader.destroy(img.public_id)),
         );
       }
       const uploads = await Promise.all(
-        req.files.map((file) => uploadToCloudinary(file, "blogs"))
+        req.files.map((file) => uploadToCloudinary(file, "blogs")),
       );
       images = uploads.map((u) => ({ url: u.url, public_id: u.public_id }));
     }
@@ -99,7 +133,7 @@ export const updateBlog = async (req, res) => {
         isPublic: isPublic === "true" || isPublic === true,
         images,
       },
-      { new: true }
+      { new: true },
     );
 
     res.json({ success: true, data: updated });
@@ -110,6 +144,7 @@ export const updateBlog = async (req, res) => {
 
 // ─── DELETE blog ──────────────────────────────────────────────────────────────
 export const deleteBlog = async (req, res) => {
+  console.log("Deleting blog with id:", req.params.id);
   try {
     const { id } = req.params;
     const schoolId = req.user.school_id;
@@ -123,7 +158,7 @@ export const deleteBlog = async (req, res) => {
     // Delete images from Cloudinary
     if (blog.images.length > 0) {
       await Promise.all(
-        blog.images.map((img) => cloudinary.uploader.destroy(img.public_id))
+        blog.images.map((img) => cloudinary.uploader.destroy(img.public_id)),
       );
     }
 
@@ -139,8 +174,12 @@ export const togglePublic = async (req, res) => {
   try {
     const { id } = req.params;
     const schoolId = req.user.school_id;
-    console
-.log("Toggling public/private for blogId:", id, "schoolId:", schoolId);
+    console.log(
+      "Toggling public/private for blogId:",
+      id,
+      "schoolId:",
+      schoolId,
+    );
 
     const blog = await Blog.findOne({ _id: id, schoolId });
     if (!blog)
@@ -157,21 +196,54 @@ export const togglePublic = async (req, res) => {
   }
 };
 
-// ─── LIKE blog ────────────────────────────────────────────────────────────────
+// ─── LIKE / UNLIKE toggle ─────────────────────────────────────────────────────
 export const likeBlog = async (req, res) => {
   try {
     const { id } = req.params;
-    const blog = await Blog.findByIdAndUpdate(
-      id,
-      { $inc: { likes: 1 } },
-      { new: true }
-    );
+    const userId = req.user._id || req.user.id;
+
+    const blog = await Blog.findById(id);
     if (!blog)
       return res
         .status(404)
         .json({ success: false, message: "Blog not found" });
 
-    res.json({ success: true, likes: blog.likes });
+    // ✅ treat null field as empty array
+    const likedBy = blog.likedBy || [];
+    const alreadyLiked = likedBy.some(
+      (uid) => uid?.toString() === userId?.toString(),
+    );
+
+    const updated = await Blog.findByIdAndUpdate(
+      id,
+      alreadyLiked
+        ? {
+            $pull: { likedBy: userId },
+            $inc: { likes: -1 },
+          }
+        : {
+            $addToSet: { likedBy: userId }, // addToSet prevents duplicates
+            $inc: { likes: 1 },
+          },
+      { new: true },
+    );
+
+    res.json({
+      success: true,
+      likes: Math.max(0, updated.likes),
+      hasLiked: !alreadyLiked,
+    });
+  } catch (err) {
+    console.error("likeBlog error:", err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+export const getBlogById = async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id).lean();
+    if (!blog)
+      return res.status(404).json({ success: false, message: "Not found" });
+    res.json({ success: true, data: blog });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
