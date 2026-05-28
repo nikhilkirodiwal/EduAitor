@@ -130,9 +130,9 @@ export const changePassWord = async (req, res) => {
   const { newPassword } = req.body;
   const hashed = await bcrypt.hash(newPassword, 10);
 
-  const okkreport = await Student.findByIdAndUpdate(req.user.student_id, {
+  const okkreport = await Student.findByIdAndUpdate(req.user._id, {
     password: hashed,
-    firstTimeLogin: false,   // ✅ clear the flag
+   
   });
 
   res.json({ message: "Password updated successfully" });

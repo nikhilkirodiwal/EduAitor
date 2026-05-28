@@ -5,5 +5,6 @@ const router = express.Router();
 
 router.post("/login", loginUser);
 router.post("/change-password", authMiddleware, changePassWord)
+// router.put("/change-password", authMiddleware, changePassWord)
 
 export default router;
