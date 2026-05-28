@@ -219,7 +219,7 @@ export default function BlogDetail() {
   const [showShare, setShowShare] = useState(false);
 
   const shareUrl = blog
-    ? `${import.meta.env.VITE_API_URL}/blogs/${blog._id}`
+    ? `${import.meta.env.VITE_APP_URL}/blogs/${blog._id}`
     : "";
 
   // ── Fetch blog ─────────────────────────────────────────────────────────────

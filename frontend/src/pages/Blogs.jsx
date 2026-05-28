@@ -199,7 +199,7 @@ function BlogCard({ blog, onEdit, onDelete, onTogglePublic, onLike }) {
   const [expanded, setExpanded] = useState(false);
   const [showShare, setShowShare] = useState(false);
 
-  const shareUrl = `${API}/${blog._id}`;
+  const shareUrl = `${import.meta.env.VITE_APP_URL}/blogs/${blog._id}`;
 
   useEffect(() => {
     setLiked(blog.hasLiked ?? false);

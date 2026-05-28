@@ -74,13 +74,14 @@ import ParentTransport from "./pages/ParentTransport";
 import ChangePassword from "./components/ChangePassword";
 import NotificationPage from "./pages/NotificationPage";
 import Blogs from "./pages/Blogs";
+import BlogDetail from "./components/BlogDetail";
 
 const App = () => {
   return (
     <div className="bg-[rgb(var(--bg))] text-[rgb(var(--text))] min-h-screen">
       <Routes>
-        {/* Default redirect */}
-        <Route path="*" element={<Navigate to="/admin/login" />} />
+        {/* Public blog detail — no auth needed */}
+        <Route path="/blogs/:id" element={<BlogDetail />} />
 
         {/* Login */}
         <Route path="/admin/login" element={<Login />} />
@@ -249,6 +250,9 @@ const App = () => {
 
           <Route path="*" element={<Navigate to="/parent/dashboard" />} />
         </Route>
+
+        {/* Default redirect */}
+        <Route path="*" element={<Navigate to="/admin/login" />} />
       </Routes>
     </div>
   );

@@ -200,7 +200,7 @@ function BlogCard({ blog, onLikeUpdate }) {
   const [expanded, setExpanded] = useState(false);
   const [showShare, setShowShare] = useState(false); // ← share sheet toggle
 
-  const shareUrl = `${API}/${blog._id}`;
+  const shareUrl = `${import.meta.env.VITE_APP_URL}/blogs/${blog._id}`;
 
   // sync if parent re-fetches
   useEffect(() => {
