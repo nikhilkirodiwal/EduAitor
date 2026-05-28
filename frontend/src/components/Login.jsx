@@ -196,12 +196,12 @@ export default function Login() {
             </button>
 
             {/* DEMO */}
-            <div className="text-center text-xs text-gray-500 space-y-1 mt-2">
+            {/* <div className="text-center text-xs text-gray-500 space-y-1 mt-2">
               <p>Super Admin: super@admin.com / admin</p>
               <p>School Admin: school@admin.com / admin</p>
               <p>Teacher Admin: teacher@admin.com / admin</p>
               <p>Student Admin: student@admin.com / admin</p>
-            </div>
+            </div> */}
           </form>
         </div>
       </div>
